@@ -3,6 +3,7 @@
 Fonte principale: Yahoo Finance (endpoint pubblico chart). Riserva: Stooq.
 Se uno strumento non si scarica, resta l'ultimo dato valido."""
 import json, sys, time, datetime as dt, csv, io, os
+T0 = time.time(); BUDGET = 420   # secondi massimi totali
 import requests
 
 DAYS = 400
@@ -11,7 +12,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 def yahoo(sym):
     r = requests.get(f'https://query1.finance.yahoo.com/v8/finance/chart/{sym}',
-                     params={'range': '2y', 'interval': '1d'}, headers=UA, timeout=25)
+                     params={'range': '2y', 'interval': '1d'}, headers=UA, timeout=8)
     r.raise_for_status()
     res = r.json()['chart']['result'][0]
     ts = res['timestamp']; cl = res['indicators']['quote'][0]['close']
@@ -20,7 +21,7 @@ def yahoo(sym):
 def stooq(sym):
     s = sym.lower()
     s = s + '.us' if '.' not in s and '-' not in s else s.replace('-usd', '.v')
-    r = requests.get('https://stooq.com/q/d/l/', params={'s': s, 'i': 'd'}, headers=UA, timeout=25)
+    r = requests.get('https://stooq.com/q/d/l/', params={'s': s, 'i': 'd'}, headers=UA, timeout=8)
     r.raise_for_status()
     rows = list(csv.DictReader(io.StringIO(r.text)))
     if not rows or 'Close' not in rows[0]: raise ValueError('stooq vuoto')
@@ -33,20 +34,27 @@ def main():
         o = json.load(open(f'{HERE}/data.json'))
         old = {i['t']: dict(zip(o['dates'], i['c'])) for i in o['inst']}
     except Exception: pass
-    series, fail = {}, []
-    for u in uni:
-        d = None
+    series, fail, tried_ok = {}, [], 0
+    for n, u in enumerate(uni, 1):
+        if time.time() - T0 > BUDGET:
+            print('Tempo massimo raggiunto, mi fermo qui'); fail += [x['t'] for x in uni[n-1:]]; break
+        d, why = None, ''
         for fn in (yahoo, stooq):
             try:
                 d = fn(u['y'])
-                if len(d) > 30: break
+                if len(d) > 30: why = fn.__name__; break
             except Exception as e:
-                d = None
-            time.sleep(0.4)
-        if not d or len(d) <= 30:
+                d = None; why += f'{fn.__name__}: {type(e).__name__} {str(e)[:90]} | '
+        if d and len(d) > 30:
+            tried_ok += 1; print(f"[{n}/{len(uni)}] {u['t']} ok ({why})", flush=True)
+        else:
+            print(f"[{n}/{len(uni)}] {u['t']} ERRORE {why}", flush=True)
             if u['t'] in old: d = old[u['t']]
-            else: fail.append(u['t']); continue
-        series[u['t']] = d
+            else: fail.append(u['t']); d = None
+            if n >= 6 and tried_ok == 0:
+                print('I primi 6 strumenti non si scaricano: rete o fonte bloccata. Mi fermo.'); sys.exit(1)
+        if d: series[u['t']] = d
+        time.sleep(0.3)
     if len(series) < len(uni) * 0.5:
         print('Troppi errori:', fail); sys.exit(1)
     last = max(max(s) for s in series.values())
