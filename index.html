@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Terminale Binario F</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Newsreader:wght@500;600&display=swap">
+<style>
+/* Layout: barra strumenti in alto, mappa a riquadri proporzionali come vista principale, tabella e portafoglio come viste secondarie. */
+:root{
+  --bg:#F2F6F3; --surface:#FFFFFF; --fg:#1B2A23; --muted:#5B6C63; --line:#D3DFD8;
+  --brand:#2D4A3A; --accent:#C47F14; --up:#2A9D5C; --down:#D1493E; --neutral:#E4ECE7; --on-strong:#FFFFFF; --chip:#E4ECE7; --warn-bg:#FBEBD0;
+  --f-body:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif; --f-display:'Newsreader',Georgia,serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111915; --surface:#19231E; --fg:#E5EEE9; --muted:#93A69C; --line:#293731;
+  --brand:#86BF9F; --accent:#E0A04A; --up:#34B06C; --down:#E0675C; --neutral:#22302A; --on-strong:#FFFFFF; --chip:#22302A; --warn-bg:#3A2D14; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111915; --surface:#19231E; --fg:#E5EEE9; --muted:#93A69C; --line:#293731;
+  --brand:#86BF9F; --accent:#E0A04A; --up:#34B06C; --down:#E0675C; --neutral:#22302A; --on-strong:#FFFFFF; --chip:#22302A; --warn-bg:#3A2D14; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.4;
+  padding-block:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1280px;margin:0 auto;padding-block:14px 40px;display:flex;flex-direction:column;gap:14px}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+header{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:baseline;gap:10px;min-width:0}
+.brand b{font-family:var(--f-display);font-size:24px;font-weight:600;color:var(--brand);letter-spacing:-.01em}
+.brand span{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:600}
+.meta{font-size:12px;color:var(--muted)}
+.sample{background:var(--warn-bg);color:var(--fg);border:1px solid var(--accent);border-radius:6px;padding:8px 12px;font-size:13px}
+.bar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.seg{display:inline-flex;background:var(--chip);border-radius:8px;padding:3px;gap:2px;max-width:100%;overflow-x:auto}
+.seg button{border:0;background:transparent;padding:6px 12px;border-radius:6px;font-weight:600;color:var(--muted);white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--brand);color:var(--surface)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line)}
+.tabs button{border:0;background:none;padding:10px 14px;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-1px}
+.tabs button[aria-selected="true"]{color:var(--brand);border-bottom-color:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{border:1px solid var(--line);background:var(--surface);padding:5px 11px;border-radius:99px;font-size:13px;color:var(--fg)}
+.chips button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:var(--surface)}
+.search{position:relative;flex:1 1 240px;max-width:380px}
+.search input{width:100%;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.results{position:absolute;z-index:20;left:0;right:0;top:calc(100% + 4px);background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.14);max-height:340px;overflow:auto}
+.results button{display:flex;justify-content:space-between;gap:8px;width:100%;border:0;background:none;text-align:left;padding:8px 12px}
+.results button:hover,.results button:focus-visible{background:var(--chip)}
+.results .none{padding:10px 12px;color:var(--muted)}
+.results a{color:var(--brand);font-weight:600}
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.strip div{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;min-width:0}
+.strip small{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.1em;font-weight:600}
+.strip b{display:block;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.up{color:var(--up)}.down{color:var(--down)}
+#map{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:4px;min-height:300px}
+#map svg{display:block;width:100%}
+#map rect{stroke:var(--surface);stroke-width:2;cursor:pointer}
+#map rect:hover{stroke:var(--fg)}
+#map text{pointer-events:none;font-family:var(--f-body)}
+.note{font-size:12px;color:var(--muted)}
+.legend{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.legend i{display:block;width:160px;height:10px;border-radius:5px;background:linear-gradient(90deg,var(--down),var(--neutral),var(--up))}
+.tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;min-width:640px}
+th,td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);background:var(--surface);position:sticky;top:0;cursor:pointer}
+th[aria-sort]{color:var(--brand)}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--chip)}
+td.h{font-weight:600}
+td.tk{font-weight:700;color:var(--brand)}
+td.gp{color:var(--muted);font-size:12px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+h2{font-family:var(--f-display);font-size:20px;margin:0;color:var(--brand);font-weight:600}
+.prow{display:grid;grid-template-columns:minmax(0,1fr) 90px 34px;gap:8px;align-items:center}
+.prow select,.prow input{padding:7px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);min-width:0}
+.prow button,.btn{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:7px 10px;font-weight:600}
+.btn.pri{background:var(--brand);color:var(--surface);border-color:var(--brand)}
+.pgrid{display:grid;grid-template-columns:minmax(280px,380px) minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:820px){.pgrid{grid-template-columns:minmax(0,1fr)}}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+.kpis div{background:var(--bg);border-radius:6px;padding:8px 10px}
+.kpis small{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+.kpis b{font-size:17px}
+dialog{border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg);padding:0;width:min(720px,calc(100vw - 24px));max-height:calc(100vh - 32px)}
+dialog::backdrop{background:rgba(10,20,15,.5)}
+.dlg{padding:16px;display:flex;flex-direction:column;gap:12px}
+.dlg header{align-items:flex-start}
+.dlg h3{margin:0;font-family:var(--f-display);font-size:22px;color:var(--brand)}
+.links{display:flex;flex-wrap:wrap;gap:8px}
+.links a{border:1px solid var(--line);border-radius:6px;padding:6px 10px;text-decoration:none;color:var(--brand);font-weight:600;font-size:13px}
+.chart text{fill:var(--muted);font-size:11px;font-family:var(--f-body)}
+.foot{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+</style>
+</head><body>
+
+
+<div class="wrap">
+  <header>
+    <div class="brand"><b>Binario F</b><span>Terminale di mercato</span></div>
+    <div class="search">
+      <input id="q" type="search" placeholder="Cerca ticker o nome (es. XLK, oro, Giappone)" autocomplete="off" aria-label="Cerca strumento">
+      <div class="results" id="res" hidden></div>
+    </div>
+    <div class="meta num" id="upd"></div>
+  </header>
+  <div class="sample" id="sampleBox" hidden><b>Dati di prova.</b> I numeri di questa anteprima sono inventati e servono solo a mostrare come funziona. Con il collegamento ai dati reali compaiono i prezzi veri.</div>
+
+  <div class="bar">
+    <div class="seg" id="per" role="group" aria-label="Periodo"></div>
+    <div class="legend"><span>calo</span><i></i><span>rialzo</span></div>
+  </div>
+  <div class="strip" id="strip"></div>
+
+  <nav class="tabs" role="tablist" aria-label="Viste">
+    <button role="tab" id="t-mappa" aria-selected="true">Mappa</button>
+    <button role="tab" id="t-tabella" aria-selected="false">Tabella</button>
+    <button role="tab" id="t-portafoglio" aria-selected="false">Portafoglio</button>
+  </nav>
+
+  <section id="v-mappa" class="vw">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="chips" id="gm"></div>
+      <div id="map"></div>
+      <div class="bar"><div class="seg" id="sz" role="group" aria-label="Dimensione riquadri"></div>
+        <span class="note">Dimensione indicativa = peso approssimato dell'area nel mercato. Clicca un riquadro per la scheda.</span></div>
+    </div>
+  </section>
+
+  <section id="v-tabella" class="vw" hidden>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="chips" id="gt"></div>
+      <div class="tablewrap"><table id="tb"></table></div>
+    </div>
+  </section>
+
+  <section id="v-portafoglio" class="vw" hidden>
+    <div class="pgrid">
+      <div class="panel">
+        <h2>Costruisci un portafoglio</h2>
+        <div class="note">Scegli gli strumenti e i pesi. Il calcolo assume che i pesi siano quelli iniziali di ogni periodo, senza ribilanciamenti.</div>
+        <div id="rows" style="display:flex;flex-direction:column;gap:8px"></div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+          <button class="btn" id="add">+ Aggiungi strumento</button>
+          <span class="note num" id="sumw"></span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px" id="presets"></div>
+      </div>
+      <div class="panel" id="pres"></div>
+    </div>
+  </section>
+
+  <div class="foot">Strumento di consultazione interna di Binario F. I rendimenti sono quelli degli ETF rappresentativi indicati (in valuta di quotazione, prezzi di chiusura, ritardati) e non costituiscono consulenza né raccomandazione. I rendimenti passati non sono indicativi di quelli futuri.</div>
+</div>
+
+<dialog id="dlg"><div class="dlg" id="dbody"></div></dialog>
+
+<script>
+const INLINE = null;
+const PERS = ['1G','1S','1M','3M','YTD','1A'];
+const SCALE = {'1G':.03,'1S':.05,'1M':.08,'3M':.15,'YTD':.25,'1A':.4};
+const $ = id => document.getElementById(id);
+const S = {per:'YTD', grp:'Settori USA', view:'mappa', size:'ind', sort:{k:'YTD',d:-1}, pf:[]};
+let D, R = {}, BYT = {}, GROUPS = [];
+
+const fmtP = (v, d=1) => v==null ? '–' : (v>0?'+':v<0?'−':'') + Math.abs(v*100).toFixed(d).replace('.',',') + '%';
+const fmtN = v => v==null ? '–' : v.toLocaleString('it-IT',{maximumFractionDigits:2,minimumFractionDigits:2});
+const cls = v => v==null ? '' : v>0 ? 'up' : v<0 ? 'down' : '';
+const store = {get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+function dayShift(iso, days){const d=new Date(iso+'T00:00:00Z');d.setUTCDate(d.getUTCDate()-days);return d.toISOString().slice(0,10)}
+function idxOnOrBefore(dates, iso){let lo=0,hi=dates.length-1,r=-1;while(lo<=hi){const m=(lo+hi)>>1;if(dates[m]<=iso){r=m;lo=m+1}else hi=m-1}return r}
+
+function compute(){
+  const dates = D.dates, n = dates.length, last = dates[n-1];
+  const tgt = {'1S':dayShift(last,7),'1M':dayShift(last,30),'3M':dayShift(last,91),'1A':dayShift(last,365),'YTD':(+last.slice(0,4)-1)+'-12-31'};
+  const ix = {'1G':n-2}; for(const k in tgt) ix[k]=idxOnOrBefore(dates,tgt[k]);
+  D.inst.forEach(i=>{
+    BYT[i.t]=i; const c=i.c, lastP=c[n-1]; R[i.t]={};
+    PERS.forEach(p=>{const b=ix[p]>=0?c[ix[p]]:null; R[i.t][p]=(lastP!=null&&b)? lastP/b-1 : null});
+    i.last = lastP;
+    const yr = c.slice(Math.max(0,ix['1A']<0?0:ix['1A'])).filter(x=>x!=null);
+    i.hi = Math.max(...yr); i.lo = Math.min(...yr);
+  });
+  GROUPS = [...new Set(D.inst.map(i=>i.g))];
+}
+
+/* ---------- intestazione e riepilogo ---------- */
+function renderHead(){
+  $('upd').textContent = 'Aggiornato: ' + new Date(D.updated).toLocaleString('it-IT',{dateStyle:'short',timeStyle:'short'}) + ' · ultimo dato di chiusura ' + D.dates[D.dates.length-1].split('-').reverse().join('/');
+  $('sampleBox').hidden = !D.sample;
+  const all = D.inst.filter(i=>R[i.t][S.per]!=null).sort((a,b)=>R[b.t][S.per]-R[a.t][S.per]);
+  const up = all.filter(i=>R[i.t][S.per]>0).length;
+  const card=(l,i)=>`<div><small>${l}</small><b>${i?`${i.n} <span class="${cls(R[i.t][S.per])} num">${fmtP(R[i.t][S.per])}</span>`:'–'}</b></div>`;
+  $('strip').innerHTML = card('Migliore ('+S.per+')',all[0]) + card('Peggiore ('+S.per+')',all[all.length-1]) +
+    `<div><small>Strumenti in rialzo (${S.per})</small><b class="num">${up} su ${all.length}</b></div>`;
+}
+
+/* ---------- mappa ---------- */
+function colorFor(v){
+  if(v==null) return 'var(--neutral)';
+  const t=Math.min(1,Math.abs(v)/SCALE[S.per]), pct=Math.round(t*100);
+  return `color-mix(in srgb, var(${v>=0?'--up':'--down'}) ${pct}%, var(--neutral))`;
+}
+function squarify(items,X,Y,W,H){
+  const tot=items.reduce((a,i)=>a+i.v,0), k=W*H/tot; items.forEach(i=>i.a=i.v*k);
+  const out=[]; let row=[], x=X,y=Y,w=W,h=H;
+  const worst=(r,s)=>{const t=r.reduce((a,i)=>a+i.a,0),mx=Math.max(...r.map(i=>i.a)),mn=Math.min(...r.map(i=>i.a));return Math.max(s*s*mx/(t*t),t*t/(s*s*mn))};
+  const place=r=>{const t=r.reduce((a,i)=>a+i.a,0);
+    if(w>=h){const cw=t/h;let yy=y;r.forEach(i=>{const hh=i.a/cw;out.push({i,x,y:yy,w:cw,h:hh});yy+=hh});x+=cw;w-=cw}
+    else{const rh=t/w;let xx=x;r.forEach(i=>{const ww=i.a/rh;out.push({i,x:xx,y,w:ww,h:rh});xx+=ww});y+=rh;h-=rh}};
+  const rest=items.slice();
+  while(rest.length){const s=Math.min(w,h),it=rest[0];
+    if(!row.length||worst(row.concat(it),s)<=worst(row,s)){row.push(it);rest.shift()}else{place(row);row=[]}}
+  if(row.length)place(row);
+  return out;
+}
+function renderMap(){
+  const box=$('map'), W=Math.max(280,box.clientWidth-8), H=Math.round(Math.max(360,Math.min(640,W*0.6)));
+  let list=D.inst.filter(i=>i.g===S.grp&&R[i.t][S.per]!=null);
+  if(S.grp==='Tutti') list=D.inst.filter(i=>R[i.t][S.per]!=null);
+  if(!list.length){box.innerHTML='<div class="note" style="padding:20px">Nessun dato per questo gruppo.</div>';return}
+  const items=list.map(i=>({inst:i,v:S.size==='ind'?Math.max(i.w,.35):1})).sort((a,b)=>b.v-a.v);
+  const rects=squarify(items,0,0,W,H);
+  let s=`<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="Mappa dei rendimenti, periodo ${S.per}">`;
+  rects.forEach(r=>{const i=r.i.inst,v=R[i.t][S.per],strong=Math.abs(v)/SCALE[S.per]>.5;
+    const fg=strong?'var(--on-strong)':'var(--fg)', cx=r.x+r.w/2, cy=r.y+r.h/2;
+    s+=`<g data-t="${i.t}"><rect x="${r.x.toFixed(1)}" y="${r.y.toFixed(1)}" width="${Math.max(0,r.w).toFixed(1)}" height="${Math.max(0,r.h).toFixed(1)}" fill="${colorFor(v)}"><title>${i.n} (${i.t}) ${fmtP(v,2)}</title></rect>`;
+    if(r.w>42&&r.h>26){
+      const fs=Math.max(11,Math.min(22,Math.min(r.w/5.5,r.h/3)));
+      const showName=r.w>120&&r.h>70, showPct=r.h>44;
+      const lines=[[i.t,fs,700]]; if(showName) lines.push([i.n.length>26?i.n.slice(0,25)+'…':i.n,Math.max(10,fs*.58),500]); if(showPct) lines.push([fmtP(v),fs*.8,600]);
+      const tot=lines.reduce((a,l)=>a+l[1]*1.25,0); let ty=cy-tot/2;
+      lines.forEach(l=>{ty+=l[1]*1.25;s+=`<text x="${cx.toFixed(1)}" y="${(ty-l[1]*.3).toFixed(1)}" text-anchor="middle" font-size="${l[1].toFixed(1)}" font-weight="${l[2]}" fill="${fg}">${l[0]}</text>`});
+    }
+    s+='</g>';
+  });
+  box.innerHTML=s+'</svg>';
+  box.querySelectorAll('g[data-t]').forEach(g=>g.addEventListener('click',()=>openDetail(g.dataset.t)));
+}
+
+/* ---------- tabella ---------- */
+function renderTable(){
+  let list=S.grp==='Tutti'?D.inst.slice():D.inst.filter(i=>i.g===S.grp);
+  const k=S.sort.k, d=S.sort.d;
+  const val=i=>k==='n'?i.n:k==='g'?i.g:R[i.t][k];
+  list.sort((a,b)=>{const x=val(a),y=val(b); if(x==null)return 1; if(y==null)return -1; return (typeof x==='string'?x.localeCompare(y,'it'):x-y)*d});
+  const th=(key,label)=>`<th data-k="${key}" ${S.sort.k===key?`aria-sort="${d>0?'ascending':'descending'}"`:''}>${label}${S.sort.k===key?(d>0?' ▲':' ▼'):''}</th>`;
+  let h='<thead><tr>'+th('t','Ticker')+th('n','Strumento')+(S.grp==='Tutti'?th('g','Gruppo'):'')+'<th data-k="last">Ultimo</th>'+PERS.map(p=>th(p,p)).join('')+'</tr></thead><tbody>';
+  list.forEach(i=>{h+=`<tr data-t="${i.t}"><td class="tk">${i.t}</td><td>${i.n}</td>${S.grp==='Tutti'?`<td class="gp">${i.g}</td>`:''}<td class="num">${fmtN(i.last)}</td>`+
+    PERS.map(p=>{const v=R[i.t][p];return `<td class="num h ${cls(v)}" style="background:${colorFor(v).replace(/ \d+%/,m=>' '+Math.round(parseInt(m)*.45)+'%')}">${fmtP(v)}</td>`}).join('')+'</tr>'});
+  $('tb').innerHTML=h+'</tbody>';
+  $('tb').querySelectorAll('th[data-k]').forEach(t=>t.addEventListener('click',()=>{const kk=t.dataset.k;if(kk==='last')return;S.sort=S.sort.k===kk?{k:kk,d:-S.sort.d}:{k:kk,d:(kk==='t'||kk==='n'||kk==='g')?1:-1};renderTable()}));
+  $('tb').querySelectorAll('tbody tr').forEach(tr=>tr.addEventListener('click',()=>openDetail(tr.dataset.t)));
+}
+
+/* ---------- grafici ---------- */
+function lineChart(series, opts={}){ // series: [{label,vals,color}], dates
+  const W=opts.w||640,H=opts.h||240,L=44,Rr=14,T=10,B=24, dates=opts.dates;
+  let all=series.flatMap(s=>s.vals.filter(v=>v!=null)); let mn=Math.min(...all),mx=Math.max(...all); const pad=(mx-mn)*.08||1; mn-=pad;mx+=pad;
+  const x=i=>L+(W-L-Rr)*i/(dates.length-1), y=v=>T+(H-T-B)*(1-(v-mn)/(mx-mn));
+  let s=`<svg class="chart" viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block" role="img" aria-label="${opts.label||'Grafico'}">`;
+  for(let k=0;k<=4;k++){const v=mn+(mx-mn)*k/4,yy=y(v);s+=`<line x1="${L}" x2="${W-Rr}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${L-6}" y="${yy+4}" text-anchor="end">${v.toFixed(opts.dec??0)}</text>`}
+  const step=Math.floor(dates.length/5);
+  for(let i=0;i<dates.length;i+=step){const [yy,mm]=dates[i].split('-');s+=`<text x="${x(i)}" y="${H-6}" text-anchor="middle">${mm}/${yy.slice(2)}</text>`}
+  series.forEach((sr,si)=>{let d='';sr.vals.forEach((v,i)=>{if(v!=null)d+=(d?'L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1)});
+    if(si===0&&series.length===1){s+=`<path d="${d}L${x(dates.length-1)} ${H-B}L${L} ${H-B}Z" fill="${sr.color}" opacity=".12"/>`}
+    s+=`<path d="${d}" fill="none" stroke="${sr.color}" stroke-width="2" stroke-linejoin="round"/>`;
+    const lv=sr.vals[sr.vals.length-1]; if(lv!=null) s+=`<circle cx="${x(dates.length-1)}" cy="${y(lv)}" r="3.5" fill="${sr.color}"/>`});
+  return s+'</svg>';
+}
+
+function openDetail(t){
+  const i=BYT[t]; if(!i) return;
+  const closes=i.c, dates=D.dates, ret=R[t];
+  const view=window.__rng||'1A'; const from=view==='3M'?dates.length-64:view==='6M'?dates.length-127:0;
+  const sub=closes.slice(Math.max(0,from)), subd=dates.slice(Math.max(0,from));
+  const sym = t==='BTC'?'BTC-USD':t==='ETH'?'ETH-USD':t;
+  $('dbody').innerHTML=`
+    <header><div><h3>${i.n}</h3><div class="note">${t} · ${i.g}</div></div><button class="btn" id="cl">Chiudi</button></header>
+    <div class="kpis num">
+      <div><small>Ultimo</small><b>${fmtN(i.last)}</b></div>
+      <div><small>Max 52 sett.</small><b>${fmtN(i.hi)}</b></div>
+      <div><small>Min 52 sett.</small><b>${fmtN(i.lo)}</b></div>
+      <div><small>Dal massimo</small><b class="${cls(i.last/i.hi-1)}">${fmtP(i.last/i.hi-1)}</b></div>
+    </div>
+    <div class="kpis num">${PERS.map(p=>`<div><small>${p}</small><b class="${cls(ret[p])}">${fmtP(ret[p])}</b></div>`).join('')}</div>
+    <div class="seg" id="rg" role="group" aria-label="Intervallo grafico">${['3M','6M','1A'].map(r=>`<button aria-pressed="${r===view}" data-r="${r}">${r}</button>`).join('')}</div>
+    ${lineChart([{vals:sub,color:'var(--brand)'}],{dates:subd,dec:closes[0]<20?2:0,label:'Andamento di '+i.n})}
+    <div class="links">
+      <a href="https://www.justetf.com/it/search.html?query=${encodeURIComponent(t)}" target="_blank" rel="noopener">justETF</a>
+      <a href="https://finance.yahoo.com/quote/${encodeURIComponent(sym)}" target="_blank" rel="noopener">Yahoo Finance</a>
+      <a href="https://it.tradingview.com/symbols/${encodeURIComponent(t)}/" target="_blank" rel="noopener">TradingView</a>
+      <a href="https://www.morningstar.it/it/funds/SecuritySearchResults.aspx?type=ALL&search=${encodeURIComponent(t)}" target="_blank" rel="noopener">Morningstar</a>
+      <a href="https://www.borsaitaliana.it/borsa/ricerca/ricerca-titoli.html?q=${encodeURIComponent(t)}" target="_blank" rel="noopener">Borsa Italiana</a>
+      <a href="https://finviz.com/quote.ashx?t=${encodeURIComponent(t)}" target="_blank" rel="noopener">Finviz</a>
+    </div>`;
+  $('cl').onclick=()=>$('dlg').close();
+  $('rg').querySelectorAll('button').forEach(b=>b.onclick=()=>{window.__rng=b.dataset.r;openDetail(t)});
+  if(!$('dlg').open) $('dlg').showModal();
+}
+
+/* ---------- portafoglio ---------- */
+const PRESETS = {
+  '60/40':[['VT',60],['AGG',40]],
+  'Azionario globale':[['VT',100]],
+  'Mondo + oro + obbligazioni':[['VT',50],['IEF',30],['GLD',10],['TIP',10]],
+  'Settori USA equipesati':[['XLK',9],['XLF',9],['XLE',9],['XLV',9],['XLY',9],['XLP',9],['XLI',9],['XLB',9],['XLU',9],['XLRE',9],['XLC',10]]
+};
+function loadPf(){const p=store.get('bf-pf'); S.pf=(p&&p.length?p:PRESETS['60/40']).filter(x=>BYT[x[0]]).map(x=>[x[0],x[1]]); if(!S.pf.length) S.pf=[[D.inst[0].t,100]]}
+function options(sel){return GROUPS.map(g=>`<optgroup label="${g}">`+D.inst.filter(i=>i.g===g).map(i=>`<option value="${i.t}" ${i.t===sel?'selected':''}>${i.t} – ${i.n}</option>`).join('')+'</optgroup>').join('')}
+function renderPf(){
+  $('rows').innerHTML=S.pf.map((r,k)=>`<div class="prow"><select data-k="${k}" aria-label="Strumento ${k+1}">${options(r[0])}</select><input data-w="${k}" type="number" min="0" max="100" step="1" value="${r[1]}" aria-label="Peso % ${k+1}"><button data-d="${k}" aria-label="Rimuovi">×</button></div>`).join('');
+  $('rows').querySelectorAll('select').forEach(e=>e.onchange=()=>{S.pf[+e.dataset.k][0]=e.value;savePf()});
+  $('rows').querySelectorAll('input').forEach(e=>e.oninput=()=>{S.pf[+e.dataset.w][1]=+e.value||0;savePf(true)});
+  $('rows').querySelectorAll('button').forEach(e=>e.onclick=()=>{S.pf.splice(+e.dataset.d,1);if(!S.pf.length)S.pf=[[D.inst[0].t,100]];savePf()});
+  $('presets').innerHTML='<span class="note" style="align-self:center">Esempi:</span>'+Object.keys(PRESETS).map(k=>`<button class="btn" data-p="${k}">${k}</button>`).join('');
+  $('presets').querySelectorAll('button').forEach(b=>b.onclick=()=>{S.pf=PRESETS[b.dataset.p].filter(x=>BYT[x[0]]).map(x=>[...x]);savePf()});
+  calcPf();
+}
+function savePf(keep){store.set('bf-pf',S.pf); if(keep) calcPf(); else renderPf()}
+function calcPf(){
+  const tot=S.pf.reduce((a,r)=>a+r[1],0); $('sumw').textContent='Somma pesi: '+tot.toFixed(0)+'%'+(Math.abs(tot-100)>.5?' (i risultati sono normalizzati a 100%)':'');
+  if(tot<=0){$('pres').innerHTML='<div class="note">Inserisci almeno un peso.</div>';return}
+  const w=S.pf.map(r=>[r[0],r[1]/tot]);
+  const pr={}; PERS.forEach(p=>{let a=0,ok=true;w.forEach(([t,x])=>{const v=R[t][p];if(v==null)ok=false;else a+=x*v});pr[p]=ok?a:null});
+  const dates=D.dates, n=dates.length, start=Math.max(0,n-253);
+  const v=[]; for(let i=start;i<n;i++){let a=0;w.forEach(([t,x])=>{const c=BYT[t].c;a+=x*(c[i]??c[start])/c[start]});v.push(a*100)}
+  const dr=v.slice(1).map((x,i)=>x/v[i]-1), m=dr.reduce((a,b)=>a+b,0)/dr.length;
+  const vol=Math.sqrt(dr.reduce((a,b)=>a+(b-m)**2,0)/(dr.length-1))*Math.sqrt(252);
+  let pk=v[0],dd=0; v.forEach(x=>{pk=Math.max(pk,x);dd=Math.min(dd,x/pk-1)});
+  const names=w.map(([t])=>BYT[t]);
+  const cmp=names.length>1? names.slice(0,5).map((i,k)=>({vals:i.c.slice(start).map(x=>x==null?null:x/i.c[start]*100),color:['#C47F14','#6C8EAD','#9B6B9E','#8A8F3A','#C0605A'][k]})) : [];
+  $('pres').innerHTML=`<h2>Risultato</h2>
+    <div class="kpis num">${PERS.map(p=>`<div><small>${p}</small><b class="${cls(pr[p])}">${fmtP(pr[p])}</b></div>`).join('')}</div>
+    <div class="kpis num"><div><small>Volatilità annua (1A)</small><b>${(vol*100).toFixed(1).replace('.',',')}%</b></div><div><small>Massimo calo (1A)</small><b class="down">${fmtP(dd)}</b></div><div><small>Strumenti</small><b>${w.length}</b></div></div>
+    ${lineChart([{vals:v,color:'var(--brand)'},...cmp],{dates:dates.slice(start),dec:0,label:'Andamento del portafoglio, base 100'})}
+    <div class="note">Linea verde: portafoglio (base 100, pesi iniziali fissi). Linee colorate: singoli strumenti, i primi cinque.</div>`;
+}
+
+/* ---------- ricerca ---------- */
+function setupSearch(){
+  const q=$('q'), res=$('res');
+  const run=()=>{const s=q.value.trim().toLowerCase(); if(!s){res.hidden=true;return}
+    const m=D.inst.filter(i=>(i.t+' '+i.n+' '+i.g).toLowerCase().includes(s)).slice(0,10);
+    res.innerHTML=m.length?m.map(i=>`<button data-t="${i.t}"><span><b>${i.t}</b> ${i.n}</span><span class="num ${cls(R[i.t][S.per])}">${fmtP(R[i.t][S.per])}</span></button>`).join('')
+      :`<div class="none">Non è nella lista del terminale.<br><a href="https://www.justetf.com/it/search.html?query=${encodeURIComponent(q.value.trim())}" target="_blank" rel="noopener">Cerca su justETF</a> · <a href="https://finance.yahoo.com/lookup?s=${encodeURIComponent(q.value.trim())}" target="_blank" rel="noopener">Cerca su Yahoo</a></div>`;
+    res.hidden=false;
+    res.querySelectorAll('button').forEach(b=>b.onclick=()=>{res.hidden=true;q.value='';openDetail(b.dataset.t)})};
+  q.addEventListener('input',run);
+  q.addEventListener('keydown',e=>{if(e.key==='Enter'){const b=res.querySelector('button');if(b)b.click()}else if(e.key==='Escape')res.hidden=true});
+  document.addEventListener('click',e=>{if(!e.target.closest('.search'))res.hidden=true});
+}
+
+/* ---------- navigazione ---------- */
+function chips(id,withAll,sel,fn){
+  const gs=withAll?['Tutti',...GROUPS]:GROUPS;
+  $(id).innerHTML=gs.map(g=>`<button aria-pressed="${g===sel}" data-g="${g}">${g}</button>`).join('');
+  $(id).querySelectorAll('button').forEach(b=>b.onclick=()=>{S.grp=b.dataset.g;fn()});
+}
+function refresh(){
+  renderHead();
+  $('per').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.p===S.per));
+  $('sz').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.s===S.size));
+  chips('gm',true,S.grp,refresh); chips('gt',true,S.grp,refresh);
+  if(S.view==='mappa') renderMap(); else if(S.view==='tabella') renderTable();
+}
+function showView(v){
+  S.view=v;
+  ['mappa','tabella','portafoglio'].forEach(x=>{$('v-'+x).hidden=x!==v;$('t-'+x).setAttribute('aria-selected',x===v)});
+  if(location.hash!=='#'+v) history.replaceState(null,'','#'+v);
+  if(v==='portafoglio') renderPf(); else refresh();
+}
+function init(){
+  compute();
+  $('per').innerHTML=PERS.map(p=>`<button data-p="${p}" aria-pressed="${p===S.per}">${p}</button>`).join('');
+  $('per').querySelectorAll('button').forEach(b=>b.onclick=()=>{S.per=b.dataset.p;store.set('bf-per',S.per);refresh();if(S.view==='portafoglio')renderPf()});
+  $('sz').innerHTML=[['ind','Indicativa'],['eq','Uguale']].map(([k,l])=>`<button data-s="${k}">${l}</button>`).join('');
+  $('sz').querySelectorAll('button').forEach(b=>b.onclick=()=>{S.size=b.dataset.s;refresh()});
+  ['mappa','tabella','portafoglio'].forEach(v=>$('t-'+v).onclick=()=>showView(v));
+  $('add').onclick=()=>{S.pf.push([D.inst[0].t,0]);savePf()};
+  const sp=store.get('bf-per'); if(PERS.includes(sp)) S.per=sp;
+  if(!GROUPS.includes(S.grp)) S.grp=GROUPS[0];
+  loadPf(); setupSearch();
+  let rt; new ResizeObserver(()=>{clearTimeout(rt);rt=setTimeout(()=>{if(S.view==='mappa')renderMap()},80)}).observe($('map'));
+  const h=location.hash.slice(1); showView(['mappa','tabella','portafoglio'].includes(h)?h:'mappa');
+  window.addEventListener('hashchange',()=>{const x=location.hash.slice(1);if(['mappa','tabella','portafoglio'].includes(x)&&x!==S.view)showView(x)});
+}
+(async()=>{
+  try{
+    D = INLINE || await (await fetch('data.json',{cache:'no-store'})).json();
+    init();
+  }catch(e){
+    $('map').innerHTML='<div style="padding:20px">Dati non ancora disponibili. Avvia il primo aggiornamento dal pulsante "Run workflow" nella scheda Actions del repository.</div>';
+  }
+})();
+</script>
+
+</body></html>

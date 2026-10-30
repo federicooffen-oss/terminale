@@ -1,0 +1,590 @@
+[
+ {
+  "t": "XLK",
+  "y": "XLK",
+  "n": "Tecnologia",
+  "g": "Settori USA",
+  "w": 31
+ },
+ {
+  "t": "XLF",
+  "y": "XLF",
+  "n": "Finanziari",
+  "g": "Settori USA",
+  "w": 13
+ },
+ {
+  "t": "XLE",
+  "y": "XLE",
+  "n": "Energia",
+  "g": "Settori USA",
+  "w": 3.5
+ },
+ {
+  "t": "XLV",
+  "y": "XLV",
+  "n": "Salute",
+  "g": "Settori USA",
+  "w": 10
+ },
+ {
+  "t": "XLY",
+  "y": "XLY",
+  "n": "Consumi discrezionali",
+  "g": "Settori USA",
+  "w": 10.5
+ },
+ {
+  "t": "XLP",
+  "y": "XLP",
+  "n": "Beni di prima necessità",
+  "g": "Settori USA",
+  "w": 6
+ },
+ {
+  "t": "XLI",
+  "y": "XLI",
+  "n": "Industriali",
+  "g": "Settori USA",
+  "w": 8.5
+ },
+ {
+  "t": "XLB",
+  "y": "XLB",
+  "n": "Materiali",
+  "g": "Settori USA",
+  "w": 2
+ },
+ {
+  "t": "XLU",
+  "y": "XLU",
+  "n": "Utilities",
+  "g": "Settori USA",
+  "w": 2.5
+ },
+ {
+  "t": "XLRE",
+  "y": "XLRE",
+  "n": "Immobiliare",
+  "g": "Settori USA",
+  "w": 2
+ },
+ {
+  "t": "XLC",
+  "y": "XLC",
+  "n": "Comunicazioni",
+  "g": "Settori USA",
+  "w": 9.5
+ },
+ {
+  "t": "SMH",
+  "y": "SMH",
+  "n": "Semiconduttori",
+  "g": "Temi",
+  "w": 1
+ },
+ {
+  "t": "IGV",
+  "y": "IGV",
+  "n": "Software",
+  "g": "Temi",
+  "w": 1
+ },
+ {
+  "t": "XBI",
+  "y": "XBI",
+  "n": "Biotech",
+  "g": "Temi",
+  "w": 1
+ },
+ {
+  "t": "ITA",
+  "y": "ITA",
+  "n": "Difesa e aerospazio",
+  "g": "Temi",
+  "w": 1
+ },
+ {
+  "t": "ICLN",
+  "y": "ICLN",
+  "n": "Energia pulita",
+  "g": "Temi",
+  "w": 1
+ },
+ {
+  "t": "URA",
+  "y": "URA",
+  "n": "Uranio e nucleare",
+  "g": "Temi",
+  "w": 1
+ },
+ {
+  "t": "KWEB",
+  "y": "KWEB",
+  "n": "Internet Cina",
+  "g": "Temi",
+  "w": 1
+ },
+ {
+  "t": "IBIT",
+  "y": "IBIT",
+  "n": "Bitcoin ETF",
+  "g": "Temi",
+  "w": 1
+ },
+ {
+  "t": "MTUM",
+  "y": "MTUM",
+  "n": "Momentum",
+  "g": "Fattori",
+  "w": 1
+ },
+ {
+  "t": "QUAL",
+  "y": "QUAL",
+  "n": "Quality",
+  "g": "Fattori",
+  "w": 1
+ },
+ {
+  "t": "VLUE",
+  "y": "VLUE",
+  "n": "Value",
+  "g": "Fattori",
+  "w": 1
+ },
+ {
+  "t": "USMV",
+  "y": "USMV",
+  "n": "Bassa volatilità",
+  "g": "Fattori",
+  "w": 1
+ },
+ {
+  "t": "IWF",
+  "y": "IWF",
+  "n": "Growth",
+  "g": "Fattori",
+  "w": 1
+ },
+ {
+  "t": "IWD",
+  "y": "IWD",
+  "n": "Value (Russell)",
+  "g": "Fattori",
+  "w": 1
+ },
+ {
+  "t": "RSP",
+  "y": "RSP",
+  "n": "Equal weight S&P 500",
+  "g": "Fattori",
+  "w": 1
+ },
+ {
+  "t": "SPHB",
+  "y": "SPHB",
+  "n": "Alto beta",
+  "g": "Fattori",
+  "w": 1
+ },
+ {
+  "t": "VYM",
+  "y": "VYM",
+  "n": "Alto dividendo",
+  "g": "Fattori",
+  "w": 1
+ },
+ {
+  "t": "SPY",
+  "y": "SPY",
+  "n": "S&P 500",
+  "g": "Regioni e indici",
+  "w": 1
+ },
+ {
+  "t": "QQQ",
+  "y": "QQQ",
+  "n": "Nasdaq 100",
+  "g": "Regioni e indici",
+  "w": 1
+ },
+ {
+  "t": "IWM",
+  "y": "IWM",
+  "n": "Small cap USA",
+  "g": "Regioni e indici",
+  "w": 1
+ },
+ {
+  "t": "DIA",
+  "y": "DIA",
+  "n": "Dow Jones",
+  "g": "Regioni e indici",
+  "w": 1
+ },
+ {
+  "t": "VGK",
+  "y": "VGK",
+  "n": "Europa",
+  "g": "Regioni e indici",
+  "w": 1
+ },
+ {
+  "t": "EFA",
+  "y": "EFA",
+  "n": "Sviluppati ex USA",
+  "g": "Regioni e indici",
+  "w": 1
+ },
+ {
+  "t": "EEM",
+  "y": "EEM",
+  "n": "Emergenti",
+  "g": "Regioni e indici",
+  "w": 1
+ },
+ {
+  "t": "VT",
+  "y": "VT",
+  "n": "Mondo",
+  "g": "Regioni e indici",
+  "w": 1
+ },
+ {
+  "t": "ACWI",
+  "y": "ACWI",
+  "n": "MSCI ACWI",
+  "g": "Regioni e indici",
+  "w": 1
+ },
+ {
+  "t": "EWU",
+  "y": "EWU",
+  "n": "Regno Unito",
+  "g": "Paesi",
+  "w": 3.5
+ },
+ {
+  "t": "EWG",
+  "y": "EWG",
+  "n": "Germania",
+  "g": "Paesi",
+  "w": 2.2
+ },
+ {
+  "t": "EWQ",
+  "y": "EWQ",
+  "n": "Francia",
+  "g": "Paesi",
+  "w": 2.5
+ },
+ {
+  "t": "EWI",
+  "y": "EWI",
+  "n": "Italia",
+  "g": "Paesi",
+  "w": 0.9
+ },
+ {
+  "t": "EWP",
+  "y": "EWP",
+  "n": "Spagna",
+  "g": "Paesi",
+  "w": 0.9
+ },
+ {
+  "t": "EWL",
+  "y": "EWL",
+  "n": "Svizzera",
+  "g": "Paesi",
+  "w": 2.2
+ },
+ {
+  "t": "EWN",
+  "y": "EWN",
+  "n": "Paesi Bassi",
+  "g": "Paesi",
+  "w": 0.9
+ },
+ {
+  "t": "EWD",
+  "y": "EWD",
+  "n": "Svezia",
+  "g": "Paesi",
+  "w": 0.9
+ },
+ {
+  "t": "EWJ",
+  "y": "EWJ",
+  "n": "Giappone",
+  "g": "Paesi",
+  "w": 5
+ },
+ {
+  "t": "MCHI",
+  "y": "MCHI",
+  "n": "Cina",
+  "g": "Paesi",
+  "w": 3
+ },
+ {
+  "t": "INDA",
+  "y": "INDA",
+  "n": "India",
+  "g": "Paesi",
+  "w": 2
+ },
+ {
+  "t": "EWY",
+  "y": "EWY",
+  "n": "Corea del Sud",
+  "g": "Paesi",
+  "w": 1.5
+ },
+ {
+  "t": "EWT",
+  "y": "EWT",
+  "n": "Taiwan",
+  "g": "Paesi",
+  "w": 2
+ },
+ {
+  "t": "EWH",
+  "y": "EWH",
+  "n": "Hong Kong",
+  "g": "Paesi",
+  "w": 0.6
+ },
+ {
+  "t": "EWA",
+  "y": "EWA",
+  "n": "Australia",
+  "g": "Paesi",
+  "w": 1.8
+ },
+ {
+  "t": "EWC",
+  "y": "EWC",
+  "n": "Canada",
+  "g": "Paesi",
+  "w": 3
+ },
+ {
+  "t": "EWZ",
+  "y": "EWZ",
+  "n": "Brasile",
+  "g": "Paesi",
+  "w": 0.6
+ },
+ {
+  "t": "EWW",
+  "y": "EWW",
+  "n": "Messico",
+  "g": "Paesi",
+  "w": 0.5
+ },
+ {
+  "t": "EZA",
+  "y": "EZA",
+  "n": "Sudafrica",
+  "g": "Paesi",
+  "w": 0.4
+ },
+ {
+  "t": "TUR",
+  "y": "TUR",
+  "n": "Turchia",
+  "g": "Paesi",
+  "w": 0.25
+ },
+ {
+  "t": "SHY",
+  "y": "SHY",
+  "n": "Treasury 1-3 anni",
+  "g": "Obbligazioni",
+  "w": 1
+ },
+ {
+  "t": "IEF",
+  "y": "IEF",
+  "n": "Treasury 7-10 anni",
+  "g": "Obbligazioni",
+  "w": 1
+ },
+ {
+  "t": "TLT",
+  "y": "TLT",
+  "n": "Treasury 20+ anni",
+  "g": "Obbligazioni",
+  "w": 1
+ },
+ {
+  "t": "TIP",
+  "y": "TIP",
+  "n": "Treasury inflation-linked",
+  "g": "Obbligazioni",
+  "w": 1
+ },
+ {
+  "t": "AGG",
+  "y": "AGG",
+  "n": "Aggregate USA",
+  "g": "Obbligazioni",
+  "w": 1
+ },
+ {
+  "t": "LQD",
+  "y": "LQD",
+  "n": "Corporate investment grade",
+  "g": "Obbligazioni",
+  "w": 1
+ },
+ {
+  "t": "HYG",
+  "y": "HYG",
+  "n": "Corporate high yield",
+  "g": "Obbligazioni",
+  "w": 1
+ },
+ {
+  "t": "EMB",
+  "y": "EMB",
+  "n": "Emergenti USD",
+  "g": "Obbligazioni",
+  "w": 1
+ },
+ {
+  "t": "BNDX",
+  "y": "BNDX",
+  "n": "Aggregate internazionale",
+  "g": "Obbligazioni",
+  "w": 1
+ },
+ {
+  "t": "GLD",
+  "y": "GLD",
+  "n": "Oro",
+  "g": "Materie prime e valute",
+  "w": 1
+ },
+ {
+  "t": "SLV",
+  "y": "SLV",
+  "n": "Argento",
+  "g": "Materie prime e valute",
+  "w": 1
+ },
+ {
+  "t": "USO",
+  "y": "USO",
+  "n": "Petrolio WTI",
+  "g": "Materie prime e valute",
+  "w": 1
+ },
+ {
+  "t": "UNG",
+  "y": "UNG",
+  "n": "Gas naturale",
+  "g": "Materie prime e valute",
+  "w": 1
+ },
+ {
+  "t": "CPER",
+  "y": "CPER",
+  "n": "Rame",
+  "g": "Materie prime e valute",
+  "w": 1
+ },
+ {
+  "t": "DBA",
+  "y": "DBA",
+  "n": "Agricoltura",
+  "g": "Materie prime e valute",
+  "w": 1
+ },
+ {
+  "t": "DBC",
+  "y": "DBC",
+  "n": "Materie prime (paniere)",
+  "g": "Materie prime e valute",
+  "w": 1
+ },
+ {
+  "t": "UUP",
+  "y": "UUP",
+  "n": "Dollaro USA",
+  "g": "Materie prime e valute",
+  "w": 1
+ },
+ {
+  "t": "FXE",
+  "y": "FXE",
+  "n": "Euro",
+  "g": "Materie prime e valute",
+  "w": 1
+ },
+ {
+  "t": "FXY",
+  "y": "FXY",
+  "n": "Yen",
+  "g": "Materie prime e valute",
+  "w": 1
+ },
+ {
+  "t": "BTC",
+  "y": "BTC-USD",
+  "n": "Bitcoin",
+  "g": "Crypto e immobiliare",
+  "w": 1
+ },
+ {
+  "t": "ETH",
+  "y": "ETH-USD",
+  "n": "Ethereum",
+  "g": "Crypto e immobiliare",
+  "w": 1
+ },
+ {
+  "t": "VNQ",
+  "y": "VNQ",
+  "n": "REIT USA",
+  "g": "Crypto e immobiliare",
+  "w": 1
+ },
+ {
+  "t": "VNQI",
+  "y": "VNQI",
+  "n": "REIT internazionali",
+  "g": "Crypto e immobiliare",
+  "w": 1
+ },
+ {
+  "t": "SWDA.MI",
+  "y": "SWDA.MI",
+  "n": "iShares Core MSCI World",
+  "g": "ETF UCITS in euro",
+  "w": 1
+ },
+ {
+  "t": "VWCE.DE",
+  "y": "VWCE.DE",
+  "n": "Vanguard FTSE All-World acc",
+  "g": "ETF UCITS in euro",
+  "w": 1
+ },
+ {
+  "t": "EIMI.MI",
+  "y": "EIMI.MI",
+  "n": "iShares Core MSCI EM IMI",
+  "g": "ETF UCITS in euro",
+  "w": 1
+ },
+ {
+  "t": "CSSPX.MI",
+  "y": "CSSPX.MI",
+  "n": "iShares Core S&P 500",
+  "g": "ETF UCITS in euro",
+  "w": 1
+ }
+]
