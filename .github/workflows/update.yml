@@ -1,0 +1,23 @@
+name: Aggiorna dati
+on:
+  schedule:
+    - cron: '10 * * * 1-5'
+    - cron: '30 9 * * 0,6'
+  workflow_dispatch: {}
+permissions:
+  contents: write
+jobs:
+  aggiorna:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install requests
+      - run: python update.py
+      - name: Salva se cambiato
+        run: |
+          git config user.name "terminale-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add data.json
+          git diff --cached --quiet || (git commit -m "Aggiornamento dati" && git push)
