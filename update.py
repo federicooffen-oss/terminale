@@ -5,6 +5,12 @@ Se uno strumento non si scarica, resta l'ultimo dato valido."""
 import json, sys, time, datetime as dt, csv, io, os
 T0 = time.time(); BUDGET = 420   # secondi massimi totali
 import requests
+try:
+    import yfinance as yf
+except ImportError:
+    import subprocess
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', '-q', 'yfinance'])
+    import yfinance as yf
 
 DAYS = 400
 UA = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36'}
@@ -17,6 +23,18 @@ def yahoo(sym):
     res = r.json()['chart']['result'][0]
     ts = res['timestamp']; cl = res['indicators']['quote'][0]['close']
     return {dt.datetime.utcfromtimestamp(t).strftime('%Y-%m-%d'): c for t, c in zip(ts, cl) if c is not None}
+
+def yfin(sym):
+    last = None
+    for k in range(3):
+        try:
+            h = yf.Ticker(sym).history(period='2y', interval='1d', auto_adjust=False)
+            if len(h) > 30:
+                return {i.strftime('%Y-%m-%d'): float(c) for i, c in zip(h.index, h['Close']) if c == c}
+        except Exception as e:
+            last = e
+        time.sleep(2 + 3 * k)
+    raise last or ValueError('yfinance vuoto')
 
 def stooq(sym):
     s = sym.lower()
@@ -39,7 +57,7 @@ def main():
         if time.time() - T0 > BUDGET:
             print('Tempo massimo raggiunto, mi fermo qui'); fail += [x['t'] for x in uni[n-1:]]; break
         d, why = None, ''
-        for fn in (yahoo, stooq):
+        for fn in (yfin, yahoo):
             try:
                 d = fn(u['y'])
                 if len(d) > 30: why = fn.__name__; break
