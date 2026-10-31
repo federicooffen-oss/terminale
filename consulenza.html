@@ -161,8 +161,14 @@ function rho(a,b){
   if(ga==='G'||gb==='G')return (ga==='B'||gb==='B')?.2:.1;
   const bnd=ga==='B'?a:b;return bnd==='HY'?.65:bnd==='CORP'?.4:bnd==='BESG'?.3:.1;
 }
-function varAnnuo(w){ // VaR parametrico 99% annuo (%) = 2,326 x volatilità annua, con volatilità e correlazioni ipotizzate
+let REAL=null; // volatilità e correlazioni reali (5 anni), lette da monitor.json
+function setReal(m){REAL=null;if(!m||!m.isin||!m.sd||!m.corr)return;const ix={};m.isin.forEach((x,i)=>ix[x]=i);REAL={ix,sd:m.sd,corr:m.corr,giorni:m.giorni}}
+function varAnnuo(w){ // VaR parametrico 99% annuo (%): dati reali se disponibili, altrimenti ipotesi per classe
   const ks=Object.keys(w);let v=0;
+  if(REAL&&ks.every(k=>BY[k]&&REAL.ix[BY[k].isin]!==undefined)){
+    ks.forEach(a=>ks.forEach(b=>{const i=REAL.ix[BY[a].isin],j=REAL.ix[BY[b].isin];v+=w[a]/100*w[b]/100*REAL.sd[i]*REAL.sd[j]*REAL.corr[i][j]}));
+    return 2.326*Math.sqrt(v)*16*100; // 16 = radice di 256 giorni
+  }
   ks.forEach(a=>ks.forEach(b=>{v+=w[a]/100*w[b]/100*VOLA[a]*VOLA[b]*rho(a,b)}));
   return 2.326*Math.sqrt(v);
 }
@@ -187,7 +193,6 @@ function stats(w){
   const ter=Object.entries(w).reduce((a,[k,p])=>a+p/100*BY[k].ter,0);
   return{cagr:Math.pow(v,12/NM)-1,vol:sd,mdd,w12,ter,vals,va:varAnnuo(w)};
 }
-
 /* ======================= QUESTIONARIO (domande Binario F, scoring a soglie) ======================= */
 /* pt = punti per risposta; cap = tetto di fascia (0 Basso … 3 Alto) per risposta */
 const QUIZ=[
@@ -440,7 +445,7 @@ function adminView(){
   <div class="card"><h2>Portafogli modello</h2><div class="tablewrap"><table><thead><tr><th>Portafoglio</th><th>Fascia (da VaR)</th><th>VaR annuo</th><th>Azioni</th><th>Strumenti</th></tr></thead><tbody>${ids.map(i=>{const q=PF()[i],v=varAnnuo(q.w);return `<tr><td>${i} · ${esc(q.nome)}</td><td>${BANDS[bandOf(v)]}</td><td class="num">${n1(v)}%</td><td class="num">${Object.entries(q.w).reduce((a,[k,x])=>a+(BY[k].cls==='Azionario'?x:0),0)}%</td><td class="num">${Object.keys(q.w).length}</td></tr>`}).join('')}</tbody></table></div></div>
   <div class="card"><h2>Modifica un portafoglio e avvisa i clienti</h2><div class="row"><div class="seg" role="group">${ids.map(i=>`<button data-act="aid" data-v="${i}" aria-pressed="${st.aid===i}">${i}</button>`).join('')}</div><b>${esc(p.nome)}</b></div>
   <div class="tablewrap admin-w"><table><thead><tr><th>Strumento</th><th>Attuale %</th><th>Nuovo %</th><th>In lista Fineco</th></tr></thead><tbody>${INS.filter(i=>!i.finOnly||w[i.k]||p.w[i.k]).map(i=>`<tr><td>${esc(i.name)}<div class="small muted">${i.isin}</div></td><td class="num">${p.w[i.k]||0}</td><td><input type="number" min="0" max="100" step="5" data-act="w" data-v="${i.k}" value="${w[i.k]||0}"></td><td>${i.fin?'sì':'no'}</td></tr>`).join('')}</tbody><tfoot><tr><td>Totale</td><td></td><td class="num ${tot===100?'ok':'ko'}">${tot}%</td><td></td></tr></tfoot></table></div>
-  <div class="alert"><b>Controllo di fascia</b><span class="small">VaR annuo ${n1(va)}% → fascia ${BANDS[b]}. ${b>b0?`<b class="ko">Modifica bloccata: il VaR sfora il limite della fascia ${BANDS[b0]} e il portafoglio passerebbe a ${BANDS[b]}. Riduci la parte rischiosa finché il VaR rientra.</b>`:(b<b0?`La fascia scende da ${BANDS[b0]} a ${BANDS[b]}.`:'Il VaR resta dentro la fascia.')}</span></div>
+  <div class="alert"><b>Controllo di fascia</b><span class="small">VaR annuo ${n1(va)}% (${REAL?'su prezzi reali a 5 anni':'con volatilità stimate'}) → fascia ${BANDS[b]}. ${b>b0?`<b class="ko">Modifica bloccata: il VaR sfora il limite della fascia ${BANDS[b0]} e il portafoglio passerebbe a ${BANDS[b]}. Riduci la parte rischiosa finché il VaR rientra.</b>`:(b<b0?`La fascia scende da ${BANDS[b0]} a ${BANDS[b]}.`:'Il VaR resta dentro la fascia.')}</span></div>
   <label class="f">Motivazione e analisi costi/benefici (obbligatoria)<textarea id="motivo" rows="3" placeholder="Es.: aumento la quota di obbligazioni brevi per ridurre la duration; costi di transazione stimati inferiori al beneficio atteso.">${esc(st.motivo||'')}</textarea></label>
   <div class="row"><button class="btn pri" data-act="publish" ${tot===100&&b<=b0?'':'disabled'}>Pubblica la variazione e invia la notifica</button><button class="btn" data-act="discard">Annulla modifiche</button></div></div>
   <div class="card"><h2>Registro</h2>${st.log.length?'<ul class="why">'+st.log.slice().reverse().map(l=>`<li>${esc(l)}</li>`).join('')+'</ul>':'<p class="muted">Nessuna operazione.</p>'}</div>`}
@@ -503,7 +508,7 @@ document.addEventListener('change',e=>{
   render();
 });
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.ch[data-act]')){e.preventDefault();e.target.click()}});
-let MONI=null;try{fetch('monitor.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{MONI=j;render()}).catch(()=>{})}catch(e){}
+let MONI=null;try{fetch('monitor.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{MONI=j;setReal(j&&j.mercato);render()}).catch(()=>{})}catch(e){}
 render();
 </script>
 

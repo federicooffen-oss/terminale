@@ -83,7 +83,9 @@ def main():
     prices=scarica(isins,os.path.join(BASE,'isin_cache.json'),cfg.get('nomi',{}))
     mancanti=[i for i in isins if i not in prices.columns or prices[i].dropna().shape[0]<250]
     res,avvisi=valuta(cfg,prices,prev)
-    out={'aggiornato':dt.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'),'ultimo_prezzo':str(prices.index[-1].date()),'strumenti_senza_dati':mancanti,'portafogli':res}
+    rets=prices.pct_change().dropna(how='all').tail(5*GG).fillna(0.0);cols=[c for c in isins if c in rets.columns and c not in mancanti]
+    mercato={'isin':cols,'sd':[round(float(rets[c].std()),6) for c in cols],'corr':[[round(float(x),3) for x in r] for r in rets[cols].corr().values],'giorni':int(len(rets))}
+    out={'aggiornato':dt.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'),'ultimo_prezzo':str(prices.index[-1].date()),'strumenti_senza_dati':mancanti,'mercato':mercato,'portafogli':res}
     json.dump(out,open(out_path,'w'),ensure_ascii=False,indent=1)
     print('OK',out['ultimo_prezzo'],'senza dati:',mancanti)
     ap=os.path.join(BASE,'avvisi.md')
