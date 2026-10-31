@@ -1,9 +1,7 @@
 {
- "aggiornato": "2026-10-31 15:37 UTC",
+ "aggiornato": "2026-10-31 15:43 UTC",
  "ultimo_prezzo": "2026-10-30",
- "strumenti_senza_dati": [
-  "IE00BM67HJ62"
- ],
+ "strumenti_senza_dati": [],
  "portafogli": {
   "P1": {
    "nome": "Liquidità Plus",
@@ -156,15 +154,15 @@
    "nome": "ESG Crescita",
    "fascia": 2,
    "limite": 23.3,
-   "var_modello": 13.58,
-   "var_attuale": 13.58,
+   "var_modello": 14.69,
+   "var_attuale": 14.69,
    "deriva_max": 0.0,
    "stato": "ok",
    "messaggi": [],
    "pesi_attuali": {
     "IE0001GSQ2O9": 35.0,
     "IE00BCHWNQ94": 10.0,
-    "IE00BM67HJ62": 10.0,
+    "IE00BG370F43": 10.0,
     "LU2182388236": 20.0,
     "LU1650487413": 10.0,
     "FR0013416716": 5.0,

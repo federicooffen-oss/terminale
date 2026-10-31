@@ -23,7 +23,8 @@
   "LU1650491282": "Amundi Euro Government Inflation-Linked Bond UCITS ETF Acc",
   "LU1681040496": "Amundi Index Solutions - Amundi EURO High Yield Bond ESG - UCITS ETF DR - EUR (C)",
   "LU1832418773": "Amundi FTSE EPRA/NAREIT Global II UCITS ETF D",
-  "LU2182388236": "Amundi Index Solutions - Amundi Euro Aggregate Bond ESG UCITS ETF DR (C)"
+  "LU2182388236": "Amundi Index Solutions - Amundi Euro Aggregate Bond ESG UCITS ETF DR (C)",
+  "IE00BG370F43": "Xtrackers MSCI Emerging Markets ESG UCITS ETF 1C"
  },
  "FR0013416716": "GOLD.MI",
  "IE0001GSQ2O9": "CLWD.MI",
@@ -47,5 +48,6 @@
  "LU1650491282": "EMI.MI",
  "LU1681040496": "AHYE.MI",
  "LU1832418773": "LMWE.DE",
- "LU2182388236": "EGRI.MI"
+ "LU2182388236": "EGRI.MI",
+ "IE00BG370F43": "XZEM.MI"
 }
