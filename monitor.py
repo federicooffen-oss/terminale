@@ -38,17 +38,29 @@ def valuta(cfg,prices,prev=None):
                 'pesi_attuali':{c:round(wd[c]*100,2) for c in wd}}
         if stato!='ok' and prev.get(k,{}).get('stato')!=stato:avvisi.append((k,p['nome'],stato,msgs))
     return res,avvisi
+def _eur(sym,yf):
+    try:return yf.Ticker(sym).fast_info.get('currency')=='EUR'
+    except Exception:return False
 def scarica(isins,cache_path):
     import yfinance as yf
     cache=json.load(open(cache_path)) if os.path.exists(cache_path) else {}
+    if cache.get('_v')!=3:cache={'_v':3}   # rifà la ricerca: preferisce quotazioni in euro
+    man_p=os.path.join(BASE,'ticker_manuali.json')
+    man=json.load(open(man_p)) if os.path.exists(man_p) else {}
     for i in isins:
-        if i in cache:continue
+        if i in man:cache[i]=man[i];continue
+        if cache.get(i):continue
         try:
-            q=yf.Search(i,max_results=8).quotes;eur=[x for x in q if x.get('symbol','').split('.')[-1] in ('DE','MI','PA','AS','F','SG','BE')]
-            pick=(eur or q or [{}])[0].get('symbol');cache[i]=pick
+            q=[x for x in yf.Search(i,max_results=10).quotes if x.get('symbol') and not x['symbol'].startswith(i[:6])]
+            for suf in ('MI','DE'):   # priorità: Borsa Italiana, poi Xetra
+                pref=[x['symbol'] for x in q if x['symbol'].endswith('.'+suf)]
+                pick=next((t for t in pref if _eur(t,yf)),None) or (pref[0] if pref else None)
+                if pick:break
+            if not pick:print('NESSUN TICKER MI/DE per',i,[x.get('symbol') for x in q])
+            cache[i]=pick
         except Exception as e:print('ISIN non risolto',i,e);cache[i]=None
     json.dump(cache,open(cache_path,'w'),indent=1)
-    tick={i:t for i,t in cache.items() if t and i in isins}
+    tick={i:t for i,t in cache.items() if i!='_v' and t and i in isins}
     df=yf.download(list(tick.values()),period='6y',auto_adjust=True,progress=False)['Close']
     if isinstance(df,pd.Series):df=df.to_frame(list(tick.values())[0])
     inv={t:i for i,t in tick.items()};df=df.rename(columns=inv).dropna(how='all').ffill()
