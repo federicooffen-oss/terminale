@@ -45,16 +45,21 @@ STOP={'acc','dist','ucits','etf','etc','1c','dr','c','the','di','ex'}
 def _tok(t):return {w for w in re.findall(r'[a-z0-9]+',t.lower()) if w not in STOP and len(w)>1}
 def _cerca(isin,nome,yf):
     """Cerca per nome (Yahoo per ISIN trova una sola borsa). Sceglie Milano, poi Xetra, con nome coerente."""
-    ok=_tok(nome);q=yf.Search(nome,max_results=20).quotes
-    c=[x for x in q if x.get('symbol','').split('.')[-1] in ('MI','DE') and ok and len(ok&_tok(x.get('longname') or x.get('shortname') or ''))/len(ok)>=0.8]
-    c.sort(key=lambda x:(len(_tok(x.get('longname') or x.get('shortname') or '')-ok),x['symbol'].endswith('.DE')))
-    for x in c:
-        if _eur(x['symbol'],yf):return x['symbol'],x.get('longname')
-    return (c[0]['symbol'],c[0].get('longname')) if c else (None,None)
+    ok=_tok(nome)
+    pulito=re.sub(r'\([^)]*\)','',nome);pulito=' '.join(w for w in pulito.split() if w.lower() not in STOP)
+    for qs in (pulito,' '.join(pulito.split()[:4]),isin):
+        q=yf.Search(qs,max_results=20).quotes
+        c=[x for x in q if x.get('symbol','').split('.')[-1] in ('MI','DE') and ok and len(ok&_tok(x.get('longname') or x.get('shortname') or ''))/len(ok)>=0.8]
+        c.sort(key=lambda x:(len(_tok(x.get('longname') or x.get('shortname') or '')-ok),x['symbol'].endswith('.DE')))
+        for x in c:
+            if _eur(x['symbol'],yf):return x['symbol'],x.get('longname')
+        if c:return c[0]['symbol'],c[0].get('longname')
+        print('  ricerca',repr(qs),'->',[x.get('symbol') for x in q])
+    return None,None
 def scarica(isins,cache_path,nomi):
     import yfinance as yf
     cache=json.load(open(cache_path)) if os.path.exists(cache_path) else {}
-    if cache.get('_v')!=4:cache={'_v':4,'_nomi':{}}
+    if cache.get('_v')!=5:cache={'_v':5,'_nomi':{}}
     man_p=os.path.join(BASE,'ticker_manuali.json')
     man=json.load(open(man_p)) if os.path.exists(man_p) else {}
     for i in isins:
