@@ -55,7 +55,7 @@ def scarica(isins,cache_path):
     return df
 def main():
     cfg=json.load(open(os.path.join(BASE,'modelli.json')))
-    out_path=os.path.join(ROOT,'consulenza','monitor.json')
+    out_path=os.path.join(BASE,'monitor.json')
     prev=json.load(open(out_path)).get('portafogli',{}) if os.path.exists(out_path) else {}
     isins=sorted({c for p in cfg['portafogli'].values() for c in p['pesi']})
     prices=scarica(isins,os.path.join(BASE,'isin_cache.json'))
