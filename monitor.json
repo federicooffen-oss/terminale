@@ -1,0 +1,218 @@
+{
+ "esempio": true,
+ "aggiornato": "2026-10-31 18:30 UTC (esempio)",
+ "ultimo_prezzo": "2026-10-30",
+ "strumenti_senza_dati": [],
+ "portafogli": {
+  "P1": {
+   "nome": "Liquidità Plus",
+   "fascia": 0,
+   "limite": 5.8,
+   "var_modello": 1.88,
+   "var_attuale": 1.88,
+   "deriva_max": 0.0,
+   "stato": "ok",
+   "messaggi": [],
+   "pesi_attuali": {
+    "LU0290358497": 60.0,
+    "LU1650487413": 30.0,
+    "LU1650491282": 10.0
+   }
+  },
+  "P2": {
+   "nome": "Prudente Anti-inflazione",
+   "fascia": 0,
+   "limite": 5.8,
+   "var_modello": 3.99,
+   "var_attuale": 3.99,
+   "deriva_max": 0.0,
+   "stato": "ok",
+   "messaggi": [],
+   "pesi_attuali": {
+    "LU0290358497": 25.0,
+    "LU1650487413": 40.0,
+    "LU1650488494": 5.0,
+    "LU1650491282": 15.0,
+    "LU0478205379": 5.0,
+    "IE00B4L5Y983": 5.0,
+    "FR0013416716": 5.0
+   }
+  },
+  "P3": {
+   "nome": "Rendita Prudente",
+   "fascia": 1,
+   "limite": 11.6,
+   "var_modello": 6.96,
+   "var_attuale": 6.96,
+   "deriva_max": 0.0,
+   "stato": "ok",
+   "messaggi": [],
+   "pesi_attuali": {
+    "LU1650487413": 15.0,
+    "LU1650488494": 10.0,
+    "LU1437018598": 10.0,
+    "LU0478205379": 25.0,
+    "LU1650491282": 10.0,
+    "LU0290358497": 10.0,
+    "LU1681040496": 5.0,
+    "IE00B8GKDB10": 10.0,
+    "LU1832418773": 5.0
+   }
+  },
+  "P4": {
+   "nome": "Bilanciato Prudente",
+   "fascia": 1,
+   "limite": 11.6,
+   "var_modello": 7.8,
+   "var_attuale": 7.8,
+   "deriva_max": 0.0,
+   "stato": "ok",
+   "messaggi": [],
+   "pesi_attuali": {
+    "LU1650487413": 25.0,
+    "LU1650488494": 10.0,
+    "LU1437018598": 10.0,
+    "LU1650491282": 10.0,
+    "LU0478205379": 15.0,
+    "LU0290358497": 5.0,
+    "FR0013416716": 5.0,
+    "IE00B4L5Y983": 10.0,
+    "IE00B8FHGS14": 5.0,
+    "IE00BL25JL35": 5.0
+   }
+  },
+  "P5": {
+   "nome": "ESG Prudente",
+   "fascia": 1,
+   "limite": 11.6,
+   "var_modello": 9.41,
+   "var_attuale": 9.41,
+   "deriva_max": 0.0,
+   "stato": "ok",
+   "messaggi": [],
+   "pesi_attuali": {
+    "LU1650487413": 20.0,
+    "LU2182388236": 40.0,
+    "IE0001GSQ2O9": 10.0,
+    "IE00BCHWNQ94": 10.0,
+    "LU0290358497": 15.0,
+    "FR0013416716": 5.0
+   }
+  },
+  "P6": {
+   "nome": "Bilanciato Crescita",
+   "fascia": 2,
+   "limite": 23.3,
+   "var_modello": 20.42,
+   "var_attuale": 22.33,
+   "deriva_max": 2.15,
+   "stato": "preavviso",
+   "messaggi": [
+    "Il VaR annuo (22.3%) ha raggiunto il 90% del limite della fascia Medio-alto (23.3%)."
+   ],
+   "pesi_attuali": {
+    "LU1650487413": 4.52,
+    "LU1650488494": 4.26,
+    "LU1437018598": 7.85,
+    "LU1650491282": 4.24,
+    "LU0478205379": 9.3,
+    "FR0013416716": 3.7,
+    "IE00B4L5Y983": 21.17,
+    "IE00BL25JL35": 11.67,
+    "IE00BP3QZ825": 5.7,
+    "IE00B8FHGS14": 4.47,
+    "IE00BL25JM42": 6.32,
+    "IE00B8GKDB10": 5.68,
+    "IE00BF4RFH31": 5.52,
+    "IE00BTJRMP35": 5.59
+   }
+  },
+  "P7": {
+   "nome": "Rendita Dinamica",
+   "fascia": 2,
+   "limite": 23.3,
+   "var_modello": 17.44,
+   "var_attuale": 17.44,
+   "deriva_max": 0.0,
+   "stato": "ok",
+   "messaggi": [],
+   "pesi_attuali": {
+    "LU1650488494": 5.0,
+    "LU1437018598": 5.0,
+    "LU0478205379": 20.0,
+    "LU1681040496": 5.0,
+    "LU1650491282": 5.0,
+    "LU0290358497": 5.0,
+    "FR0013416716": 5.0,
+    "IE00B8GKDB10": 25.0,
+    "IE00B4L5Y983": 10.0,
+    "IE00BL25JM42": 5.0,
+    "LU1832418773": 5.0,
+    "IE00BTJRMP35": 5.0
+   }
+  },
+  "P8": {
+   "nome": "ESG Crescita",
+   "fascia": 2,
+   "limite": 23.3,
+   "var_modello": 20.29,
+   "var_attuale": 20.29,
+   "deriva_max": 0.0,
+   "stato": "ok",
+   "messaggi": [],
+   "pesi_attuali": {
+    "IE0001GSQ2O9": 35.0,
+    "IE00BCHWNQ94": 10.0,
+    "IE00BM67HJ62": 10.0,
+    "LU2182388236": 20.0,
+    "LU1650487413": 10.0,
+    "FR0013416716": 5.0,
+    "LU0290358497": 10.0
+   }
+  },
+  "P9": {
+   "nome": "Crescita Globale",
+   "fascia": 3,
+   "limite": 46.5,
+   "var_modello": 28.39,
+   "var_attuale": 28.39,
+   "deriva_max": 0.0,
+   "stato": "ok",
+   "messaggi": [],
+   "pesi_attuali": {
+    "IE00B4L5Y983": 25.0,
+    "IE00BL25JL35": 10.0,
+    "IE00BP3QZ825": 10.0,
+    "IE00BL25JM42": 10.0,
+    "IE00B8FHGS14": 5.0,
+    "IE00B8GKDB10": 10.0,
+    "IE00BF4RFH31": 5.0,
+    "IE00BTJRMP35": 10.0,
+    "FR0013416716": 5.0,
+    "LU1650487413": 10.0
+   }
+  },
+  "P10": {
+   "nome": "Crescita Dinamica",
+   "fascia": 3,
+   "limite": 46.5,
+   "var_modello": 33.9,
+   "var_attuale": 33.9,
+   "deriva_max": 0.0,
+   "stato": "ok",
+   "messaggi": [],
+   "pesi_attuali": {
+    "IE00B4L5Y983": 20.0,
+    "IE00BL25JL35": 10.0,
+    "IE00BP3QZ825": 10.0,
+    "IE00BL25JM42": 5.0,
+    "IE00B8GKDB10": 10.0,
+    "IE00BF4RFH31": 10.0,
+    "IE00BTJRMP35": 15.0,
+    "IE00BM67HT60": 10.0,
+    "LU0533033238": 5.0,
+    "FR0013416716": 5.0
+   }
+  }
+ }
+}

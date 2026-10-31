@@ -1,400 +1,512 @@
 <!doctype html>
-<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Terminale Binario F</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>
+<title>Binario F Consulenza Indipendente</title>
+
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Newsreader:wght@500;600&display=swap">
 <style>
-/* Layout: barra strumenti in alto, mappa a riquadri proporzionali come vista principale, tabella e portafoglio come viste secondarie. */
+/* Layout: colonna unica centrata, un passo per schermata per il cliente; vista consulente a due colonne. Palette Binario F (verde, ambra). */
 :root{
   --bg:#F2F6F3; --surface:#FFFFFF; --fg:#1B2A23; --muted:#5B6C63; --line:#D3DFD8;
-  --brand:#2D4A3A; --accent:#C47F14; --up:#2A9D5C; --down:#D1493E; --neutral:#E4ECE7; --on-strong:#FFFFFF; --chip:#E4ECE7; --warn-bg:#FBEBD0;
+  --brand:#2D4A3A; --brand-fg:#FFFFFF; --accent:#B8720F; --chip:#E4ECE7; --good:#2A9D5C; --bad:#D1493E; --warn-bg:#FBEBD0;
+  --k1:#2D4A3A; --k2:#6C8EAD; --k3:#B8B07A; --k4:#C47F14;
   --f-body:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif; --f-display:'Newsreader',Georgia,serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#111915; --surface:#19231E; --fg:#E5EEE9; --muted:#93A69C; --line:#293731;
-  --brand:#86BF9F; --accent:#E0A04A; --up:#34B06C; --down:#E0675C; --neutral:#22302A; --on-strong:#FFFFFF; --chip:#22302A; --warn-bg:#3A2D14; color-scheme:dark}}
+  --brand:#86BF9F; --brand-fg:#10201A; --accent:#E0A04A; --chip:#22302A; --good:#3DB873; --bad:#E0675C; --warn-bg:#3A2D14;
+  --k1:#86BF9F; --k2:#7FA3C4; --k3:#C9C189; --k4:#E0A04A; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#111915; --surface:#19231E; --fg:#E5EEE9; --muted:#93A69C; --line:#293731;
-  --brand:#86BF9F; --accent:#E0A04A; --up:#34B06C; --down:#E0675C; --neutral:#22302A; --on-strong:#FFFFFF; --chip:#22302A; --warn-bg:#3A2D14; color-scheme:dark}
+  --brand:#86BF9F; --brand-fg:#10201A; --accent:#E0A04A; --chip:#22302A; --good:#3DB873; --bad:#E0675C; --warn-bg:#3A2D14;
+  --k1:#86BF9F; --k2:#7FA3C4; --k3:#C9C189; --k4:#E0A04A; color-scheme:dark}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.4;
-  padding-block:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.wrap{max-width:1280px;margin:0 auto;padding-block:14px 40px;display:flex;flex-direction:column;gap:14px}
-button,input,select{font:inherit;color:inherit}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.45;
+  padding:0}
+.wrap{max-width:880px;margin:0 auto;padding-block:14px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+.wrap.wide{max-width:1180px}
+button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .num{font-variant-numeric:tabular-nums}
-header{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between}
-.brand{display:flex;align-items:baseline;gap:10px;min-width:0}
-.brand b{font-family:var(--f-display);font-size:24px;font-weight:600;color:var(--brand);letter-spacing:-.01em}
-.brand span{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:600}
-.meta{font-size:12px;color:var(--muted)}
-.sample{background:var(--warn-bg);color:var(--fg);border:1px solid var(--accent);border-radius:6px;padding:8px 12px;font-size:13px}
-.bar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+#band{background:#2D4A3A;border-bottom:4px solid #D18A1C;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+#band .in{max-width:880px;margin:0 auto;padding-block:14px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between}
+#band[data-r=consulente] .in{max-width:1180px}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand img{width:46px;height:46px;display:block;flex:none}
+.brand b{display:block;font-family:var(--f-display);font-size:25px;font-weight:600;color:#fff;line-height:1.05}
+.brand span{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.13em;color:#F0C47C;font-weight:600;margin-top:3px}
+#band .seg{background:rgba(255,255,255,.14)}
+#band .seg button{color:#DCE8E0}
+#band .seg button[aria-pressed="true"]{background:#D18A1C;color:#fff}
+#band .btn{background:transparent;color:#fff;border-color:rgba(255,255,255,.4)}
+.foot{border-top:1px solid var(--line);padding-top:14px;font-size:12px;color:var(--muted)}
+.vs{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.iban{font-family:ui-monospace,Menlo,Consolas,monospace;background:var(--bg);border:1px dashed var(--line);border-radius:6px;padding:8px 10px;overflow-wrap:anywhere}
 .seg{display:inline-flex;background:var(--chip);border-radius:8px;padding:3px;gap:2px;max-width:100%;overflow-x:auto}
 .seg button{border:0;background:transparent;padding:6px 12px;border-radius:6px;font-weight:600;color:var(--muted);white-space:nowrap}
-.seg button[aria-pressed="true"]{background:var(--brand);color:var(--surface)}
-.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line)}
-.tabs button{border:0;background:none;padding:10px 14px;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-1px}
+.seg button[aria-pressed="true"]{background:var(--brand);color:var(--brand-fg)}
+.proto{background:var(--warn-bg);border:1px solid var(--accent);border-radius:6px;padding:8px 12px;font-size:13px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+h1,h2,h3{font-family:var(--f-display);color:var(--brand);margin:0;font-weight:600;line-height:1.15;text-wrap:balance}
+h1{font-size:30px}h2{font-size:22px}h3{font-size:17px}
+p{margin:0}
+.muted{color:var(--muted)}.small{font-size:13px}
+.steps{display:flex;gap:6px;flex-wrap:wrap}
+.steps i{flex:1 1 40px;height:5px;border-radius:3px;background:var(--line);min-width:30px}
+.steps i.on{background:var(--accent)}
+label.f{display:flex;flex-direction:column;gap:5px;font-weight:600;font-size:14px}
+input[type=text],input[type=email],input[type=password],input[type=number],select,textarea{padding:9px 11px;border:1px solid var(--line);border-radius:7px;background:var(--bg);width:100%;font-weight:400}
+.q{border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:8px}
+.q:first-of-type{border-top:0;padding-top:0}
+.q .t{font-weight:600}
+.opt{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line);border-radius:8px;cursor:pointer}
+.opt:has(input:checked){border-color:var(--brand);background:var(--chip)}
+.opt input{margin-top:3px;accent-color:var(--brand)}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:10px 16px;font-weight:600}
+.btn.pri{background:var(--brand);color:var(--brand-fg);border-color:var(--brand)}
+.btn.sm{padding:6px 10px;font-size:13px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.row.sb{justify-content:space-between}
+.err{color:var(--bad);font-weight:600;font-size:14px}
+.gauge{display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
+.gauge i{height:12px;border-radius:3px;background:var(--line)}
+.gauge i.on{background:var(--brand)}
+.big{font-family:var(--f-display);font-size:54px;line-height:1;color:var(--accent)}
+.why{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px}
+.choices{display:flex;flex-direction:column;gap:10px}
+.ch{border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:10px;cursor:pointer;background:var(--surface)}
+.ch[aria-pressed="true"]{border:2px solid var(--brand);padding:11px;box-shadow:inset 0 4px 0 var(--accent)}
+.ch header{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+.stats div{background:var(--bg);border-radius:6px;padding:7px 9px}
+.stats small{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+.stats b{font-size:16px}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;min-width:600px}
+th,td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left;white-space:normal;min-width:180px}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);background:var(--chip)}
+tfoot td{font-weight:700;background:var(--chip)}
+.lock{position:relative;border:1px dashed var(--line);border-radius:10px;padding:14px;overflow:hidden}
+.lock .blur{filter:blur(6px);opacity:.7;pointer-events:none;user-select:none;display:flex;flex-direction:column;gap:8px}
+.lock .blur div{display:flex;justify-content:space-between;background:var(--chip);padding:8px 10px;border-radius:6px}
+.lock .over{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;background:color-mix(in srgb,var(--surface) 55%,transparent);padding:10px}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{border:0;background:none;padding:10px 14px;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-1px;white-space:nowrap}
 .tabs button[aria-selected="true"]{color:var(--brand);border-bottom-color:var(--accent)}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
-.chips button{border:1px solid var(--line);background:var(--surface);padding:5px 11px;border-radius:99px;font-size:13px;color:var(--fg)}
-.chips button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:var(--surface)}
-.search{position:relative;flex:1 1 240px;max-width:380px}
-.search input{width:100%;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
-.results{position:absolute;z-index:20;left:0;right:0;top:calc(100% + 4px);background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.14);max-height:340px;overflow:auto}
-.results button{display:flex;justify-content:space-between;gap:8px;width:100%;border:0;background:none;text-align:left;padding:8px 12px}
-.results button:hover,.results button:focus-visible{background:var(--chip)}
-.results .none{padding:10px 12px;color:var(--muted)}
-.results a{color:var(--brand);font-weight:600}
-.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
-.strip div{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;min-width:0}
-.strip small{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.1em;font-weight:600}
-.strip b{display:block;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.up{color:var(--up)}.down{color:var(--down)}
-#map{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:4px;min-height:300px}
-#map svg{display:block;width:100%}
-#map rect{stroke:var(--surface);stroke-width:2;cursor:pointer}
-#map rect:hover{stroke:var(--fg)}
-#map text{pointer-events:none;font-family:var(--f-body)}
-.note{font-size:12px;color:var(--muted)}
-.legend{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
-.legend i{display:block;width:160px;height:10px;border-radius:5px;background:linear-gradient(90deg,var(--down),var(--neutral),var(--up))}
-.tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px}
-table{border-collapse:collapse;width:100%;min-width:640px}
-th,td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
-th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}
-th{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);background:var(--surface);position:sticky;top:0;cursor:pointer}
-th[aria-sort]{color:var(--brand)}
-tbody tr{cursor:pointer}
-tbody tr:hover{background:var(--chip)}
-td.h{font-weight:600}
-td.tk{font-weight:700;color:var(--brand)}
-td.gp{color:var(--muted);font-size:12px}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
-h2{font-family:var(--f-display);font-size:20px;margin:0;color:var(--brand);font-weight:600}
-.prow{display:grid;grid-template-columns:minmax(0,1fr) 90px 34px;gap:8px;align-items:center}
-.prow select,.prow input{padding:7px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);min-width:0}
-.prow button,.btn{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:7px 10px;font-weight:600}
-.btn.pri{background:var(--brand);color:var(--surface);border-color:var(--brand)}
-.pgrid{display:grid;grid-template-columns:minmax(280px,380px) minmax(0,1fr);gap:14px;align-items:start}
-@media (max-width:820px){.pgrid{grid-template-columns:minmax(0,1fr)}}
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
-.kpis div{background:var(--bg);border-radius:6px;padding:8px 10px}
-.kpis small{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:600}
-.kpis b{font-size:17px}
-dialog{border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg);padding:0;width:min(720px,calc(100vw - 24px));max-height:calc(100vh - 32px)}
-dialog::backdrop{background:rgba(10,20,15,.5)}
-.dlg{padding:16px;display:flex;flex-direction:column;gap:12px}
-.dlg header{align-items:flex-start}
-.dlg h3{margin:0;font-family:var(--f-display);font-size:22px;color:var(--brand)}
-.links{display:flex;flex-wrap:wrap;gap:8px}
-.links a{border:1px solid var(--line);border-radius:6px;padding:6px 10px;text-decoration:none;color:var(--brand);font-weight:600;font-size:13px}
+.badge{display:inline-block;background:var(--accent);color:#fff;border-radius:99px;font-size:11px;padding:1px 7px;margin-left:5px}
+.alert{background:var(--warn-bg);border:1px solid var(--accent);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.ok{color:var(--good);font-weight:700}.ko{color:var(--bad);font-weight:700}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;align-items:start}
+.lg{display:flex;flex-wrap:wrap;gap:12px;font-size:13px}
+.lg i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
 .chart text{fill:var(--muted);font-size:11px;font-family:var(--f-body)}
-.foot{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+.art{border:1px solid var(--line);border-radius:8px}
+.art summary{padding:12px 14px;font-weight:600;cursor:pointer}
+.art div{padding:0 14px 14px;color:var(--muted)}
+.admin-w input{width:84px;text-align:right}
+.stp{display:flex;flex-wrap:wrap;gap:6px}
+.stp span{background:var(--chip);color:var(--muted);border-radius:99px;padding:4px 11px;font-size:13px;font-weight:600}
+.stp span.on{background:var(--brand);color:var(--brand-fg)}
+.stp span.done{color:var(--good)}
 </style>
-</head><body>
 
-
-<div class="wrap">
-  <header>
-    <div class="brand"><b>Binario F</b><span>Terminale di mercato</span></div>
-    <div class="search">
-      <input id="q" type="search" placeholder="Cerca ticker o nome (es. XLK, oro, Giappone)" autocomplete="off" aria-label="Cerca strumento">
-      <div class="results" id="res" hidden></div>
-    </div>
-    <div class="meta num" id="upd"></div>
-  </header>
-  <div class="sample" id="sampleBox" hidden><b>Dati di prova.</b> I numeri di questa anteprima sono inventati e servono solo a mostrare come funziona. Con il collegamento ai dati reali compaiono i prezzi veri.</div>
-
-  <div class="bar">
-    <div class="seg" id="per" role="group" aria-label="Periodo"></div>
-    <div class="legend"><span>calo</span><i></i><span>rialzo</span></div>
-  </div>
-  <div class="strip" id="strip"></div>
-
-  <nav class="tabs" role="tablist" aria-label="Viste">
-    <button role="tab" id="t-mappa" aria-selected="true">Mappa</button>
-    <button role="tab" id="t-tabella" aria-selected="false">Tabella</button>
-    <button role="tab" id="t-portafoglio" aria-selected="false">Portafoglio</button>
-  </nav>
-
-  <section id="v-mappa" class="vw">
-    <div style="display:flex;flex-direction:column;gap:10px">
-      <div class="chips" id="gm"></div>
-      <div id="map"></div>
-      <div class="bar"><div class="seg" id="sz" role="group" aria-label="Dimensione riquadri"></div>
-        <span class="note">Dimensione indicativa = peso approssimato dell'area nel mercato. Clicca un riquadro per la scheda.</span></div>
-    </div>
-  </section>
-
-  <section id="v-tabella" class="vw" hidden>
-    <div style="display:flex;flex-direction:column;gap:10px">
-      <div class="chips" id="gt"></div>
-      <div class="tablewrap"><table id="tb"></table></div>
-    </div>
-  </section>
-
-  <section id="v-portafoglio" class="vw" hidden>
-    <div class="pgrid">
-      <div class="panel">
-        <h2>Costruisci un portafoglio</h2>
-        <div class="note">Scegli gli strumenti e i pesi. Il calcolo assume che i pesi siano quelli iniziali di ogni periodo, senza ribilanciamenti.</div>
-        <div id="rows" style="display:flex;flex-direction:column;gap:8px"></div>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
-          <button class="btn" id="add">+ Aggiungi strumento</button>
-          <span class="note num" id="sumw"></span>
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px" id="presets"></div>
-      </div>
-      <div class="panel" id="pres"></div>
-    </div>
-  </section>
-
-  <div class="foot">Strumento di consultazione interna di Binario F. I rendimenti sono quelli degli ETF rappresentativi indicati (in valuta di quotazione, prezzi di chiusura, ritardati) e non costituiscono consulenza né raccomandazione. I rendimenti passati non sono indicativi di quelli futuri.</div>
-</div>
-
-<dialog id="dlg"><div class="dlg" id="dbody"></div></dialog>
-
+<div id="band"></div>
+<div class="wrap" id="app"></div>
 <script>
-const INLINE = null;
-const PERS = ['1G','1S','1M','3M','YTD','1A'];
-const SCALE = {'1G':.03,'1S':.05,'1M':.08,'3M':.15,'YTD':.25,'1A':.4};
-const $ = id => document.getElementById(id);
-const S = {per:'YTD', grp:'Settori USA', view:'mappa', size:'ind', sort:{k:'YTD',d:-1}, pf:[]};
-let D, R = {}, BYT = {}, GROUPS = [];
-
-const fmtP = (v, d=1) => v==null ? '–' : (v>0?'+':v<0?'−':'') + Math.abs(v*100).toFixed(d).replace('.',',') + '%';
-const fmtN = v => v==null ? '–' : v.toLocaleString('it-IT',{maximumFractionDigits:2,minimumFractionDigits:2});
-const cls = v => v==null ? '' : v>0 ? 'up' : v<0 ? 'down' : '';
-const store = {get(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
-
-function dayShift(iso, days){const d=new Date(iso+'T00:00:00Z');d.setUTCDate(d.getUTCDate()-days);return d.toISOString().slice(0,10)}
-function idxOnOrBefore(dates, iso){let lo=0,hi=dates.length-1,r=-1;while(lo<=hi){const m=(lo+hi)>>1;if(dates[m]<=iso){r=m;lo=m+1}else hi=m-1}return r}
-
-function compute(){
-  const dates = D.dates, n = dates.length, last = dates[n-1];
-  const tgt = {'1S':dayShift(last,7),'1M':dayShift(last,30),'3M':dayShift(last,91),'1A':dayShift(last,365),'YTD':(+last.slice(0,4)-1)+'-12-31'};
-  const ix = {'1G':n-2}; for(const k in tgt) ix[k]=idxOnOrBefore(dates,tgt[k]);
-  D.inst.forEach(i=>{
-    BYT[i.t]=i; const c=i.c, lastP=c[n-1]; R[i.t]={};
-    PERS.forEach(p=>{const b=ix[p]>=0?c[ix[p]]:null; R[i.t][p]=(lastP!=null&&b)? lastP/b-1 : null});
-    i.last = lastP;
-    const yr = c.slice(Math.max(0,ix['1A']<0?0:ix['1A'])).filter(x=>x!=null);
-    i.hi = Math.max(...yr); i.lo = Math.min(...yr);
-  });
-  GROUPS = [...new Set(D.inst.map(i=>i.g))];
+const PF0={"P1": {"nome": "Liquidità Plus", "obiettivo": "Protezione", "w": {"MON": 60, "GOVS": 30, "INFL": 10}}, "P2": {"nome": "Prudente Anti-inflazione", "obiettivo": "Proteggere il potere d'acquisto", "w": {"MON": 25, "GOVS": 40, "GOVM": 5, "INFL": 15, "CORP": 5, "EQW": 5, "GOLD": 5}}, "P3": {"nome": "Rendita Prudente", "obiettivo": "Flusso di cedole", "w": {"GOVS": 15, "GOVM": 10, "GOVB": 10, "CORP": 25, "INFL": 10, "MON": 10, "HY": 5, "DIV": 10, "REIT": 5}}, "P4": {"nome": "Bilanciato Prudente", "obiettivo": "Crescita moderata", "w": {"GOVS": 25, "GOVM": 10, "GOVB": 10, "INFL": 10, "CORP": 15, "MON": 5, "GOLD": 5, "EQW": 10, "MVOL": 5, "QUAL": 5}}, "P5": {"nome": "ESG Prudente", "obiettivo": "Crescita moderata sostenibile", "w": {"GOVS": 20, "BESG": 40, "ESGW": 10, "ESGS": 10, "MON": 15, "GOLD": 5}}, "P6": {"nome": "Bilanciato Crescita", "obiettivo": "Crescita", "w": {"GOVS": 5, "GOVM": 5, "GOVB": 10, "INFL": 5, "CORP": 10, "GOLD": 5, "EQW": 20, "QUAL": 10, "MOM": 5, "MVOL": 5, "VAL": 5, "DIV": 5, "SC": 5, "EM": 5}}, "P7": {"nome": "Rendita Dinamica", "obiettivo": "Dividendi e cedole", "w": {"GOVM": 5, "GOVB": 5, "CORP": 20, "HY": 5, "INFL": 5, "MON": 5, "GOLD": 5, "DIV": 25, "EQW": 10, "VAL": 5, "REIT": 5, "EM": 5}}, "P8": {"nome": "ESG Crescita", "obiettivo": "Crescita sostenibile", "w": {"ESGW": 35, "ESGS": 10, "ESGE": 10, "BESG": 20, "GOVS": 10, "GOLD": 5, "MON": 10}}, "P9": {"nome": "Crescita Globale", "obiettivo": "Crescita", "w": {"EQW": 25, "QUAL": 10, "MOM": 10, "VAL": 10, "MVOL": 5, "DIV": 10, "SC": 5, "EM": 10, "GOLD": 5, "GOVS": 10}}, "P10": {"nome": "Crescita Dinamica", "obiettivo": "Crescita con satellite settoriale", "w": {"EQW": 20, "QUAL": 10, "MOM": 10, "VAL": 5, "DIV": 10, "SC": 10, "EM": 15, "TECH": 10, "HC": 5, "GOLD": 5}}};
+/* ======================= DATI DI PROVA ======================= */
+/* [chiave, isin, nome, classe, prezzo(esempio), TER(esempio), in lista Fineco, carico azionario, carico tassi, volatilità sim %, rendimento sim %, gruppo] */
+const RAW=[
+['MON','LU0290358497','Xtrackers II EUR Overnight Rate Swap 1C','Monetario',145.2,.10,1,0,0,.4,2,'M'],
+['GOVS','LU1650487413','Amundi Euro Government Bond 1-3Y Acc','Obbligazionario',24.1,.14,1,0,.5,1.8,1.5,'B'],
+['GOVM','LU1650488494','Amundi Euro Government Bond 3-5Y Acc','Obbligazionario',25.4,.14,1,.05,.8,4.2,2.2,'B'],
+['GOVB','LU1437018598','Amundi Euro Government Bond Acc','Obbligazionario',25.9,.14,1,.05,.8,5.5,2.4,'B'],
+['INFL','LU1650491282','Amundi Euro Govt Inflation-Linked Acc','Obbligazionario',231.5,.25,1,.1,.7,6,2.6,'B'],
+['CORP','LU0478205379','Xtrackers II EUR Corporate Bond 1C','Obbligazionario',150.8,.16,1,.35,.6,4.8,3,'B'],
+['HY','LU1681040496','Amundi Euro High Yield Bond ESG Acc','Obbligazionario',33.9,.25,1,.6,.4,7,4.5,'B'],
+['BESG','LU2182388236','Amundi Euro Aggregate Bond ESG DR (C)','Obbligazionario',49.2,.14,1,.15,.8,5.2,2.5,'B'],
+['GOLD','FR0013416716','Amundi Physical Gold ETC (C)','Oro',68.4,.15,1,.1,0,15,5,'G'],
+['EQW','IE00B4L5Y983','iShares Core MSCI World','Azionario',104.7,.20,1,.95,0,15,8.5,'E'],
+['QUAL','IE00BL25JL35','Xtrackers MSCI World Quality 1C','Azionario',62.3,.25,1,.93,0,14,9,'E'],
+['MOM','IE00BP3QZ825','iShares Edge MSCI World Momentum Factor (Acc)','Azionario',71.6,.30,0,.9,0,15,9,'E'],
+['MVOL','IE00B8FHGS14','iShares Edge MSCI World Minimum Volatility (Acc)','Azionario',58.9,.30,0,.8,0,11,7.5,'E'],
+['VAL','IE00BL25JM42','Xtrackers MSCI World Value 1C','Azionario',51.7,.25,1,.9,0,15.5,8,'E'],
+['DIV','IE00B8GKDB10','Vanguard FTSE All-World High Dividend Yield (Dist)','Azionario',64.8,.29,0,.88,0,13,8,'E'],
+['DIVF','LU0292096186','Xtrackers Stoxx Global Select Dividend 100 1D','Azionario',37.5,.50,1,.85,0,13.5,7.8,'E',1],
+['SC','IE00BF4RFH31','iShares MSCI World Small Cap (Acc)','Azionario',41.2,.35,0,.88,0,17,9,'E'],
+['EM','IE00BTJRMP35','Xtrackers MSCI Emerging Markets 1C','Azionario',58.3,.18,1,.85,0,18,8,'E'],
+['REIT','LU1832418773','Amundi FTSE EPRA NAREIT Global Developed (Dist)','Azionario',23.6,.24,1,.8,.1,18,7,'E'],
+['TECH','IE00BM67HT60','Xtrackers MSCI World Information Technology 1C','Azionario',82.1,.25,1,.8,0,22,12,'E'],
+['HC','LU0533033238','Amundi MSCI World Health Care Acc','Azionario',49.5,.30,1,.85,0,13,8.5,'E'],
+['ESGW','IE0001GSQ2O9','Amundi MSCI World ESG Broad Transition Acc','Azionario',57.4,.18,1,.95,0,15,8.5,'E'],
+['ESGS','IE00BCHWNQ94','Xtrackers MSCI World ESG Screened','Azionario',46.2,.20,1,.95,0,15,8.5,'E'],
+['ESGE','IE00BM67HJ62','Xtrackers MSCI Emerging Markets ESG Screened 1C','Azionario',30.8,.25,1,.85,0,18,8,'E'],
+];
+const INS=RAW.map(r=>({k:r[0],isin:r[1],name:r[2],cls:r[3],price:r[4],ter:r[5],fin:!!r[6],a:r[7],b:r[8],vol:r[9],mu:r[10],g:r[11],finOnly:!!r[12]}));
+const BY=Object.fromEntries(INS.map(i=>[i.k,i]));
+const FIN_SUB={MOM:'QUAL',MVOL:'QUAL',DIV:'DIVF',SC:'EQW'};   // versione Fineco: ETF fuori lista sostituiti da uno in lista
+const ESG_P=['P5','P8'];
+const MINY={P1:1,P2:3,P3:3,P4:5,P5:5,P6:7,P7:7,P8:7,P9:10,P10:10};
+const BANDS=['Basso','Medio-basso','Medio-alto','Alto'];
+const BAND_VAR=['0 – 5,8%','5,8 – 11,6%','11,6 – 23,3%','23,3 – 46,5%'];
+/* Ipotesi di volatilità annua e correlazione per classe: da sostituire con le serie reali a 5 anni */
+const VOLA={MON:.5,GOVS:1.5,GOVM:4.5,GOVB:6,INFL:6,CORP:5,HY:7.5,BESG:5.5,GOLD:15,EQW:15,QUAL:14,MOM:15,MVOL:11,VAL:15.5,DIV:13,DIVF:13.5,SC:17,EM:18,REIT:18,TECH:22,HC:13,ESGW:15,ESGS:15,ESGE:18};
+function rho(a,b){
+  if(a===b)return 1;const ga=BY[a].g,gb=BY[b].g,s=[a,b];
+  if(ga==='M'||gb==='M')return .05;
+  if(ga==='E'&&gb==='E'){if(s.some(x=>['TECH','EM','REIT'].includes(x)))return s.includes('REIT')?.8:.75;if(s.some(x=>['MVOL','HC'].includes(x)))return .85;return .92}
+  if(ga==='B'&&gb==='B'){if(s.includes('HY'))return s.some(x=>['CORP','BESG'].includes(x))?.7:.45;if(s.includes('GOVS'))return s.includes('GOVM')?.6:.45;return .8}
+  if(ga==='G'||gb==='G')return (ga==='B'||gb==='B')?.2:.1;
+  const bnd=ga==='B'?a:b;return bnd==='HY'?.65:bnd==='CORP'?.4:bnd==='BESG'?.3:.1;
 }
-
-/* ---------- intestazione e riepilogo ---------- */
-function renderHead(){
-  $('upd').textContent = 'Aggiornato: ' + new Date(D.updated).toLocaleString('it-IT',{dateStyle:'short',timeStyle:'short'}) + ' · ultimo dato di chiusura ' + D.dates[D.dates.length-1].split('-').reverse().join('/');
-  $('sampleBox').hidden = !D.sample;
-  const all = D.inst.filter(i=>R[i.t][S.per]!=null).sort((a,b)=>R[b.t][S.per]-R[a.t][S.per]);
-  const up = all.filter(i=>R[i.t][S.per]>0).length;
-  const card=(l,i)=>`<div><small>${l}</small><b>${i?`${i.n} <span class="${cls(R[i.t][S.per])} num">${fmtP(R[i.t][S.per])}</span>`:'–'}</b></div>`;
-  $('strip').innerHTML = card('Migliore ('+S.per+')',all[0]) + card('Peggiore ('+S.per+')',all[all.length-1]) +
-    `<div><small>Strumenti in rialzo (${S.per})</small><b class="num">${up} su ${all.length}</b></div>`;
+function varAnnuo(w){ // VaR parametrico 99% annuo (%) = 2,326 x volatilità annua, con volatilità e correlazioni ipotizzate
+  const ks=Object.keys(w);let v=0;
+  ks.forEach(a=>ks.forEach(b=>{v+=w[a]/100*w[b]/100*VOLA[a]*VOLA[b]*rho(a,b)}));
+  return 2.326*Math.sqrt(v);
 }
-
-/* ---------- mappa ---------- */
-function colorFor(v){
-  if(v==null) return 'var(--neutral)';
-  const t=Math.min(1,Math.abs(v)/SCALE[S.per]), pct=Math.round(t*100);
-  return `color-mix(in srgb, var(${v>=0?'--up':'--down'}) ${pct}%, var(--neutral))`;
-}
-function squarify(items,X,Y,W,H){
-  const tot=items.reduce((a,i)=>a+i.v,0), k=W*H/tot; items.forEach(i=>i.a=i.v*k);
-  const out=[]; let row=[], x=X,y=Y,w=W,h=H;
-  const worst=(r,s)=>{const t=r.reduce((a,i)=>a+i.a,0),mx=Math.max(...r.map(i=>i.a)),mn=Math.min(...r.map(i=>i.a));return Math.max(s*s*mx/(t*t),t*t/(s*s*mn))};
-  const place=r=>{const t=r.reduce((a,i)=>a+i.a,0);
-    if(w>=h){const cw=t/h;let yy=y;r.forEach(i=>{const hh=i.a/cw;out.push({i,x,y:yy,w:cw,h:hh});yy+=hh});x+=cw;w-=cw}
-    else{const rh=t/w;let xx=x;r.forEach(i=>{const ww=i.a/rh;out.push({i,x:xx,y,w:ww,h:rh});xx+=ww});y+=rh;h-=rh}};
-  const rest=items.slice();
-  while(rest.length){const s=Math.min(w,h),it=rest[0];
-    if(!row.length||worst(row.concat(it),s)<=worst(row,s)){row.push(it);rest.shift()}else{place(row);row=[]}}
-  if(row.length)place(row);
-  return out;
-}
-function renderMap(){
-  const box=$('map'), W=Math.max(280,box.clientWidth-8), H=Math.round(Math.max(360,Math.min(640,W*0.6)));
-  let list=D.inst.filter(i=>i.g===S.grp&&R[i.t][S.per]!=null);
-  if(S.grp==='Tutti') list=D.inst.filter(i=>R[i.t][S.per]!=null);
-  if(!list.length){box.innerHTML='<div class="note" style="padding:20px">Nessun dato per questo gruppo.</div>';return}
-  const items=list.map(i=>({inst:i,v:S.size==='ind'?Math.max(i.w,.35):1})).sort((a,b)=>b.v-a.v);
-  const rects=squarify(items,0,0,W,H);
-  let s=`<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="Mappa dei rendimenti, periodo ${S.per}">`;
-  rects.forEach(r=>{const i=r.i.inst,v=R[i.t][S.per],strong=Math.abs(v)/SCALE[S.per]>.5;
-    const fg=strong?'var(--on-strong)':'var(--fg)', cx=r.x+r.w/2, cy=r.y+r.h/2;
-    s+=`<g data-t="${i.t}"><rect x="${r.x.toFixed(1)}" y="${r.y.toFixed(1)}" width="${Math.max(0,r.w).toFixed(1)}" height="${Math.max(0,r.h).toFixed(1)}" fill="${colorFor(v)}"><title>${i.n} (${i.t}) ${fmtP(v,2)}</title></rect>`;
-    if(r.w>42&&r.h>26){
-      const fs=Math.max(11,Math.min(22,Math.min(r.w/5.5,r.h/3)));
-      const showName=r.w>120&&r.h>70, showPct=r.h>44;
-      const lines=[[i.t,fs,700]]; if(showName) lines.push([i.n.length>26?i.n.slice(0,25)+'…':i.n,Math.max(10,fs*.58),500]); if(showPct) lines.push([fmtP(v),fs*.8,600]);
-      const tot=lines.reduce((a,l)=>a+l[1]*1.25,0); let ty=cy-tot/2;
-      lines.forEach(l=>{ty+=l[1]*1.25;s+=`<text x="${cx.toFixed(1)}" y="${(ty-l[1]*.3).toFixed(1)}" text-anchor="middle" font-size="${l[1].toFixed(1)}" font-weight="${l[2]}" fill="${fg}">${l[0]}</text>`});
-    }
-    s+='</g>';
-  });
-  box.innerHTML=s+'</svg>';
-  box.querySelectorAll('g[data-t]').forEach(g=>g.addEventListener('click',()=>openDetail(g.dataset.t)));
-}
-
-/* ---------- tabella ---------- */
-function renderTable(){
-  let list=S.grp==='Tutti'?D.inst.slice():D.inst.filter(i=>i.g===S.grp);
-  const k=S.sort.k, d=S.sort.d;
-  const val=i=>k==='n'?i.n:k==='g'?i.g:R[i.t][k];
-  list.sort((a,b)=>{const x=val(a),y=val(b); if(x==null)return 1; if(y==null)return -1; return (typeof x==='string'?x.localeCompare(y,'it'):x-y)*d});
-  const th=(key,label)=>`<th data-k="${key}" ${S.sort.k===key?`aria-sort="${d>0?'ascending':'descending'}"`:''}>${label}${S.sort.k===key?(d>0?' ▲':' ▼'):''}</th>`;
-  let h='<thead><tr>'+th('t','Ticker')+th('n','Strumento')+(S.grp==='Tutti'?th('g','Gruppo'):'')+'<th data-k="last">Ultimo</th>'+PERS.map(p=>th(p,p)).join('')+'</tr></thead><tbody>';
-  list.forEach(i=>{h+=`<tr data-t="${i.t}"><td class="tk">${i.t}</td><td>${i.n}</td>${S.grp==='Tutti'?`<td class="gp">${i.g}</td>`:''}<td class="num">${fmtN(i.last)}</td>`+
-    PERS.map(p=>{const v=R[i.t][p];return `<td class="num h ${cls(v)}" style="background:${colorFor(v).replace(/ \d+%/,m=>' '+Math.round(parseInt(m)*.45)+'%')}">${fmtP(v)}</td>`}).join('')+'</tr>'});
-  $('tb').innerHTML=h+'</tbody>';
-  $('tb').querySelectorAll('th[data-k]').forEach(t=>t.addEventListener('click',()=>{const kk=t.dataset.k;if(kk==='last')return;S.sort=S.sort.k===kk?{k:kk,d:-S.sort.d}:{k:kk,d:(kk==='t'||kk==='n'||kk==='g')?1:-1};renderTable()}));
-  $('tb').querySelectorAll('tbody tr').forEach(tr=>tr.addEventListener('click',()=>openDetail(tr.dataset.t)));
-}
-
-/* ---------- grafici ---------- */
-function lineChart(series, opts={}){ // series: [{label,vals,color}], dates
-  const W=opts.w||640,H=opts.h||240,L=44,Rr=14,T=10,B=24, dates=opts.dates;
-  let all=series.flatMap(s=>s.vals.filter(v=>v!=null)); let mn=Math.min(...all),mx=Math.max(...all); const pad=(mx-mn)*.08||1; mn-=pad;mx+=pad;
-  const x=i=>L+(W-L-Rr)*i/(dates.length-1), y=v=>T+(H-T-B)*(1-(v-mn)/(mx-mn));
-  let s=`<svg class="chart" viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block" role="img" aria-label="${opts.label||'Grafico'}">`;
-  for(let k=0;k<=4;k++){const v=mn+(mx-mn)*k/4,yy=y(v);s+=`<line x1="${L}" x2="${W-Rr}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${L-6}" y="${yy+4}" text-anchor="end">${v.toFixed(opts.dec??0)}</text>`}
-  const step=Math.floor(dates.length/5);
-  for(let i=0;i<dates.length;i+=step){const [yy,mm]=dates[i].split('-');s+=`<text x="${x(i)}" y="${H-6}" text-anchor="middle">${mm}/${yy.slice(2)}</text>`}
-  series.forEach((sr,si)=>{let d='';sr.vals.forEach((v,i)=>{if(v!=null)d+=(d?'L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1)});
-    if(si===0&&series.length===1){s+=`<path d="${d}L${x(dates.length-1)} ${H-B}L${L} ${H-B}Z" fill="${sr.color}" opacity=".12"/>`}
-    s+=`<path d="${d}" fill="none" stroke="${sr.color}" stroke-width="2" stroke-linejoin="round"/>`;
-    const lv=sr.vals[sr.vals.length-1]; if(lv!=null) s+=`<circle cx="${x(dates.length-1)}" cy="${y(lv)}" r="3.5" fill="${sr.color}"/>`});
-  return s+'</svg>';
-}
-
-function openDetail(t){
-  const i=BYT[t]; if(!i) return;
-  const closes=i.c, dates=D.dates, ret=R[t];
-  const view=window.__rng||'1A'; const from=view==='3M'?dates.length-64:view==='6M'?dates.length-127:0;
-  const sub=closes.slice(Math.max(0,from)), subd=dates.slice(Math.max(0,from));
-  const sym = t==='BTC'?'BTC-USD':t==='ETH'?'ETH-USD':t;
-  $('dbody').innerHTML=`
-    <header><div><h3>${i.n}</h3><div class="note">${t} · ${i.g}</div></div><button class="btn" id="cl">Chiudi</button></header>
-    <div class="kpis num">
-      <div><small>Ultimo</small><b>${fmtN(i.last)}</b></div>
-      <div><small>Max 52 sett.</small><b>${fmtN(i.hi)}</b></div>
-      <div><small>Min 52 sett.</small><b>${fmtN(i.lo)}</b></div>
-      <div><small>Dal massimo</small><b class="${cls(i.last/i.hi-1)}">${fmtP(i.last/i.hi-1)}</b></div>
-    </div>
-    <div class="kpis num">${PERS.map(p=>`<div><small>${p}</small><b class="${cls(ret[p])}">${fmtP(ret[p])}</b></div>`).join('')}</div>
-    <div class="seg" id="rg" role="group" aria-label="Intervallo grafico">${['3M','6M','1A'].map(r=>`<button aria-pressed="${r===view}" data-r="${r}">${r}</button>`).join('')}</div>
-    ${lineChart([{vals:sub,color:'var(--brand)'}],{dates:subd,dec:closes[0]<20?2:0,label:'Andamento di '+i.n})}
-    <div class="links">
-      <a href="https://www.justetf.com/it/search.html?query=${encodeURIComponent(t)}" target="_blank" rel="noopener">justETF</a>
-      <a href="https://finance.yahoo.com/quote/${encodeURIComponent(sym)}" target="_blank" rel="noopener">Yahoo Finance</a>
-      <a href="https://it.tradingview.com/symbols/${encodeURIComponent(t)}/" target="_blank" rel="noopener">TradingView</a>
-      <a href="https://www.morningstar.it/it/funds/SecuritySearchResults.aspx?type=ALL&search=${encodeURIComponent(t)}" target="_blank" rel="noopener">Morningstar</a>
-      <a href="https://www.borsaitaliana.it/borsa/ricerca/ricerca-titoli.html?q=${encodeURIComponent(t)}" target="_blank" rel="noopener">Borsa Italiana</a>
-      <a href="https://finviz.com/quote.ashx?t=${encodeURIComponent(t)}" target="_blank" rel="noopener">Finviz</a>
-    </div>`;
-  $('cl').onclick=()=>$('dlg').close();
-  $('rg').querySelectorAll('button').forEach(b=>b.onclick=()=>{window.__rng=b.dataset.r;openDetail(t)});
-  if(!$('dlg').open) $('dlg').showModal();
-}
-
-/* ---------- portafoglio ---------- */
-const PRESETS = {
-  '60/40':[['VT',60],['AGG',40]],
-  'Azionario globale':[['VT',100]],
-  'Mondo + oro + obbligazioni':[['VT',50],['IEF',30],['GLD',10],['TIP',10]],
-  'Settori USA equipesati':[['XLK',9],['XLF',9],['XLE',9],['XLV',9],['XLY',9],['XLP',9],['XLI',9],['XLB',9],['XLU',9],['XLRE',9],['XLC',10]]
-};
-function loadPf(){const p=store.get('bf-pf'); S.pf=(p&&p.length?p:PRESETS['60/40']).filter(x=>BYT[x[0]]).map(x=>[x[0],x[1]]); if(!S.pf.length) S.pf=[[D.inst[0].t,100]]}
-function options(sel){return GROUPS.map(g=>`<optgroup label="${g}">`+D.inst.filter(i=>i.g===g).map(i=>`<option value="${i.t}" ${i.t===sel?'selected':''}>${i.t} – ${i.n}</option>`).join('')+'</optgroup>').join('')}
-function renderPf(){
-  $('rows').innerHTML=S.pf.map((r,k)=>`<div class="prow"><select data-k="${k}" aria-label="Strumento ${k+1}">${options(r[0])}</select><input data-w="${k}" type="number" min="0" max="100" step="1" value="${r[1]}" aria-label="Peso % ${k+1}"><button data-d="${k}" aria-label="Rimuovi">×</button></div>`).join('');
-  $('rows').querySelectorAll('select').forEach(e=>e.onchange=()=>{S.pf[+e.dataset.k][0]=e.value;savePf()});
-  $('rows').querySelectorAll('input').forEach(e=>e.oninput=()=>{S.pf[+e.dataset.w][1]=+e.value||0;savePf(true)});
-  $('rows').querySelectorAll('button').forEach(e=>e.onclick=()=>{S.pf.splice(+e.dataset.d,1);if(!S.pf.length)S.pf=[[D.inst[0].t,100]];savePf()});
-  $('presets').innerHTML='<span class="note" style="align-self:center">Esempi:</span>'+Object.keys(PRESETS).map(k=>`<button class="btn" data-p="${k}">${k}</button>`).join('');
-  $('presets').querySelectorAll('button').forEach(b=>b.onclick=()=>{S.pf=PRESETS[b.dataset.p].filter(x=>BYT[x[0]]).map(x=>[...x]);savePf()});
-  calcPf();
-}
-function savePf(keep){store.set('bf-pf',S.pf); if(keep) calcPf(); else renderPf()}
-function calcPf(){
-  const tot=S.pf.reduce((a,r)=>a+r[1],0); $('sumw').textContent='Somma pesi: '+tot.toFixed(0)+'%'+(Math.abs(tot-100)>.5?' (i risultati sono normalizzati a 100%)':'');
-  if(tot<=0){$('pres').innerHTML='<div class="note">Inserisci almeno un peso.</div>';return}
-  const w=S.pf.map(r=>[r[0],r[1]/tot]);
-  const pr={}; PERS.forEach(p=>{let a=0,ok=true;w.forEach(([t,x])=>{const v=R[t][p];if(v==null)ok=false;else a+=x*v});pr[p]=ok?a:null});
-  const dates=D.dates, n=dates.length, start=Math.max(0,n-253);
-  const v=[]; for(let i=start;i<n;i++){let a=0;w.forEach(([t,x])=>{const c=BYT[t].c;a+=x*(c[i]??c[start])/c[start]});v.push(a*100)}
-  const dr=v.slice(1).map((x,i)=>x/v[i]-1), m=dr.reduce((a,b)=>a+b,0)/dr.length;
-  const vol=Math.sqrt(dr.reduce((a,b)=>a+(b-m)**2,0)/(dr.length-1))*Math.sqrt(252);
-  let pk=v[0],dd=0; v.forEach(x=>{pk=Math.max(pk,x);dd=Math.min(dd,x/pk-1)});
-  const names=w.map(([t])=>BYT[t]);
-  const cmp=names.length>1? names.slice(0,5).map((i,k)=>({vals:i.c.slice(start).map(x=>x==null?null:x/i.c[start]*100),color:['#C47F14','#6C8EAD','#9B6B9E','#8A8F3A','#C0605A'][k]})) : [];
-  $('pres').innerHTML=`<h2>Risultato</h2>
-    <div class="kpis num">${PERS.map(p=>`<div><small>${p}</small><b class="${cls(pr[p])}">${fmtP(pr[p])}</b></div>`).join('')}</div>
-    <div class="kpis num"><div><small>Volatilità annua (1A)</small><b>${(vol*100).toFixed(1).replace('.',',')}%</b></div><div><small>Massimo calo (1A)</small><b class="down">${fmtP(dd)}</b></div><div><small>Strumenti</small><b>${w.length}</b></div></div>
-    ${lineChart([{vals:v,color:'var(--brand)'},...cmp],{dates:dates.slice(start),dec:0,label:'Andamento del portafoglio, base 100'})}
-    <div class="note">Linea verde: portafoglio (base 100, pesi iniziali fissi). Linee colorate: singoli strumenti, i primi cinque.</div>`;
-}
-
-/* ---------- ricerca ---------- */
-function setupSearch(){
-  const q=$('q'), res=$('res');
-  const run=()=>{const s=q.value.trim().toLowerCase(); if(!s){res.hidden=true;return}
-    const m=D.inst.filter(i=>(i.t+' '+i.n+' '+i.g).toLowerCase().includes(s)).slice(0,10);
-    res.innerHTML=m.length?m.map(i=>`<button data-t="${i.t}"><span><b>${i.t}</b> ${i.n}</span><span class="num ${cls(R[i.t][S.per])}">${fmtP(R[i.t][S.per])}</span></button>`).join('')
-      :`<div class="none">Non è nella lista del terminale.<br><a href="https://www.justetf.com/it/search.html?query=${encodeURIComponent(q.value.trim())}" target="_blank" rel="noopener">Cerca su justETF</a> · <a href="https://finance.yahoo.com/lookup?s=${encodeURIComponent(q.value.trim())}" target="_blank" rel="noopener">Cerca su Yahoo</a></div>`;
-    res.hidden=false;
-    res.querySelectorAll('button').forEach(b=>b.onclick=()=>{res.hidden=true;q.value='';openDetail(b.dataset.t)})};
-  q.addEventListener('input',run);
-  q.addEventListener('keydown',e=>{if(e.key==='Enter'){const b=res.querySelector('button');if(b)b.click()}else if(e.key==='Escape')res.hidden=true});
-  document.addEventListener('click',e=>{if(!e.target.closest('.search'))res.hidden=true});
-}
-
-/* ---------- navigazione ---------- */
-function chips(id,withAll,sel,fn){
-  const gs=withAll?['Tutti',...GROUPS]:GROUPS;
-  $(id).innerHTML=gs.map(g=>`<button aria-pressed="${g===sel}" data-g="${g}">${g}</button>`).join('');
-  $(id).querySelectorAll('button').forEach(b=>b.onclick=()=>{S.grp=b.dataset.g;fn()});
-}
-function refresh(){
-  renderHead();
-  $('per').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.p===S.per));
-  $('sz').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.s===S.size));
-  chips('gm',true,S.grp,refresh); chips('gt',true,S.grp,refresh);
-  if(S.view==='mappa') renderMap(); else if(S.view==='tabella') renderTable();
-}
-function showView(v){
-  S.view=v;
-  ['mappa','tabella','portafoglio'].forEach(x=>{$('v-'+x).hidden=x!==v;$('t-'+x).setAttribute('aria-selected',x===v)});
-  if(location.hash!=='#'+v) history.replaceState(null,'','#'+v);
-  if(v==='portafoglio') renderPf(); else refresh();
-}
-function init(){
-  compute();
-  $('per').innerHTML=PERS.map(p=>`<button data-p="${p}" aria-pressed="${p===S.per}">${p}</button>`).join('');
-  $('per').querySelectorAll('button').forEach(b=>b.onclick=()=>{S.per=b.dataset.p;store.set('bf-per',S.per);refresh();if(S.view==='portafoglio')renderPf()});
-  $('sz').innerHTML=[['ind','Indicativa'],['eq','Uguale']].map(([k,l])=>`<button data-s="${k}">${l}</button>`).join('');
-  $('sz').querySelectorAll('button').forEach(b=>b.onclick=()=>{S.size=b.dataset.s;refresh()});
-  ['mappa','tabella','portafoglio'].forEach(v=>$('t-'+v).onclick=()=>showView(v));
-  $('add').onclick=()=>{S.pf.push([D.inst[0].t,0]);savePf()};
-  const sp=store.get('bf-per'); if(PERS.includes(sp)) S.per=sp;
-  if(!GROUPS.includes(S.grp)) S.grp=GROUPS[0];
-  loadPf(); setupSearch();
-  let rt; new ResizeObserver(()=>{clearTimeout(rt);rt=setTimeout(()=>{if(S.view==='mappa')renderMap()},80)}).observe($('map'));
-  const h=location.hash.slice(1); showView(['mappa','tabella','portafoglio'].includes(h)?h:'mappa');
-  window.addEventListener('hashchange',()=>{const x=location.hash.slice(1);if(['mappa','tabella','portafoglio'].includes(x)&&x!==S.view)showView(x)});
-}
-(async()=>{
-  try{
-    D = INLINE || await (await fetch('data.json',{cache:'no-store'})).json();
-    init();
-  }catch(e){
-    $('map').innerHTML='<div style="padding:20px">Dati non ancora disponibili. Avvia il primo aggiornamento dal pulsante "Run workflow" nella scheda Actions del repository.</div>';
-  }
+const bandOf=v=>v<=5.8?0:v<=11.6?1:v<=23.3?2:3;
+/* serie mensili SIMULATE (15 anni): servono solo a mostrare statistiche e grafici nel prototipo */
+function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function gauss(r){let u=0,v=0;while(!u)u=r();v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+const NM=180,SIM={};
+(function(){
+  const r=rng(2026),Ze=[],Zr=[];for(let i=0;i<NM;i++){Ze.push(gauss(r));Zr.push(gauss(r))}
+  [36,37,38].forEach((i,k)=>Ze[i]=-[2.2,1.8,1.2][k]);[120,121].forEach(i=>Ze[i]=-1.9);Zr[96]=-1.6;Zr[97]=-1.6;
+  const nz=a=>{const m=a.reduce((x,y)=>x+y,0)/a.length,sd=Math.sqrt(a.reduce((x,y)=>x+(y-m)**2,0)/a.length);return a.map(v=>(v-m)/sd)};
+  Ze.splice(0,NM,...nz(Ze));Zr.splice(0,NM,...nz(Zr));
+  INS.forEach((i,n)=>{const rr=rng(n*977+31),c=Math.sqrt(Math.max(0,1-i.a*i.a-i.b*i.b));const eps=nz(Ze.map(()=>gauss(rr)));
+    SIM[i.k]=Ze.map((z,t)=>i.mu/1200+i.vol/100/Math.sqrt(12)*(i.a*z+i.b*Zr[t]+c*eps[t]))});
 })();
+function stats(w){
+  const r=new Array(NM).fill(0);Object.entries(w).forEach(([k,p])=>{const a=SIM[k];for(let i=0;i<NM;i++)r[i]+=p/100*a[i]});
+  let v=1,pk=1,mdd=0;const vals=[1];r.forEach(x=>{v*=1+x;vals.push(v);pk=Math.max(pk,v);mdd=Math.min(mdd,v/pk-1)});
+  const m=r.reduce((a,b)=>a+b,0)/r.length,sd=Math.sqrt(r.reduce((a,b)=>a+(b-m)**2,0)/(r.length-1))*Math.sqrt(12);
+  let w12=0;for(let i=12;i<vals.length;i++)w12=Math.min(w12,vals[i]/vals[i-12]-1);
+  const ter=Object.entries(w).reduce((a,[k,p])=>a+p/100*BY[k].ter,0);
+  return{cagr:Math.pow(v,12/NM)-1,vol:sd,mdd,w12,ter,vals,va:varAnnuo(w)};
+}
+
+/* ======================= QUESTIONARIO (domande Binario F, scoring a soglie) ======================= */
+/* pt = punti per risposta; cap = tetto di fascia (0 Basso … 3 Alto) per risposta */
+const QUIZ=[
+ {id:'z1',t:'Se i tassi di mercato salgono, il prezzo di un\'obbligazione già emessa, con la stessa scadenza, di solito…',o:['sale','scende','non cambia'],ok:1,why:'Le nuove obbligazioni pagano di più, quindi quelle vecchie valgono meno: il prezzo scende.'},
+ {id:'z2',t:'Un titolo di Stato in scadenza tra 6 mesi, da tenere fino alla scadenza, è considerato un investimento…',o:['a basso rischio','a rischio medio','ad alto rischio'],ok:0,why:'Con scadenza vicina il prezzo oscilla poco e il rimborso a scadenza è atteso (salvo insolvenza dell\'emittente).'},
+ {id:'z3',t:'Un ETF azionario che replica un indice…',o:['garantisce il capitale investito','può perdere valore come l\'indice, ed ha costi annui che ne riducono il rendimento','è un\'azione della società che lo gestisce'],ok:1,why:'Un ETF segue l\'indice, quindi ne segue anche le perdite, e il suo costo annuo (TER) riduce il rendimento.',etf:true},
+ {id:'z4',t:'Chi compra azioni diventa…',o:['creditore, con diritto al rimborso del capitale','socio, e può perdere anche tutto il capitale investito','socio, con un capitale minimo garantito'],ok:1,why:'Le azioni sono capitale di rischio: nessun rimborso garantito.'},
+];
+const QB=[ // area B: capacità di sopportare perdite
+ {id:'b1',t:'Patrimonio complessivo (immobili, attività, patrimonio finanziario)',o:['Meno di 100.000 €','100.000 – 300.000 €','300.000 € – 1 milione','Oltre 1 milione'],pt:[0,1,2,3]},
+ {id:'b2',t:'Che parte del patrimonio complessivo rappresenta la somma che investirai con questo servizio?',o:['Oltre il 90%','Dal 50% al 90%','Dal 20% al 50%','Meno del 20%'],pt:[0,1,2,3],cap:[1]},
+ {id:'b3',t:'Reddito netto annuo (esclusi i rendimenti finanziari)',o:['Meno di 20.000 €','20.000 – 50.000 €','50.000 – 100.000 €','Oltre 100.000 €'],pt:[0,1,2,3]},
+ {id:'b4',t:'Quanto riesci a risparmiare in un anno?',o:['Meno di 5.000 €','5.000 – 15.000 €','15.000 – 40.000 €','Oltre 40.000 €'],pt:[0,1,2,3]},
+ {id:'b5',t:'I tuoi impegni finanziari futuri (mutui, spese già decise) rispetto al reddito annuo',o:['Oltre il triplo','Circa il doppio','Circa uguali','Non ho impegni'],pt:[0,1,2,3],cap:[1]},
+ {id:'b6',t:'Il tuo tenore di vita dipende dai redditi che ti danno gli investimenti?',o:['Sì, vivo di quei redditi','In parte, circa metà','No'],pt:[0,1,3],cap:[0]},
+ {id:'b7',t:'Qual è la tua situazione lavorativa?',o:['Non occupato o contratto temporaneo','Autonomo o imprenditore','Dipendente a tempo indeterminato o pensionato'],pt:[0,1,2]},
+ {id:'b8',t:'Quante persone sono a tuo carico?',o:['Tre o più','Una o due','Nessuna'],pt:[0,1,2]},
+];
+const QT=[ // aree C-D: tolleranza al rischio
+ {id:'t1',t:'Che rendimento ti aspetti dai tuoi investimenti?',o:['Conservare il capitale, seguendo l\'inflazione','Stare al passo con l\'inflazione, con poche oscillazioni','Superare l\'inflazione, accettando oscillazioni','Superare nettamente l\'inflazione, anche con oscillazioni forti'],pt:[0,1,2,3]},
+ {id:'t2',t:'Il tuo portafoglio perde il 20% in pochi mesi. Cosa fai?',o:['Vendo tutto','Sposto subito tutto su investimenti più sicuri','Aspetto, e se peggiora sposto una parte','Mantengo la strategia e accetto le oscillazioni','Valuto di investire di più'],pt:[0,1,2,3,3],cap:[0,1]},
+ {id:'t3',t:'In quel caso, come ti sentiresti?',o:['Molto preoccupato','Preoccupato','Un po\' preoccupato','Consapevole, lo avevo messo in conto'],pt:[0,1,2,3]},
+ {id:'t4',t:'«Sono paziente e accetto periodi in cui il portafoglio rende meno di zero». Quanto sei d\'accordo?',o:['Per nulla','Poco','D\'accordo','Pienamente d\'accordo'],pt:[0,1,2,3]},
+ {id:'t5',t:'Quale scelta preferiresti?',o:['1.000 € sicuri','5.000 € con il 50% di probabilità','15.000 € con il 25% di probabilità','100.000 € con il 5% di probabilità'],pt:[0,1,2,3]},
+ {id:'t6',t:'Devi scegliere dove investire un\'eredità: cosa scegli?',o:['Deposito o fondo monetario','Fondo bilanciato di azioni e obbligazioni','Portafoglio di azioni','Beni reali (oro, immobili, opere d\'arte)'],pt:[0,1,3,1]},
+];
+const D1={t:'Qual è la perdita massima che potresti accettare in un anno, su 100.000 € investiti? (stima prudente: VaR al 99%)',o:['Fino al 5,8% (resto a 94.200 € o più)','Dal 5,8% all\'11,6%','Dall\'11,6% al 23,3%','Oltre il 23,3%']};
+const HOR={t:'Per quanto tempo lascerai investito il capitale, salvo la parte che ti serve prima?',o:['Meno di 1 anno','1 – 3 anni','3 – 5 anni','5 – 10 anni','Oltre 10 anni'],cap:[0,0,1,2,3],years:[.5,2,4,7,10]};
+const band4=(s,th)=>s<=th[0]?0:s<=th[1]?1:s<=th[2]?2:3;
+function quizResult(a){
+  const done=QUIZ.every(q=>a[q.id]!=null);if(!done)return{done:false};
+  const err=QUIZ.filter(q=>a[q.id]!==q.ok);
+  const etfKo=err.some(q=>q.etf);
+  return{done:true,errors:err.length,pass:err.length<=1&&!etfKo,etfKo,wrong:err};
+}
+function scoreProfile(A){
+  const reasons=[];let cap=0,tol=0;const capCaps=[],tolCaps=[];
+  QB.forEach(q=>{const i=A[q.id];cap+=q.pt[i];if(q.cap&&(q.id==='b6'?i===0:q.id==='b2'?i===0:i===0))capCaps.push([q.cap[0],q.t,q.o[i]])});
+  QT.forEach(q=>{const i=A[q.id];tol+=q.pt[i];if(q.cap&&i<q.cap.length)tolCaps.push([q.cap[i]===undefined?0:q.cap[i],q.t,q.o[i]])});
+  const capB=band4(cap,[5,10,16]),tolB=band4(tol,[4,9,14]);
+  let capF=capB;capCaps.forEach(c=>{if(c[0]<capF){capF=c[0];reasons.push(`«${c[2]}» (${c[1].replace(/\?$/,'')}) limita la capacità a ${BANDS[c[0]]}.`)}});
+  let tolF=tolB;tolCaps.forEach(c=>{if(c[0]<tolF){tolF=c[0];reasons.push(`La reazione a un calo («${c[2]}») limita la tolleranza a ${BANDS[c[0]]}.`)}});
+  const d1=A.d1,hc=HOR.cap[A.hor];
+  const prof=Math.min(capF,tolF,d1,hc);
+  reasons.unshift(`Capacità di sopportare perdite: ${BANDS[capF]} (${cap} punti su 22).`,`Tolleranza al rischio: ${BANDS[tolF]} (${tol} punti su 18).`,`Perdita massima indicata: ${BANDS[d1]}.`,`Orizzonte (${HOR.o[A.hor].toLowerCase()}): massimo ${BANDS[hc]}.`);
+  return{band:prof,capF,tolF,d1,hc,cap,tol,reasons};
+}
+const QA_DONE=A=>QB.every(q=>A[q.id]!=null)&&QT.every(q=>A[q.id]!=null)&&A.d1!=null&&A.hor!=null&&A.esg!=null&&(A.esg===0||(A.esgp!=null));
+/* portafogli: fascia dal VaR calcolato; eleggibilità */
+function pfBand(w){return bandOf(varAnnuo(w))}
+function eligible(profile,A,PF){
+  const yrs=HOR.years[A.hor],esg=A.esg===1;
+  return Object.keys(PF).filter(id=>{
+    const p=PF[id];const b=pfBand(p.w);
+    if(b>profile.band)return false;
+    if(MINY[id]>yrs)return false;
+    if(esg&&!ESG_P.includes(id))return false;
+    return true;
+  });
+}
+function whyNone(profile,A,PF){
+  const yrs=HOR.years[A.hor];
+  if(A.esg===1){const ok=ESG_P.filter(id=>pfBand(PF[id].w)<=profile.band);if(!ok.length)return'Hai indicato una preferenza di sostenibilità, ma i portafogli ESG disponibili hanno un rischio superiore al tuo profilo. Non è possibile raccomandarne uno: puoi rivedere la preferenza o parlarne con il consulente.';
+    if(!ok.some(id=>MINY[id]<=yrs))return'I portafogli ESG disponibili richiedono un orizzonte più lungo del tuo.'}
+  return'Nessun portafoglio è adatto alla combinazione di profilo di rischio e orizzonte che hai indicato: servirebbe un orizzonte più lungo o una tolleranza maggiore.';
+}
+/* ======================= ARRICCHIMENTO PORTAFOGLIO PER CAPITALE ======================= */
+const TIERS=[{k:'pac',n:'PAC',max:3,min:0},{k:'ess',n:'Essenziale',max:3},{k:'std',n:'Standard',max:6},{k:'full',n:'Completo',max:99}];
+const tierOf=c=>c<3000?TIERS[0]:c<10000?TIERS[1]:c<50000?TIERS[2]:TIERS[3];
+function applyVariant(w,variant){if(variant!=='fineco')return{...w};const o={};Object.entries(w).forEach(([k,p])=>{const t=FIN_SUB[k]||k;o[t]=(o[t]||0)+p});return o}
+function mergeLines(w,tier,capital){ // accorpa le righe piccole nel comparto più simile
+  const L=Object.entries(w).map(([k,p])=>({k,p}));const minPct=Math.max(5,1000/capital*100);
+  const cls=k=>BY[k].cls==='Oro'?'Azionario':BY[k].cls;
+  const merged=[];
+  while(true){
+    L.sort((a,b)=>b.p-a.p);
+    const small=L[L.length-1];
+    if(L.length<=tier.max&&small.p>=minPct-1e-9)break;
+    if(L.length===1)break;
+    const rest=L.slice(0,-1),tgt=rest.find(x=>cls(x.k)===cls(small.k))||rest[0];
+    tgt.p+=small.p;merged.push([small.k,tgt.k]);L.pop();
+  }
+  const o={};L.forEach(x=>o[x.k]=x.p);return{w:o,merged};
+}
+function buildPlan(pf,capital,opt){
+  const tier=tierOf(capital);let w=applyVariant(pf.w,opt.variant);let merged=[];const monthly=tier.k==='pac';if(monthly)capital=opt.monthly||250;
+  if(tier.k!=='full'){const m=mergeLines(w,tier,monthly?1e9:capital);w=m.w;merged=m.merged}
+  const lines=[];let bucket=null;let total=capital;
+  const yr=new Date().getFullYear();
+  if(tier.k==='full'&&opt.bonds==='scad'&&opt.bAmt>0&&opt.bYrs>0){
+    bucket=Math.min(opt.bAmt,capital*.9);total=capital-bucket;
+    const name=opt.bYrs<=1?'BOT':'BTP';lines.push({k:'BTPB',isin:'da scegliere alla data',name:`${name} con scadenza ${yr+Math.round(opt.bYrs)} (titolo singolo)`,cls:'Obbligazionario',pct:bucket/capital*100,amt:bucket,price:1000,qty:Math.floor(bucket/1000),unit:'taglio 1.000 €',fin:false,sing:true});
+  }
+  let ws=Object.entries(w);
+  if(tier.k==='full'&&opt.bonds==='mista'){ // 30% della quota governativa 3-5 anni / generale in BTP singoli
+    const key=w.GOVB?'GOVB':w.GOVM?'GOVM':null;
+    if(key){const p=w[key]*.5;ws=ws.map(([k,v])=>k===key?[k,v-p]:[k,v]);ws.push(['BTPM',p])}
+  }
+  ws.forEach(([k,p])=>{
+    const amt=total*p/100;
+    if(k==='BTPM'){const q=Math.floor(amt/1000);lines.push({k,isin:'da scegliere alla data',name:'BTP e titoli di Stato europei singoli (scadenze 3-7 anni)',cls:'Obbligazionario',pct:p*total/capital,amt:q*1000,price:1000,qty:q,unit:'taglio 1.000 €',fin:false,sing:true});return}
+    const i=BY[k],q=monthly?null:Math.floor(amt/i.price);
+    lines.push({k,isin:i.isin,name:i.name,cls:i.cls,pct:p*total/capital,amt:monthly?amt:q*i.price,price:i.price,qty:q,unit:'',fin:i.fin,ter:i.ter,sing:false});
+  });
+  lines.sort((a,b)=>b.pct-a.pct);
+  const spent=lines.reduce((a,l)=>a+l.amt,0);
+  return{tier,lines,cash:capital-spent,merged,bucket,spent,monthly,capital};
+}
+const viewW=(pf,variant)=>applyVariant(pf.w,variant);
+
+/* ======================= STATO ======================= */
+const KEY='bf-robo-proto-v3';
+const AML=[
+ {id:'pro',t:'Attività svolta',o:['Dipendente','Imprenditore individuale','Libero professionista','Lavoratore autonomo','Non occupato','Casalinga','Studente','Pensionato','Amministratore di società','Altro']},
+ {id:'ori',t:'Origine dei fondi che userai per il servizio',o:['Reddito da lavoro autonomo','Reddito da lavoro dipendente','Risparmio','Vendita di strumenti finanziari','Vendita di immobili','Eredità','Donazione','Vincita','Pensione','Altro']},
+ {id:'geo',t:'Provenienza dei fondi',o:['Italia','Estero']},
+ {id:'sco',t:'Scopo prevalente del rapporto',o:['Risparmio','Attività di investimento personali','Altro (esigenze familiari)','Gestione tesoreria aziendale (impresa individuale)']},
+ {id:'pep',t:'Sei una persona politicamente esposta, o lo è un tuo familiare o stretto collaboratore? (definizione nell\'informativa D.Lgs. 231/2007)',o:['No','Sì'],flag:1},
+ {id:'car',t:'Ricopri cariche politiche in Italia a livello nazionale o locale?',o:['No','Sì'],flag:1},
+ {id:'soc',t:'Ricopri cariche in associazioni, fondazioni, società fiduciarie, trust o società anonime?',o:['No','Sì'],flag:1},
+ {id:'tit',t:'Esiste un titolare effettivo diverso da te (qualcuno nel cui interesse operi)?',o:['No','Sì'],flag:1},
+ {id:'del',t:'C\'è un soggetto delegato a operare per tuo conto (tutore, genitore, amministratore di sostegno, altro)?',o:['No','Sì'],flag:1},
+];
+function fresh(){return{role:'cliente',step:'auth',user:{nome:'',email:''},A:{},aml:{},capital:20000,monthly:250,profile:null,chosen:null,variant:'classic',bonds:'etf',bAmt:0,bYrs:3,contract:'cont',status:'none',PF:JSON.parse(JSON.stringify(PF0)),ver:{},held:null,notifs:[],fees:{cont:360,una:200},bank:{iban:'IT00 X000 0000 0000 0000 0000 000',intest:'(intestatario del conto)'},tab:'portafoglio',aid:'P4',edit:null,log:[]}}
+let st;try{st=JSON.parse(localStorage.getItem(KEY))}catch(e){st=null}
+if(!st||!st.PF)st=fresh();
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
+const $=(s,r=document)=>r.querySelector(s);
+const eur=(n,d=0)=>n.toLocaleString('it-IT',{minimumFractionDigits:d,maximumFractionDigits:d})+' €';
+const pc=(n,d=1)=>(n>0?'+':n<0?'−':'')+Math.abs(n*100).toFixed(d).replace('.',',')+'%';
+const pc0=(n,d=1)=>(n*100).toFixed(d).replace('.',',')+'%';
+const n1=n=>n.toFixed(1).replace('.',',');
+const CLS={Azionario:'--k1',Obbligazionario:'--k2',Monetario:'--k3',Oro:'--k4'};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const SYM='data:image/png;base64,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';
+const STEPS=['auth','quest','quiz','aml','profilo','contratto'];
+const PF=()=>st.PF;
+const opt=(q,cur,act,extra='')=>q.o.map((o,i)=>`<label class="opt"><input type="radio" name="${q.id||'x'}${extra}" data-act="${act}" data-q="${q.id||''}" data-v="${i}" ${cur===i?'checked':''}><span>${esc(o)}</span></label>`).join('');
+const block=(q,cur,act='ans')=>`<div class="q"><div class="t">${esc(q.t)}</div>${opt(q,cur,act)}</div>`;
+function head(){return`<div class="in"><div class="brand"><img alt="" src="${SYM}"><div><b>Binario F</b><span>Consulenza Finanziaria Indipendente</span></div></div>
+<div class="row"><div class="seg" role="group" aria-label="Vista"><button data-act="role" data-v="cliente" aria-pressed="${st.role==='cliente'}">Vista cliente</button><button data-act="role" data-v="consulente" aria-pressed="${st.role==='consulente'}">Vista consulente</button></div><button class="btn sm" data-act="reset">Ricomincia</button></div></div>`}
+const PROTO=`<div class="proto"><b>Prototipo di test.</b> Prezzi, rendimenti e statistiche sono simulati; punteggi, soglie e VaR usano ipotesi da validare. Non inserire dati personali reali: nulla viene inviato.</div>`;
+const FOOT=`<div class="foot">Dott. Federico Offen, consulente finanziario indipendente iscritto all'Albo Unico OCF (delibera n. 2916) · Binario F, Via Luigi Cibrario 65, Torino · www.binariof.it. Servizio di consulenza in materia di investimenti: le decisioni di investimento restano del cliente. I rendimenti passati, e quelli simulati, non sono indicativi di quelli futuri.</div>`;
+const app=$('#app');
+function render(){
+  const bd=$('#band');bd.innerHTML=head();bd.dataset.r=st.role;app.className='wrap'+(st.role==='consulente'?' wide':'');
+  app.innerHTML=PROTO+(st.role==='consulente'?adminView():clientView())+FOOT;save();
+}
+const stepper=n=>`<div class="steps">${STEPS.slice(1).map((_,i)=>`<i class="${i<n?'on':''}"></i>`).join('')}</div>`;
+/* ======================= CLIENTE ======================= */
+function clientView(){
+  const s=st.step;
+  if(s==='auth')return `<div class="card"><h1>Il tuo portafoglio, da un consulente indipendente</h1><p class="muted">Rispondi al questionario di adeguatezza, scopri il tuo profilo di rischio e scegli un portafoglio modello seguito da un consulente iscritto all'Albo. Eseguirai tu le operazioni dal tuo conto titoli: non gestiamo il tuo patrimonio.</p>
+  <label class="f">Nome e cognome<input type="text" id="nome" value="${esc(st.user.nome)}" placeholder="Nome di prova"></label><label class="f">Email<input type="email" id="email" value="${esc(st.user.email)}" placeholder="prova@esempio.it"></label>
+  <div class="row"><button class="btn pri" data-act="go" data-v="quest">Inizia il questionario</button></div></div>`;
+  if(s==='quest'){const A=st.A,ok=QA_DONE(A);
+    return `<div class="card">${stepper(1)}<h2>Questionario di adeguatezza</h2><p class="muted small">Le risposte determinano il tuo profilo di rischio. Rispondi con sincerità: non esistono risposte giuste.</p>
+    <h3>La tua situazione finanziaria</h3>${QB.map(q=>block(q,A[q.id])).join('')}
+    <h3>Obiettivi e tolleranza al rischio</h3>${QT.map(q=>block(q,A[q.id])).join('')}${block({...D1,id:'d1'},A.d1)}
+    <h3>Orizzonte temporale</h3>${block({...HOR,id:'hor'},A.hor)}
+    <h3>Sostenibilità</h3>${block({id:'esg',t:'Vuoi che gli strumenti promuovano obiettivi di sostenibilità ambientale o sociale, o considerino i loro impatti negativi?',o:['No, non è un criterio per me','Sì']},A.esg)}
+    ${A.esg===1?block({id:'esgp',t:'Quota minima in investimenti sostenibili',o:['Nessuna','Almeno il 5%','Almeno il 15%','Almeno il 30%','Non so']},A.esgp):''}
+    <div class="row"><button class="btn pri" data-act="go" data-v="quiz" ${ok?'':'disabled'}>Continua</button>${ok?'':'<span class="muted small">Rispondi a tutte le domande per continuare.</span>'}</div></div>`}
+  if(s==='quiz'){const r=quizResult(st.A);
+    return `<div class="card">${stepper(2)}<h2>Verifica di conoscenza</h2><p class="muted small">Quattro domande sugli strumenti dei nostri portafogli. Serve a verificare che tu li conosca abbastanza per investire con consapevolezza.</p>
+    ${QUIZ.map(q=>block(q,st.A[q.id],'quiz')).join('')}
+    ${r.done?(r.pass?`<div class="alert"><b class="ok">Verifica superata.</b></div>`:`<div class="alert"><b class="ko">Verifica non superata.</b><p>Con più di un errore, o con un errore sull'ETF, non possiamo raccomandarti un portafoglio. Leggi le spiegazioni e riprova.</p><ul class="why">${r.wrong.map(q=>`<li><b>${esc(q.t)}</b> ${esc(q.why)}</li>`).join('')}</ul><div class="row"><button class="btn" data-act="quizreset">Rifai il test</button></div></div>`):''}
+    <div class="row"><button class="btn" data-act="go" data-v="quest">Indietro</button><button class="btn pri" data-act="go" data-v="aml" ${r.pass?'':'disabled'}>Continua</button></div></div>`}
+  if(s==='aml')return `<div class="card">${stepper(3)}<h2>Scheda antiriciclaggio</h2><p class="muted small">Informazioni richieste dal D.Lgs. 231/2007 per l'adeguata verifica. I documenti d'identità andranno inviati via email al passo successivo.</p>
+    ${AML.map(q=>block(q,st.aml[q.id],'aml')).join('')}
+    <div class="row"><button class="btn" data-act="go" data-v="quiz">Indietro</button><button class="btn pri" data-act="calc" ${AML.every(q=>st.aml[q.id]!=null)?'':'disabled'}>Scopri il tuo profilo</button></div></div>`;
+  if(s==='profilo')return profiloView();
+  if(s==='contratto')return contrattoView();
+  return statoView();
+}
+function lineOpt(id){const p=PF()[id],s=stats(p.w),b=pfBand(p.w);return{p,s,b}}
+function profiloView(){
+  const pr=st.profile,el=eligible(pr,st.A,PF());
+  const head=`<div class="card">${stepper(4)}<h2>Il tuo profilo di rischio</h2><div class="row"><div class="big">${BANDS[pr.band]}</div><div class="muted small">VaR annuo (99%) del portafoglio adatto: ${BAND_VAR[pr.band]}</div></div>
+  <div class="gauge" style="grid-template-columns:repeat(4,1fr)">${BANDS.map((b,i)=>`<i class="${i<=pr.band?'on':''}" title="${b}"></i>`).join('')}</div>
+  <ul class="why">${pr.reasons.map(r=>`<li>${esc(r)}</li>`).join('')}</ul></div>`;
+  if(!el.length)return head+`<div class="card"><div class="alert"><b>Nessun portafoglio raccomandabile</b><p>${esc(whyNone(pr,st.A,PF()))}</p></div><div class="row"><button class="btn" data-act="go" data-v="quest">Rivedi le risposte</button></div></div>`;
+  const tier=tierOf(st.capital),sorted=el.slice().sort((a,b)=>stats(PF()[a].w).va-stats(PF()[b].w).va);
+  const ch=sorted.map(id=>{const{p,s,b}=lineOpt(id);return `<div class="ch" role="button" tabindex="0" data-act="pick" data-v="${id}" aria-pressed="${st.chosen===id}"><header><h3>${esc(p.nome)}</h3><span class="muted small">${b===pr.band?'Fascia del tuo profilo':'Più prudente'} · ${BANDS[b]}</span></header>
+   <p class="small muted">${esc(p.obiettivo)} · orizzonte consigliato da ${MINY[id]} ${MINY[id]===1?'anno':'anni'}</p>
+   <div class="stats"><div><small>Rendimento annuo storico simulato</small><b>${pc0(s.cagr)}</b></div><div><small>Volatilità</small><b>${pc0(s.vol)}</b></div><div><small>Perdita massima storica</small><b>${pc0(s.mdd)}</b></div><div><small>VaR annuo 99%</small><b>${n1(s.va)}%</b></div><div><small>Azioni</small><b>${Object.entries(p.w).reduce((a,[k,v])=>a+(BY[k].cls==='Azionario'?v:0),0)}%</b></div></div></div>`}).join('');
+  const full=tier.k==='full',pac=tier.k==='pac';
+  return head+`<div class="card"><h2>Scegli il portafoglio</h2><p class="muted small">Puoi scegliere il portafoglio della tua fascia o uno più prudente.${st.A.esg===1?' Sono mostrati solo i portafogli con strumenti ESG.':''}</p><div class="choices">${ch}</div></div>
+  <div class="card"><h2>Capitale e versione</h2><div class="grid2"><label class="f">${pac?'Importo mensile (PAC)':'Capitale da investire'} (€)<input type="number" id="${pac?'monthly':'capital'}" min="0" step="${pac?50:1000}" value="${pac?st.monthly:st.capital}"></label>
+  <div><div class="small muted">Versione</div><div class="seg" role="group"><button data-act="variant" data-v="classic" aria-pressed="${st.variant==='classic'}">Classica</button><button data-act="variant" data-v="fineco" aria-pressed="${st.variant==='fineco'}">Fineco</button></div><p class="small muted">${st.variant==='fineco'?'ETF a commissione di acquisto zero su Fineco, secondo la lista del mese.':'ETF scelti dal consulente, per qualsiasi conto titoli.'}</p></div></div>
+  <div class="alert"><b>Versione ${tier.n}</b><span class="small">${{pac:'Capitali sotto i 3.000 €: Piano di Accumulo con versamenti mensili su 1-3 ETF.',ess:'Fino a 3 strumenti: i comparti simili sono accorpati.',std:'Fino a 6 strumenti: i comparti principali del modello.',full:'Modello completo, con ETF e, se vuoi, titoli di Stato singoli.'}[tier.k]}</span></div>
+  ${tier.k==='pac'&&st.capital>=3000?'':''}
+  ${full?`<div class="q"><div class="t">Parte obbligazionaria</div><div class="seg" role="group"><button data-act="bonds" data-v="etf" aria-pressed="${st.bonds==='etf'}">Solo ETF</button><button data-act="bonds" data-v="mista" aria-pressed="${st.bonds==='mista'}">ETF e BTP singoli</button><button data-act="bonds" data-v="scad" aria-pressed="${st.bonds==='scad'}">Con scadenza precisa</button></div>
+  ${st.bonds==='scad'?`<div class="grid2"><label class="f">Somma che ti serve in una data (€)<input type="number" id="bAmt" min="0" step="1000" value="${st.bAmt}"></label><label class="f">Tra quanti anni<input type="number" id="bYrs" min="1" max="10" step="1" value="${st.bYrs}"></label></div><p class="small muted">Quella somma viene coperta con titoli che scadono in quella data. Il resto segue il portafoglio.</p>`:''}</div>`:''}
+  <div class="row"><button class="btn" data-act="go" data-v="aml">Indietro</button><button class="btn pri" data-act="go" data-v="contratto" ${st.chosen&&el.includes(st.chosen)?'':'disabled'}>Procedi</button></div></div>
+  ${st.chosen&&el.includes(st.chosen)?previewLock():''}`;
+}
+function previewLock(){const pl=planOf(st.chosen);return `<div class="lock"><div class="blur">${pl.lines.slice(0,5).map(l=>`<div><span>${esc(l.name)}</span><b>${n1(l.pct)}%</b></div>`).join('')}</div><div class="over"><b>Composizione riservata</b><span class="small">Si sblocca dopo la firma del contratto e il pagamento. Versione ${pl.tier.n}: ${pl.lines.length} ${pl.lines.length===1?'strumento':'strumenti'}.</span></div></div>`}
+const planOf=(id,w)=>buildPlan({w:w||PF()[id].w},st.capital,{variant:st.variant,bonds:st.bonds,bAmt:st.bAmt,bYrs:st.bYrs,monthly:st.monthly});
+function contrattoView(){
+  const f=st.fees;
+  return `<div class="card">${stepper(5)}<h2>Contratto e documenti</h2><p class="muted">Scegli il tipo di consulenza. Il contratto lo prepara il consulente e te lo invia per la firma elettronica avanzata. Il pagamento è con bonifico.</p>
+  <div class="vs"><div class="ch" role="button" tabindex="0" data-act="contract" data-v="cont" aria-pressed="${st.contract==='cont'}"><h3>Continuativa</h3><b>${eur(f.cont)} / anno</b><span class="small muted">12 mesi con rinnovo automatico: aggiornamenti, ribilanciamenti e notifiche per tutto l'anno.</span></div>
+  <div class="ch" role="button" tabindex="0" data-act="contract" data-v="una" aria-pressed="${st.contract==='una'}"><h3>Una tantum</h3><b>${eur(f.una)}</b><span class="small muted">Portafoglio e indicazioni iniziali, senza aggiornamenti successivi.</span></div></div>
+  <div class="alert"><b>Cosa devi inviare</b><span class="small">Scrivi a federico.offen@binariof.it allegando documento d'identità e codice fiscale in corso di validità. Ti arriverà il contratto da firmare.</span></div>
+  <div class="row"><button class="btn" data-act="go" data-v="profilo">Indietro</button><button class="btn pri" data-act="sent">Ho inviato i documenti</button></div></div>`}
+const STL={attesa:'Documenti ricevuti',firma:'Contratto inviato per la firma',pagamento:'Contratto firmato: in attesa del bonifico',attivo:'Servizio attivo',scaduto:'Servizio scaduto'};
+const STF=['attesa','firma','pagamento','attivo'];
+function statoView(){
+  const s=st.status;if(s==='attivo')return attivoView();
+  const pl=planOf(st.chosen);
+  if(s==='scaduto')return `<div class="card"><h2>Servizio scaduto</h2><p>Il rinnovo annuale non risulta pagato: il portafoglio è nascosto finché non viene saldata la parcella.</p>${previewLock()}${bonifico()}</div>`;
+  return `<div class="card"><h2>${STL[s]||'In corso'}</h2><div class="stp">${STF.map((k,i)=>`<span class="${STF.indexOf(s)>i?'done':''} ${s===k?'on':''}">${STL[k]}</span>`).join('')}</div>
+  <p class="muted">${{attesa:'Il consulente sta preparando il contratto.',firma:'Controlla la tua email: ti è arrivato il contratto da firmare con firma elettronica avanzata.',pagamento:'Esegui il bonifico indicato qui sotto. Il portafoglio si sblocca quando il pagamento risulta accreditato.'}[s]}</p>${s==='pagamento'?bonifico():''}${previewLock()}
+  <p class="small muted">Nel prototipo gli stati li avanza la vista consulente.</p></div>`}
+function bonifico(){const a=st.contract==='cont'?st.fees.cont:st.fees.una;return `<div class="alert"><b>Bonifico</b><div class="iban">${esc(st.bank.intest)}<br>${esc(st.bank.iban)}</div><span class="small">Importo ${eur(a)} · causale: Consulenza Binario F – ${esc(st.user.nome||'cognome nome')}</span></div>`}
+function attivoView(){
+  const pend=pendingNotif();
+  return `<div class="card"><div class="row sb"><h2>Il tuo portafoglio</h2><span class="muted small">${esc(PF()[st.chosen].nome)} · ${BANDS[pfBand(PF()[st.chosen].w)]}</span></div>
+  <div class="tabs" role="tablist">${[['portafoglio','Portafoglio'],['dashboard','Dashboard'],['approfondimenti','Approfondimenti'],['novita','Novità']].map(([k,l])=>`<button role="tab" data-act="tab" data-v="${k}" aria-selected="${st.tab===k}">${l}${k==='novita'&&pend?'<span class="badge">1</span>':''}</button>`).join('')}</div>
+  ${st.tab==='portafoglio'?portView(pend):st.tab==='dashboard'?dashView():st.tab==='approfondimenti'?artView():notifView()}</div>`}
+function pendingNotif(){const n=st.notifs.filter(x=>x.p===st.chosen).slice(-1)[0];return n&&!n.done?n:null}
+function portView(pend){
+  const id=st.chosen,pl=planOf(id,st.held&&st.held.id===id?st.held.w:null);
+  return `${pend?`<div class="alert"><b>Il consulente ha aggiornato il portafoglio</b><span class="small">${esc(pend.motivo)}</span><ul class="why">${pend.ops.map(o=>`<li>${o}</li>`).join('')}</ul><div class="row"><button class="btn pri" data-act="done" data-v="${pend.id}">Ho eseguito le operazioni</button></div></div>`:''}
+  <div class="alert"><b>Versione ${pl.tier.n}</b><span class="small">${pl.tier.k==='pac'?`Versamento mensile di ${eur(pl.capital)} ripartito così:`:`Capitale ${eur(st.capital)}: ${pl.lines.length} strumenti.`} ${pl.merged.length?'Alcuni comparti sono stati accorpati per la dimensione del capitale.':''}</span></div>
+  <div class="tablewrap"><table><thead><tr><th>Strumento</th><th>%</th><th>${pl.monthly?'€ al mese':'Importo'}</th><th>Prezzo</th><th>${pl.monthly?'':'Quantità'}</th></tr></thead><tbody>${pl.lines.map(l=>`<tr><td><b>${esc(l.name)}</b><div class="small muted">${esc(l.isin)} · ${esc(l.cls)}${l.sing?'':l.fin?' · Fineco: commissione di acquisto zero':' · non in lista Fineco'}</div></td><td class="num">${n1(l.pct)}%</td><td class="num">${eur(l.amt)}</td><td class="num">${l.sing?'100 per 100 nominali':eur(l.price,2)}</td><td class="num">${l.qty==null?'—':l.sing?eur(l.qty*1000)+' nominali':l.qty}</td></tr>`).join('')}</tbody><tfoot><tr><td>Totale investito</td><td></td><td class="num">${eur(pl.spent)}</td><td></td><td class="num">${pl.monthly?'':'Resto '+eur(pl.cash)}</td></tr></tfoot></table></div>
+  <p class="small muted">Prezzi di esempio: nella versione reale sono quelli di mercato del giorno. Ordine a limite consigliato; verifica i costi sul tuo conto titoli.</p>
+  <div class="alert"><b>Raccomandazione di adeguatezza</b><span class="small">Il portafoglio è adeguato al tuo profilo «${BANDS[st.profile.band]}», alla tua conoscenza, al tuo orizzonte e alle tue preferenze di sostenibilità. Costi ex ante: TER medio ponderato ${n1(stats(PF()[id].w).ter)}% annuo, più i costi del tuo intermediario. Il consulente rivede il portafoglio periodicamente; la decisione di investire resta tua.</span></div>`}
+function growth(vals,h=200){const W=640,P=34,mx=Math.max(...vals),mn=Math.min(...vals),X=i=>P+i*(W-P-8)/(vals.length-1),Y=v=>h-22-(v-mn)/(mx-mn||1)*(h-36);
+  return `<svg class="chart" viewBox="0 0 ${W} ${h}" width="100%" role="img" aria-label="Andamento storico simulato"><polyline fill="none" stroke="var(--brand)" stroke-width="2" points="${vals.map((v,i)=>X(i)+','+Y(v)).join(' ')}"/><text x="${P}" y="${h-4}">15 anni fa</text><text x="${W-8}" y="${h-4}" text-anchor="end">oggi</text><text x="2" y="${Y(mx)+4}">${n1(mx)}</text><text x="2" y="${Y(mn)+4}">${n1(mn)}</text></svg>`}
+function donut(parts){const R=70,C=2*Math.PI*R;let off=0;return `<svg viewBox="0 0 180 180" width="180" height="180" role="img" aria-label="Asset allocation"><g transform="rotate(-90 90 90)">${parts.map(p=>{const d=C*p.v/100,s=`<circle cx="90" cy="90" r="${R}" fill="none" stroke="var(${CLS[p.k]})" stroke-width="28" stroke-dasharray="${d} ${C-d}" stroke-dashoffset="${-off}"/>`;off+=d;return s}).join('')}</g></svg>`}
+function dashView(){
+  const id=st.chosen,w=PF()[id].w,s=stats(w),by={};Object.entries(w).forEach(([k,p])=>by[BY[k].cls]=(by[BY[k].cls]||0)+p);
+  const parts=Object.entries(by).map(([k,v])=>({k,v}));
+  return `<div class="grid2"><div><h3>Asset allocation</h3><div class="row">${donut(parts)}<div class="lg" style="flex-direction:column">${parts.map(p=>`<span><i style="background:var(${CLS[p.k]})"></i>${p.k} ${p.v}%</span>`).join('')}</div></div></div>
+  <div><h3>Statistiche storiche simulate</h3><div class="stats"><div><small>Rendimento annuo</small><b>${pc0(s.cagr)}</b></div><div><small>Volatilità</small><b>${pc0(s.vol)}</b></div><div><small>Perdita massima</small><b>${pc0(s.mdd)}</b></div><div><small>Peggior anno</small><b>${pc0(s.w12)}</b></div><div><small>VaR annuo 99%</small><b>${n1(s.va)}%</b></div><div><small>Fascia</small><b>${BANDS[pfBand(w)]}</b></div></div></div></div>
+  <h3>Andamento di 1 € investito (simulato)</h3>${growth(s.vals)}`}
+const ARTS=[['Come comprare un ETF dal tuo conto titoli','Usa un ordine a limite e indica il codice ISIN. Controlla la borsa di quotazione e la valuta dello strumento.'],['Tasse sugli ETF e sui titoli di Stato','I titoli di Stato italiani ed europei hanno aliquota agevolata al 12,5%, gli ETF azionari e obbligazionari del 26% (con eccezioni). Verifica con il tuo commercialista.'],['Perché ribilanciare','Nel tempo le percentuali si spostano: riportarle ai valori del modello mantiene il rischio nella tua fascia.'],['Cos\'è il VaR','È una stima della perdita annua massima che, con il 99% di probabilità, non dovrebbe essere superata in condizioni di mercato normali. Non è una garanzia.']];
+const artView=()=>ARTS.map(a=>`<details class="art"><summary>${a[0]}</summary><div>${a[1]}</div></details>`).join('');
+function notifView(){const l=st.notifs.filter(n=>n.p===st.chosen).slice().reverse();return l.length?l.map(n=>`<div class="alert"><b>${esc(n.date)} · ${esc(n.titolo)}</b><span class="small">${esc(n.motivo)}</span><ul class="why">${n.ops.map(o=>`<li>${o}</li>`).join('')}</ul><span class="small ${n.done?'ok':'ko'}">${n.done?'Eseguita':'Da eseguire'}</span></div>`).join(''):'<p class="muted">Nessuna novità: ti avviseremo quando il portafoglio cambia.</p>'}
+/* ======================= CONSULENTE ======================= */
+function adminView(){
+  const p=PF()[st.aid],w=st.edit||p.w,tot=Object.values(w).reduce((a,b)=>a+b,0),va=varAnnuo(w),b=bandOf(va),b0=pfBand(p.w);
+  const ids=Object.keys(PF());
+  return monitorCard()+`<div class="card"><h2>Cliente di prova</h2><div class="tablewrap"><table><thead><tr><th>Cliente</th><th>Profilo</th><th>Quiz</th><th>Antiriciclaggio</th><th>Portafoglio</th><th>Stato</th></tr></thead><tbody><tr><td>${esc(st.user.nome||'(senza nome)')}</td><td>${st.profile?BANDS[st.profile.band]:'—'}</td><td>${quizResult(st.A).pass?'<span class="ok">superato</span>':'—'}</td><td>${amlFlags()}</td><td>${st.chosen?esc(PF()[st.chosen].nome)+' · '+(st.variant==='fineco'?'Fineco':'Classica')+' · '+eur(st.capital):'—'}</td><td>${STL[st.status]||'Non ancora inviato'}</td></tr></tbody></table></div>
+  <div class="row"><span class="small muted">Avanza lo stato:</span>${[['attesa','Documenti ricevuti'],['firma','Contratto inviato'],['pagamento','Contratto firmato'],['attivo','Pagamento ricevuto'],['scaduto','Rinnovo non pagato']].map(([k,l])=>`<button class="btn sm" data-act="status" data-v="${k}">${l}</button>`).join('')}</div>
+  <div class="grid2"><label class="f">Parcella continuativa (€)<input type="number" data-act="fee" data-v="cont" value="${st.fees.cont}"></label><label class="f">Parcella una tantum (€)<input type="number" data-act="fee" data-v="una" value="${st.fees.una}"></label>
+  <label class="f">Intestatario del conto<input type="text" data-act="bank" data-v="intest" value="${esc(st.bank.intest)}"></label><label class="f">IBAN<input type="text" data-act="bank" data-v="iban" value="${esc(st.bank.iban)}"></label></div></div>
+  <div class="card"><h2>Portafogli modello</h2><div class="tablewrap"><table><thead><tr><th>Portafoglio</th><th>Fascia (da VaR)</th><th>VaR annuo</th><th>Azioni</th><th>Strumenti</th></tr></thead><tbody>${ids.map(i=>{const q=PF()[i],v=varAnnuo(q.w);return `<tr><td>${i} · ${esc(q.nome)}</td><td>${BANDS[bandOf(v)]}</td><td class="num">${n1(v)}%</td><td class="num">${Object.entries(q.w).reduce((a,[k,x])=>a+(BY[k].cls==='Azionario'?x:0),0)}%</td><td class="num">${Object.keys(q.w).length}</td></tr>`}).join('')}</tbody></table></div></div>
+  <div class="card"><h2>Modifica un portafoglio e avvisa i clienti</h2><div class="row"><div class="seg" role="group">${ids.map(i=>`<button data-act="aid" data-v="${i}" aria-pressed="${st.aid===i}">${i}</button>`).join('')}</div><b>${esc(p.nome)}</b></div>
+  <div class="tablewrap admin-w"><table><thead><tr><th>Strumento</th><th>Attuale %</th><th>Nuovo %</th><th>In lista Fineco</th></tr></thead><tbody>${INS.filter(i=>!i.finOnly||w[i.k]||p.w[i.k]).map(i=>`<tr><td>${esc(i.name)}<div class="small muted">${i.isin}</div></td><td class="num">${p.w[i.k]||0}</td><td><input type="number" min="0" max="100" step="5" data-act="w" data-v="${i.k}" value="${w[i.k]||0}"></td><td>${i.fin?'sì':'no'}</td></tr>`).join('')}</tbody><tfoot><tr><td>Totale</td><td></td><td class="num ${tot===100?'ok':'ko'}">${tot}%</td><td></td></tr></tfoot></table></div>
+  <div class="alert"><b>Controllo di fascia</b><span class="small">VaR annuo ${n1(va)}% → fascia ${BANDS[b]}. ${b!==b0?`<b class="ko">La fascia cambia da ${BANDS[b0]} a ${BANDS[b]}: i clienti con profilo inferiore non potrebbero più usarlo.</b>`:'La fascia resta invariata.'}</span></div>
+  <label class="f">Motivazione e analisi costi/benefici (obbligatoria)<textarea id="motivo" rows="3" placeholder="Es.: aumento la quota di obbligazioni brevi per ridurre la duration; costi di transazione stimati inferiori al beneficio atteso.">${esc(st.motivo||'')}</textarea></label>
+  ${st.okpub?`<div class="alert"><b class="ko">Attenzione: clienti non più adeguati</b><span class="small">${st.okpub}</span></div>`:''}<div class="row"><button class="btn pri" data-act="publish" ${tot===100?'':'disabled'}>${st.okpub?'Pubblica comunque':'Pubblica la variazione e invia la notifica'}</button><button class="btn" data-act="discard">Annulla modifiche</button></div></div>
+  <div class="card"><h2>Registro</h2>${st.log.length?'<ul class="why">'+st.log.slice().reverse().map(l=>`<li>${esc(l)}</li>`).join('')+'</ul>':'<p class="muted">Nessuna operazione.</p>'}</div>`}
+const STC={ok:'ok',preavviso:'warn',allarme:'ko'};
+function monitorCard(){
+  if(!MONI)return `<div class="card"><h2>Monitoraggio</h2><p class="muted">Nessun dato di monitoraggio disponibile.</p></div>`;
+  const rows=Object.entries(MONI.portafogli);
+  return `<div class="card"><div class="row sb"><h2>Monitoraggio</h2><span class="small muted">Aggiornato ${esc(MONI.aggiornato)} · ultimo prezzo ${esc(MONI.ultimo_prezzo)}${MONI.esempio?' · <b class="ko">DATI DI ESEMPIO</b>':''}</span></div>
+  ${rows.some(([,r])=>r.stato!=='ok')?`<div class="alert"><b>Avvisi attivi</b><ul class="why">${rows.filter(([,r])=>r.stato!=='ok').map(([k,r])=>`<li><b class="${r.stato==='allarme'?'ko':''}">${k} · ${esc(r.nome)}</b>: ${r.messaggi.map(esc).join(' ')}</li>`).join('')}</ul></div>`:'<p class="ok">Nessun avviso: tutti i portafogli sono nella loro fascia.</p>'}
+  ${MONI.strumenti_senza_dati&&MONI.strumenti_senza_dati.length?`<p class="small ko">Strumenti senza dati sufficienti: ${MONI.strumenti_senza_dati.join(', ')}</p>`:''}
+  <div class="tablewrap"><table><thead><tr><th>Portafoglio</th><th>Fascia</th><th>Limite VaR</th><th>VaR modello</th><th>VaR con deriva</th><th>Deriva max</th><th>Stato</th></tr></thead><tbody>${rows.map(([k,r])=>`<tr><td>${k} · ${esc(r.nome)}</td><td>${BANDS[r.fascia]}</td><td class="num">${n1(r.limite)}%</td><td class="num">${n1(r.var_modello)}%</td><td class="num">${n1(r.var_attuale)}%</td><td class="num">${n1(r.deriva_max)} pt</td><td class="${r.stato==='ok'?'ok':r.stato==='allarme'?'ko':''}">${{ok:'ok',preavviso:'preavviso',allarme:'allarme'}[r.stato]}</td></tr>`).join('')}</tbody></table></div>
+  <p class="small muted">VaR parametrico 99%, storico di 5 anni, annualizzato con radice di 256. La deriva stima i pesi di un cliente che ha ribilanciato alla data dell'ultimo ribilanciamento e da allora non ha più toccato nulla. Gli avvisi nuovi arrivano anche per email.</p></div>`}
+function amlFlags(){const f=AML.filter(q=>q.flag&&st.aml[q.id]===1).map(q=>({pep:'PEP',car:'cariche politiche',soc:'cariche societarie',tit:'titolare effettivo',del:'delegato'}[q.id]));return Object.keys(st.aml).length?(f.length?`<span class="ko">verifica rafforzata: ${f.join(', ')}</span>`:'<span class="ok">nessun indicatore</span>'):'—'}
+/* ======================= EVENTI ======================= */
+function diffOps(o,n){const ops=[];const ks=new Set([...Object.keys(o),...Object.keys(n)]);
+  ks.forEach(k=>{const d=(n[k]||0)-(o[k]||0);if(d)ops.push(`<b>${d>0?'Acquista':'Vendi'}</b> ${BY[k].name}: ${(o[k]||0)}% → ${(n[k]||0)}% (${eur(Math.abs(d)/100*st.capital)} su ${eur(st.capital)})`)});return ops}
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-act]');if(!t||t.tagName==='INPUT'&&t.type!=='radio')return;const a=t.dataset.act,v=t.dataset.v,q=t.dataset.q;
+  if(a==='role')st.role=v;
+  else if(a==='reset'){st=fresh()}
+  else if(a==='go'){if(st.step==='auth'){st.user.nome=($('#nome')||{}).value||st.user.nome;st.user.email=($('#email')||{}).value||st.user.email}st.step=v}
+  else if(a==='ans')st.A[q]=+v;
+  else if(a==='quiz')st.A[q]=+v;
+  else if(a==='aml')st.aml[q]=+v;
+  else if(a==='quizreset'){QUIZ.forEach(z=>delete st.A[z.id])}
+  else if(a==='calc'){st.profile=scoreProfile(st.A);st.chosen=null;st.step='profilo'}
+  else if(a==='pick')st.chosen=v;
+  else if(a==='variant')st.variant=v;
+  else if(a==='bonds')st.bonds=v;
+  else if(a==='contract')st.contract=v;
+  else if(a==='sent'){st.status='attesa';st.step='stato';if(!st.held)st.held={id:st.chosen,w:null}}
+  else if(a==='tab')st.tab=v;
+  else if(a==='done'){const n=st.notifs.find(x=>x.id===+v);if(n){n.done=true;st.held={id:n.p,w:JSON.parse(JSON.stringify(PF()[n.p].w))}}}
+  else if(a==='status'){st.status=v;if(st.step!=='stato')st.step='stato';st.log.push(`Stato cliente: ${STL[v]}`)}
+  else if(a==='aid'){st.aid=v;st.edit=null;st.okpub=false}
+  else if(a==='discard'){st.edit=null;st.okpub=false}
+  else if(a==='publish'){const m=($('#motivo')||{}).value||st.motivo||'';st.motivo=m;if(!m.trim()){alert_('Scrivi la motivazione.');return}
+    const p=PF()[st.aid],nw=st.edit,ops=diffOps(p.w,nw);if(!ops.length){alert_('Nessuna differenza.');return}
+    const b0=pfBand(p.w),b1=bandOf(varAnnuo(nw));
+    const aff=st.chosen===st.aid&&st.profile&&st.profile.band<b1;
+    if(aff&&!st.okpub){st.okpub=`Con questa modifica il portafoglio passa da ${BANDS[b0]} a ${BANDS[b1]}. Il cliente di prova ha un profilo ${BANDS[st.profile.band]} e non sarebbe più adeguato: dovresti proporgli un portafoglio più prudente. Premi di nuovo per pubblicare comunque.`;render();return}
+    st.okpub=false;st.motivo='';st.notifs.push({id:Date.now(),p:st.aid,date:new Date().toLocaleDateString('it-IT'),titolo:`Variazione ${p.nome}`,motivo:m.trim(),ops,done:false});
+    st.log.push(`${st.aid}: variazione pubblicata (${ops.length} operazioni)${b0!==b1?`, fascia da ${BANDS[b0]} a ${BANDS[b1]}`:''}`);p.w=JSON.parse(JSON.stringify(nw));st.edit=null}
+  else return;
+  render();
+});
+function alert_(m){const x=$('#app .err');if(x)x.remove();const d=document.createElement('div');d.className='err';d.textContent=m;app.prepend(d)}
+document.addEventListener('change',e=>{
+  const t=e.target,a=t.dataset.act||t.id,v=t.dataset.v;
+  if(t.type==='radio')return;
+  if(a==='capital'){st.capital=Math.max(0,+t.value||0)}
+  else if(a==='monthly'){st.monthly=Math.max(0,+t.value||0)}
+  else if(a==='bAmt'){st.bAmt=Math.max(0,+t.value||0)}
+  else if(a==='bYrs'){st.bYrs=Math.min(10,Math.max(1,+t.value||1))}
+  else if(a==='fee'){st.fees[v]=+t.value||0}
+  else if(a==='bank'){st.bank[v]=t.value}
+  else if(a==='w'){st.okpub=false;st.edit=st.edit||JSON.parse(JSON.stringify(PF()[st.aid].w));const x=Math.max(0,Math.min(100,+t.value||0));if(x)st.edit[v]=x;else delete st.edit[v]}
+  else if(t.id==='motivo'){st.motivo=t.value;save();return}
+  else if(t.id==='nome'||t.id==='email'){st.user[t.id==='nome'?'nome':'email']=t.value;save();return}
+  else return;
+  render();
+});
+document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.ch[data-act]')){e.preventDefault();e.target.click()}});
+let MONI=null;try{fetch('monitor.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{MONI=j;render()}).catch(()=>{})}catch(e){}
+render();
+
 </script>
 
 </body></html>

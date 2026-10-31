@@ -1,0 +1,261 @@
+{
+ "nota": "Pesi dei portafogli modello per ISIN. 'ultimo_ribilanciamento' è la data dell'ultima volta che i clienti hanno riportato il portafoglio ai pesi del modello: aggiornala quando pubblichi una variazione. 'fascia' è la fascia dichiarata (0 Basso, 1 Medio-basso, 2 Medio-alto, 3 Alto).",
+ "strumenti": {
+  "LU0290358497": {
+   "nome": "Xtrackers II EUR Overnight Rate Swap 1C",
+   "chiave": "MON"
+  },
+  "LU1650487413": {
+   "nome": "Amundi Euro Government Bond 1-3Y Acc",
+   "chiave": "GOVS"
+  },
+  "LU1650488494": {
+   "nome": "Amundi Euro Government Bond 3-5Y Acc",
+   "chiave": "GOVM"
+  },
+  "LU1437018598": {
+   "nome": "Amundi Euro Government Bond Acc",
+   "chiave": "GOVB"
+  },
+  "LU1650491282": {
+   "nome": "Amundi Euro Govt Inflation-Linked Acc",
+   "chiave": "INFL"
+  },
+  "LU0478205379": {
+   "nome": "Xtrackers II EUR Corporate Bond 1C",
+   "chiave": "CORP"
+  },
+  "LU1681040496": {
+   "nome": "Amundi Euro High Yield Bond ESG Acc",
+   "chiave": "HY"
+  },
+  "LU2182388236": {
+   "nome": "Amundi Euro Aggregate Bond ESG DR (C)",
+   "chiave": "BESG"
+  },
+  "FR0013416716": {
+   "nome": "Amundi Physical Gold ETC (C)",
+   "chiave": "GOLD"
+  },
+  "IE00B4L5Y983": {
+   "nome": "iShares Core MSCI World",
+   "chiave": "EQW"
+  },
+  "IE00BL25JL35": {
+   "nome": "Xtrackers MSCI World Quality 1C",
+   "chiave": "QUAL"
+  },
+  "IE00BP3QZ825": {
+   "nome": "iShares Edge MSCI World Momentum Factor (Acc)",
+   "chiave": "MOM"
+  },
+  "IE00B8FHGS14": {
+   "nome": "iShares Edge MSCI World Minimum Volatility (Acc)",
+   "chiave": "MVOL"
+  },
+  "IE00BL25JM42": {
+   "nome": "Xtrackers MSCI World Value 1C",
+   "chiave": "VAL"
+  },
+  "IE00B8GKDB10": {
+   "nome": "Vanguard FTSE All-World High Dividend Yield (Dist)",
+   "chiave": "DIV"
+  },
+  "IE00BF4RFH31": {
+   "nome": "iShares MSCI World Small Cap (Acc)",
+   "chiave": "SC"
+  },
+  "IE00BTJRMP35": {
+   "nome": "Xtrackers MSCI Emerging Markets 1C",
+   "chiave": "EM"
+  },
+  "LU1832418773": {
+   "nome": "Amundi FTSE EPRA NAREIT Global Developed (Dist)",
+   "chiave": "REIT"
+  },
+  "IE00BM67HT60": {
+   "nome": "Xtrackers MSCI World Information Technology 1C",
+   "chiave": "TECH"
+  },
+  "LU0533033238": {
+   "nome": "Amundi MSCI World Health Care Acc",
+   "chiave": "HC"
+  },
+  "IE0001GSQ2O9": {
+   "nome": "Amundi MSCI World ESG Broad Transition Acc",
+   "chiave": "ESGW"
+  },
+  "IE00BCHWNQ94": {
+   "nome": "Xtrackers MSCI World ESG Screened",
+   "chiave": "ESGS"
+  },
+  "IE00BM67HJ62": {
+   "nome": "Xtrackers MSCI Emerging Markets ESG Screened 1C",
+   "chiave": "ESGE"
+  }
+ },
+ "portafogli": {
+  "P1": {
+   "nome": "Liquidità Plus",
+   "fascia": 0,
+   "ultimo_ribilanciamento": "2026-10-31",
+   "pesi": {
+    "LU0290358497": 60,
+    "LU1650487413": 30,
+    "LU1650491282": 10
+   }
+  },
+  "P2": {
+   "nome": "Prudente Anti-inflazione",
+   "fascia": 0,
+   "ultimo_ribilanciamento": "2026-10-31",
+   "pesi": {
+    "LU0290358497": 25,
+    "LU1650487413": 40,
+    "LU1650488494": 5,
+    "LU1650491282": 15,
+    "LU0478205379": 5,
+    "IE00B4L5Y983": 5,
+    "FR0013416716": 5
+   }
+  },
+  "P3": {
+   "nome": "Rendita Prudente",
+   "fascia": 1,
+   "ultimo_ribilanciamento": "2026-10-31",
+   "pesi": {
+    "LU1650487413": 15,
+    "LU1650488494": 10,
+    "LU1437018598": 10,
+    "LU0478205379": 25,
+    "LU1650491282": 10,
+    "LU0290358497": 10,
+    "LU1681040496": 5,
+    "IE00B8GKDB10": 10,
+    "LU1832418773": 5
+   }
+  },
+  "P4": {
+   "nome": "Bilanciato Prudente",
+   "fascia": 1,
+   "ultimo_ribilanciamento": "2026-10-31",
+   "pesi": {
+    "LU1650487413": 25,
+    "LU1650488494": 10,
+    "LU1437018598": 10,
+    "LU1650491282": 10,
+    "LU0478205379": 15,
+    "LU0290358497": 5,
+    "FR0013416716": 5,
+    "IE00B4L5Y983": 10,
+    "IE00B8FHGS14": 5,
+    "IE00BL25JL35": 5
+   }
+  },
+  "P5": {
+   "nome": "ESG Prudente",
+   "fascia": 1,
+   "ultimo_ribilanciamento": "2026-10-31",
+   "pesi": {
+    "LU1650487413": 20,
+    "LU2182388236": 40,
+    "IE0001GSQ2O9": 10,
+    "IE00BCHWNQ94": 10,
+    "LU0290358497": 15,
+    "FR0013416716": 5
+   }
+  },
+  "P6": {
+   "nome": "Bilanciato Crescita",
+   "fascia": 2,
+   "ultimo_ribilanciamento": "2026-10-31",
+   "pesi": {
+    "LU1650487413": 5,
+    "LU1650488494": 5,
+    "LU1437018598": 10,
+    "LU1650491282": 5,
+    "LU0478205379": 10,
+    "FR0013416716": 5,
+    "IE00B4L5Y983": 20,
+    "IE00BL25JL35": 10,
+    "IE00BP3QZ825": 5,
+    "IE00B8FHGS14": 5,
+    "IE00BL25JM42": 5,
+    "IE00B8GKDB10": 5,
+    "IE00BF4RFH31": 5,
+    "IE00BTJRMP35": 5
+   }
+  },
+  "P7": {
+   "nome": "Rendita Dinamica",
+   "fascia": 2,
+   "ultimo_ribilanciamento": "2026-10-31",
+   "pesi": {
+    "LU1650488494": 5,
+    "LU1437018598": 5,
+    "LU0478205379": 20,
+    "LU1681040496": 5,
+    "LU1650491282": 5,
+    "LU0290358497": 5,
+    "FR0013416716": 5,
+    "IE00B8GKDB10": 25,
+    "IE00B4L5Y983": 10,
+    "IE00BL25JM42": 5,
+    "LU1832418773": 5,
+    "IE00BTJRMP35": 5
+   }
+  },
+  "P8": {
+   "nome": "ESG Crescita",
+   "fascia": 2,
+   "ultimo_ribilanciamento": "2026-10-31",
+   "pesi": {
+    "IE0001GSQ2O9": 35,
+    "IE00BCHWNQ94": 10,
+    "IE00BM67HJ62": 10,
+    "LU2182388236": 20,
+    "LU1650487413": 10,
+    "FR0013416716": 5,
+    "LU0290358497": 10
+   }
+  },
+  "P9": {
+   "nome": "Crescita Globale",
+   "fascia": 3,
+   "ultimo_ribilanciamento": "2026-10-31",
+   "pesi": {
+    "IE00B4L5Y983": 25,
+    "IE00BL25JL35": 10,
+    "IE00BP3QZ825": 10,
+    "IE00BL25JM42": 10,
+    "IE00B8FHGS14": 5,
+    "IE00B8GKDB10": 10,
+    "IE00BF4RFH31": 5,
+    "IE00BTJRMP35": 10,
+    "FR0013416716": 5,
+    "LU1650487413": 10
+   }
+  },
+  "P10": {
+   "nome": "Crescita Dinamica",
+   "fascia": 3,
+   "ultimo_ribilanciamento": "2026-10-31",
+   "pesi": {
+    "IE00B4L5Y983": 20,
+    "IE00BL25JL35": 10,
+    "IE00BP3QZ825": 10,
+    "IE00BL25JM42": 5,
+    "IE00B8GKDB10": 10,
+    "IE00BF4RFH31": 10,
+    "IE00BTJRMP35": 15,
+    "IE00BM67HT60": 10,
+    "LU0533033238": 5,
+    "FR0013416716": 5
+   }
+  }
+ },
+ "soglie": {
+  "deriva_punti": 5,
+  "preavviso_var": 0.9
+ }
+}
