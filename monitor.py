@@ -2,7 +2,7 @@
 Ogni giorno scarica i prezzi, ricalcola il VaR (parametrico, 99%, 5 anni, annualizzato con radice di 256)
 e controlla la deriva dei pesi rispetto all'ultimo ribilanciamento. Scrive consulenza/monitor.json
 e, se compare un nuovo avviso, monitor/avvisi.md (da cui il workflow apre una segnalazione GitHub: arriva per email)."""
-import json,os,sys,datetime as dt
+import json,os,sys,re,datetime as dt
 import numpy as np,pandas as pd
 BASE=os.path.dirname(os.path.abspath(__file__));ROOT=os.path.dirname(BASE)
 Z=2.326;GG=256
@@ -41,26 +41,31 @@ def valuta(cfg,prices,prev=None):
 def _eur(sym,yf):
     try:return yf.Ticker(sym).fast_info.get('currency')=='EUR'
     except Exception:return False
-def scarica(isins,cache_path):
+STOP={'acc','dist','ucits','etf','etc','1c','dr','c','the','di','ex'}
+def _tok(t):return {w for w in re.findall(r'[a-z0-9]+',t.lower()) if w not in STOP and len(w)>1}
+def _cerca(isin,nome,yf):
+    """Cerca per nome (Yahoo per ISIN trova una sola borsa). Sceglie Milano, poi Xetra, con nome coerente."""
+    ok=_tok(nome);q=yf.Search(nome,max_results=20).quotes
+    c=[x for x in q if x.get('symbol','').split('.')[-1] in ('MI','DE') and ok and len(ok&_tok(x.get('longname') or x.get('shortname') or ''))/len(ok)>=0.8]
+    c.sort(key=lambda x:(len(_tok(x.get('longname') or x.get('shortname') or '')-ok),x['symbol'].endswith('.DE')))
+    for x in c:
+        if _eur(x['symbol'],yf):return x['symbol'],x.get('longname')
+    return (c[0]['symbol'],c[0].get('longname')) if c else (None,None)
+def scarica(isins,cache_path,nomi):
     import yfinance as yf
     cache=json.load(open(cache_path)) if os.path.exists(cache_path) else {}
-    if cache.get('_v')!=3:cache={'_v':3}   # rifà la ricerca: preferisce quotazioni in euro
+    if cache.get('_v')!=4:cache={'_v':4,'_nomi':{}}
     man_p=os.path.join(BASE,'ticker_manuali.json')
     man=json.load(open(man_p)) if os.path.exists(man_p) else {}
     for i in isins:
         if i in man:cache[i]=man[i];continue
         if cache.get(i):continue
         try:
-            q=[x for x in yf.Search(i,max_results=10).quotes if x.get('symbol') and not x['symbol'].startswith(i[:6])]
-            for suf in ('MI','DE'):   # priorità: Borsa Italiana, poi Xetra
-                pref=[x['symbol'] for x in q if x['symbol'].endswith('.'+suf)]
-                pick=next((t for t in pref if _eur(t,yf)),None) or (pref[0] if pref else None)
-                if pick:break
-            if not pick:print('NESSUN TICKER MI/DE per',i,[x.get('symbol') for x in q])
-            cache[i]=pick
+            t,ln=_cerca(i,nomi.get(i,i),yf);cache[i]=t;cache['_nomi'][i]=ln
+            if not t:print('NESSUN TICKER MI/DE per',i,nomi.get(i))
         except Exception as e:print('ISIN non risolto',i,e);cache[i]=None
     json.dump(cache,open(cache_path,'w'),indent=1)
-    tick={i:t for i,t in cache.items() if i!='_v' and t and i in isins}
+    tick={i:t for i,t in cache.items() if not i.startswith('_') and t and i in isins}
     df=yf.download(list(tick.values()),period='6y',auto_adjust=True,progress=False)['Close']
     if isinstance(df,pd.Series):df=df.to_frame(list(tick.values())[0])
     inv={t:i for i,t in tick.items()};df=df.rename(columns=inv).dropna(how='all').ffill()
@@ -70,7 +75,7 @@ def main():
     out_path=os.path.join(BASE,'monitor.json')
     prev=json.load(open(out_path)).get('portafogli',{}) if os.path.exists(out_path) else {}
     isins=sorted({c for p in cfg['portafogli'].values() for c in p['pesi']})
-    prices=scarica(isins,os.path.join(BASE,'isin_cache.json'))
+    prices=scarica(isins,os.path.join(BASE,'isin_cache.json'),cfg.get('nomi',{}))
     mancanti=[i for i in isins if i not in prices.columns or prices[i].dropna().shape[0]<250]
     res,avvisi=valuta(cfg,prices,prev)
     out={'aggiornato':dt.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'),'ultimo_prezzo':str(prices.index[-1].date()),'strumenti_senza_dati':mancanti,'portafogli':res}

@@ -257,5 +257,30 @@
  "soglie": {
   "deriva_punti": 5,
   "preavviso_var": 0.9
+ },
+ "nomi": {
+  "LU0290358497": "Xtrackers II EUR Overnight Rate Swap 1C",
+  "LU1650487413": "Amundi Euro Government Bond 1-3Y Acc",
+  "LU1650488494": "Amundi Euro Government Bond 3-5Y Acc",
+  "LU1437018598": "Amundi Euro Government Bond Acc",
+  "LU1650491282": "Amundi Euro Govt Inflation-Linked Acc",
+  "LU0478205379": "Xtrackers II EUR Corporate Bond 1C",
+  "LU1681040496": "Amundi Euro High Yield Bond ESG Acc",
+  "LU2182388236": "Amundi Euro Aggregate Bond ESG DR (C)",
+  "FR0013416716": "Amundi Physical Gold ETC (C)",
+  "IE00B4L5Y983": "iShares Core MSCI World",
+  "IE00BL25JL35": "Xtrackers MSCI World Quality 1C",
+  "IE00BP3QZ825": "iShares Edge MSCI World Momentum Factor (Acc)",
+  "IE00B8FHGS14": "iShares Edge MSCI World Minimum Volatility (Acc)",
+  "IE00BL25JM42": "Xtrackers MSCI World Value 1C",
+  "IE00B8GKDB10": "Vanguard FTSE All-World High Dividend Yield (Dist)",
+  "IE00BF4RFH31": "iShares MSCI World Small Cap (Acc)",
+  "IE00BTJRMP35": "Xtrackers MSCI Emerging Markets 1C",
+  "LU1832418773": "Amundi FTSE EPRA NAREIT Global Developed (Dist)",
+  "IE00BM67HT60": "Xtrackers MSCI World Information Technology 1C",
+  "LU0533033238": "Amundi MSCI World Health Care Acc",
+  "IE0001GSQ2O9": "Amundi MSCI World ESG Broad Transition Acc",
+  "IE00BCHWNQ94": "Xtrackers MSCI World ESG Screened",
+  "IE00BM67HJ62": "Xtrackers MSCI Emerging Markets ESG Screened 1C"
  }
 }
