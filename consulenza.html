@@ -142,7 +142,7 @@ const RAW=[
 ['HC','LU0533033238','Amundi MSCI World Health Care Acc','Azionario',49.5,.30,1,.85,0,13,8.5,'E'],
 ['ESGW','IE0001GSQ2O9','Amundi MSCI World ESG Broad Transition Acc','Azionario',57.4,.18,1,.95,0,15,8.5,'E'],
 ['ESGS','IE00BCHWNQ94','Xtrackers MSCI World ESG Screened','Azionario',46.2,.20,1,.95,0,15,8.5,'E'],
-['ESGE','IE00BM67HJ62','Xtrackers MSCI Emerging Markets ESG Screened 1C','Azionario',30.8,.25,1,.85,0,18,8,'E'],
+['ESGE','IE00BG370F43','Xtrackers MSCI Emerging Markets ESG 1C','Azionario',30.8,.25,1,.85,0,18,8,'E'],
 ];
 const INS=RAW.map(r=>({k:r[0],isin:r[1],name:r[2],cls:r[3],price:r[4],ter:r[5],fin:!!r[6],a:r[7],b:r[8],vol:r[9],mu:r[10],g:r[11],finOnly:!!r[12]}));
 const BY=Object.fromEntries(INS.map(i=>[i.k,i]));

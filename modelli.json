@@ -89,8 +89,8 @@
    "nome": "Xtrackers MSCI World ESG Screened",
    "chiave": "ESGS"
   },
-  "IE00BM67HJ62": {
-   "nome": "Xtrackers MSCI Emerging Markets ESG Screened 1C",
+  "IE00BG370F43": {
+   "nome": "Xtrackers MSCI Emerging Markets ESG 1C",
    "chiave": "ESGE"
   }
  },
@@ -212,7 +212,7 @@
    "pesi": {
     "IE0001GSQ2O9": 35,
     "IE00BCHWNQ94": 10,
-    "IE00BM67HJ62": 10,
+    "IE00BG370F43": 10,
     "LU2182388236": 20,
     "LU1650487413": 10,
     "FR0013416716": 5,
@@ -281,6 +281,6 @@
   "LU0533033238": "Amundi MSCI World Health Care Acc",
   "IE0001GSQ2O9": "Amundi MSCI World ESG Broad Transition Acc",
   "IE00BCHWNQ94": "Xtrackers MSCI World ESG Screened",
-  "IE00BM67HJ62": "Xtrackers MSCI Emerging Markets ESG Screened 1C"
+  "IE00BG370F43": "Xtrackers MSCI Emerging Markets ESG 1C"
  }
 }
