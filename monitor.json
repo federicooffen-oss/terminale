@@ -1,7 +1,16 @@
 {
- "aggiornato": "2026-11-01 10:31 UTC",
+ "aggiornato": "2026-11-01 10:37 UTC",
  "ultimo_prezzo": "2026-10-30",
  "strumenti_senza_dati": [],
+ "anomalie": [
+  {
+   "isin": "LU1437018598",
+   "nome": "Amundi Euro Government Bond Acc",
+   "ticker": "18M1.DE",
+   "volatilita_annua": 0.4,
+   "messaggio": "Volatilità quasi nulla per un obbligazionario: probabile ETF diverso da quello atteso. Verifica il codice di borsa."
+  }
+ ],
  "mercato": {
   "isin": [
    "FR0013416716",
