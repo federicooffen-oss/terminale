@@ -41,58 +41,102 @@ def valuta(cfg,prices,prev=None):
 def _eur(sym,yf):
     try:return yf.Ticker(sym).fast_info.get('currency')=='EUR'
     except Exception:return False
-STOP={'acc','dist','ucits','etf','etc','1c','dr','c','the','di','ex'}
+STOP={'acc','dist','ucits','etf','etc','1c','1d','2c','2d','4c','4d','dr','c','d','the','di','ex'}
+ACC={'acc','1c','2c','4c','c'};DIST={'dist','1d','2d','4d','d'}
 def _tok(t):return {w for w in re.findall(r'[a-z0-9]+',t.lower()) if w not in STOP and len(w)>1}
+def _classe(t):
+    w=set(re.findall(r'[a-z0-9]+',t.lower()));return 'a' if w&ACC else 'd' if w&DIST else None
 def _cerca(isin,nome,yf):
     """Cerca per nome (Yahoo per ISIN trova una sola borsa). Sceglie Milano, poi Xetra, con nome coerente."""
-    ok=_tok(nome)
+    ok=_tok(nome);ca=_classe(nome)
     pulito=re.sub(r'\([^)]*\)','',nome);pulito=' '.join(w for w in pulito.split() if w.lower() not in STOP)
-    for qs in (pulito,' '.join(pulito.split()[:4]),isin):
+    for qs in (pulito,' '.join(pulito.split()[:4])):
         q=yf.Search(qs,max_results=20).quotes
-        c=[x for x in q if x.get('symbol','').split('.')[-1] in ('MI','DE') and ok and len(ok&_tok(x.get('longname') or x.get('shortname') or ''))/len(ok)>=0.8]
-        c.sort(key=lambda x:(len(_tok(x.get('longname') or x.get('shortname') or '')-ok),x['symbol'].endswith('.DE')))
+        def nm(x):return x.get('longname') or x.get('shortname') or ''
+        c=[x for x in q if x.get('symbol','').split('.')[-1] in ('MI','DE') and ok and len(ok&_tok(nm(x)))/len(ok)>=0.8
+           and not (ca and _classe(nm(x)) and _classe(nm(x))!=ca)]
+        c.sort(key=lambda x:(len(_tok(nm(x))-ok),x['symbol'].endswith('.DE')))
         for x in c:
             if _eur(x['symbol'],yf):return x['symbol'],x.get('longname')
         if c:return c[0]['symbol'],c[0].get('longname')
-        print('  ricerca',repr(qs),'->',[x.get('symbol') for x in q])
     return None,None
-def scarica(isins,cache_path,nomi):
-    import yfinance as yf
+def risolvi(isins,nomi,cache_path,minuti=40):
+    """ISIN -> ticker Milano/Xetra. Salva man mano; ricomincia da dove era arrivato (cache)."""
+    import yfinance as yf,time
     cache=json.load(open(cache_path)) if os.path.exists(cache_path) else {}
-    if cache.get('_v')!=5:cache={'_v':5,'_nomi':{}}
+    if cache.get('_v')!=6:cache={'_v':6,'_nomi':cache.get('_nomi',{}),'_falliti':{},**{k:v for k,v in cache.items() if not k.startswith('_') and v}}
     man_p=os.path.join(BASE,'ticker_manuali.json')
     man=json.load(open(man_p)) if os.path.exists(man_p) else {}
+    oggi=dt.date.today();t0=time.time();nuovi=0
     for i in isins:
         if i in man:cache[i]=man[i];continue
         if cache.get(i):continue
+        f=cache['_falliti'].get(i)
+        if f and (oggi-dt.date.fromisoformat(f)).days<14:continue
+        if time.time()-t0>minuti*60:print('tempo finito: si riprende al prossimo avvio');break
         try:
-            t,ln=_cerca(i,nomi.get(i,i),yf);cache[i]=t;cache['_nomi'][i]=ln
-            if not t:print('NESSUN TICKER MI/DE per',i,nomi.get(i))
-        except Exception as e:print('ISIN non risolto',i,e);cache[i]=None
+            nome=nomi.get(i,i)
+            try:
+                q0=yf.Search(i,max_results=3).quotes
+                if q0 and q0[0].get('longname'):nome=q0[0]['longname']
+            except Exception:pass
+            t,ln=_cerca(i,nome,yf);time.sleep(0.2)
+            if t:cache[i]=t;cache['_nomi'][i]=ln or nome;cache['_falliti'].pop(i,None)
+            else:cache['_falliti'][i]=oggi.isoformat();print('NESSUN TICKER MI/DE per',i,nome)
+        except Exception as e:print('ISIN non risolto',i,e);cache['_falliti'][i]=oggi.isoformat()
+        nuovi+=1
+        if nuovi%25==0:json.dump(cache,open(cache_path,'w'),indent=1)
     json.dump(cache,open(cache_path,'w'),indent=1)
-    tick={i:t for i,t in cache.items() if not i.startswith('_') and t and i in isins}
-    df=yf.download(list(tick.values()),period='6y',auto_adjust=True,progress=False)['Close']
-    if isinstance(df,pd.Series):df=df.to_frame(list(tick.values())[0])
-    inv={t:i for i,t in tick.items()};df=df.rename(columns=inv).dropna(how='all').ffill()
-    return df
+    return {i:cache[i] for i in isins if cache.get(i)},cache.get('_nomi',{})
+def scarica(tick):
+    import yfinance as yf
+    tk=sorted(set(tick.values()));parts=[]
+    for k in range(0,len(tk),60):
+        d=yf.download(tk[k:k+60],period='6y',auto_adjust=True,progress=False,threads=True)['Close']
+        if isinstance(d,pd.Series):d=d.to_frame(tk[k])
+        parts.append(d)
+    df=pd.concat(parts,axis=1)
+    inv={};[inv.setdefault(t,[]).append(i) for i,t in tick.items()]
+    out={}
+    for t,isl in inv.items():
+        if t in df.columns:
+            for i in isl:out[i]=df[t]
+    return pd.DataFrame(out).dropna(how='all').ffill()
 def main():
     cfg=json.load(open(os.path.join(BASE,'modelli.json')))
     out_path=os.path.join(BASE,'monitor.json')
     prev=json.load(open(out_path)).get('portafogli',{}) if os.path.exists(out_path) else {}
-    isins=sorted({c for p in cfg['portafogli'].values() for c in p['pesi']})
-    prices=scarica(isins,os.path.join(BASE,'isin_cache.json'),cfg.get('nomi',{}))
-    mancanti=[i for i in isins if i not in prices.columns or prices[i].dropna().shape[0]<250]
+    isins_pf=sorted({c for p in cfg['portafogli'].values() for c in p['pesi']})
+    cat_p=os.path.join(BASE,'catalogo_isin.json')
+    seed=json.load(open(cat_p)) if os.path.exists(cat_p) else []
+    nomi=dict(cfg.get('nomi',{}));nomi.update({x['isin']:x['nome'] for x in seed if x['isin'] not in nomi})
+    tutti=isins_pf+[x['isin'] for x in seed if x['isin'] not in isins_pf]
+    tick,nomi_y=risolvi(tutti,nomi,os.path.join(BASE,'isin_cache.json'))
+    prices=scarica(tick)
+    ok=[i for i in tutti if i in prices.columns and prices[i].dropna().shape[0]>=250]
+    mancanti=[i for i in isins_pf if i not in ok]
     res,avvisi=valuta(cfg,prices,prev)
-    rets=prices.pct_change().dropna(how='all').tail(5*GG).fillna(0.0);cols=[c for c in isins if c in rets.columns and c not in mancanti]
-    mercato={'isin':cols,'sd':[round(float(rets[c].std()),6) for c in cols],'corr':[[round(float(x),3) for x in r] for r in rets[cols].corr().values],'giorni':int(len(rets))}
-    out={'aggiornato':dt.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC'),'ultimo_prezzo':str(prices.index[-1].date()),'strumenti_senza_dati':mancanti,'mercato':mercato,'portafogli':res}
+    rets=prices.pct_change().dropna(how='all').tail(5*GG).fillna(0.0)
+    ultimo=lambda c:round(float(prices[c].dropna().iloc[-1]),4)
+    cols=[c for c in isins_pf if c in ok]
+    mercato={'isin':cols,'sd':[round(float(rets[c].std()),6) for c in cols],'prezzi':[ultimo(c) for c in cols],'corr':[[round(float(x),3) for x in r] for r in rets[cols].corr().values],'giorni':int(len(rets))}
+    adesso=dt.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')
+    out={'aggiornato':adesso,'ultimo_prezzo':str(prices.index[-1].date()),'strumenti_senza_dati':mancanti,'mercato':mercato,'portafogli':res}
     json.dump(out,open(out_path,'w'),ensure_ascii=False,indent=1)
-    print('OK',out['ultimo_prezzo'],'senza dati:',mancanti)
+    print('OK',out['ultimo_prezzo'],'portafogli senza dati:',mancanti)
+    # catalogo completo (per la ricerca nell'app): prezzo, volatilità e correlazioni reali di ogni strumento
+    ca=[c for c in tutti if c in ok]
+    rc=rets[ca]
+    cat={'aggiornato':adesso,'strumenti':[{'isin':c,'nome':nomi_y.get(c) or nomi.get(c,c),'ticker':tick[c],'prezzo':ultimo(c),'sd':round(float(rc[c].std()),6)} for c in ca],
+         'senza_prezzo':[{'isin':c,'nome':nomi.get(c,c)} for c in tutti if c not in ok],
+         'corr':[[int(round(float(x)*100)) for x in r] for r in rc.corr().fillna(0).values],'giorni':int(len(rc))}
+    json.dump(cat,open(os.path.join(BASE,'catalogo.json'),'w'),ensure_ascii=False,separators=(',',':'))
+    print('catalogo:',len(ca),'con prezzo,',len(tutti)-len(ca),'senza')
     ap=os.path.join(BASE,'avvisi.md')
     if os.path.exists(ap):os.remove(ap)
     if avvisi:
         L=['# Avvisi sui portafogli modello','']
-        for k,n,s,m in avvisi:L+= [f"## {k} · {n} — {s.upper()}"]+[f"- {x}" for x in m]+['']
+        for k,n,sx,m in avvisi:L+= [f"## {k} · {n} — {sx.upper()}"]+[f"- {x}" for x in m]+['']
         L.append('Decisione e ribilanciamento restano al consulente. Dettagli nell\'app, scheda Monitoraggio.')
         open(ap,'w').write('\n'.join(L))
 if __name__=='__main__':main()

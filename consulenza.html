@@ -55,7 +55,7 @@ p{margin:0}
 .steps i{flex:1 1 40px;height:5px;border-radius:3px;background:var(--line);min-width:30px}
 .steps i.on{background:var(--accent)}
 label.f{display:flex;flex-direction:column;gap:5px;font-weight:600;font-size:14px}
-input[type=text],input[type=email],input[type=password],input[type=number],select,textarea{padding:9px 11px;border:1px solid var(--line);border-radius:7px;background:var(--bg);width:100%;font-weight:400}
+input[type=text],input[type=email],input[type=password],input[type=number],input[type=search],select,textarea{padding:9px 11px;border:1px solid var(--line);border-radius:7px;background:var(--bg);width:100%;font-weight:400}
 .q{border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:8px}
 .q:first-of-type{border-top:0;padding-top:0}
 .q .t{font-weight:600}
@@ -110,6 +110,11 @@ tfoot td{font-weight:700;background:var(--chip)}
 .stp span{background:var(--chip);color:var(--muted);border-radius:99px;padding:4px 11px;font-size:13px;font-weight:600}
 .stp span.on{background:var(--brand);color:var(--brand-fg)}
 .stp span.done{color:var(--good)}
+.srch{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.srch li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:8px}
+.srch li>div{min-width:0;overflow-wrap:anywhere}
+.card.inner{margin-top:10px;background:var(--bg)}
+#export{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px}
 </style>
 
 <div id="band"></div>
@@ -133,7 +138,7 @@ const RAW=[
 ['MOM','IE00BP3QZ825','iShares Edge MSCI World Momentum Factor (Acc)','Azionario',71.6,.30,0,.9,0,15,9,'E'],
 ['MVOL','IE00B8FHGS14','iShares Edge MSCI World Minimum Volatility (Acc)','Azionario',58.9,.30,0,.8,0,11,7.5,'E'],
 ['VAL','IE00BL25JM42','Xtrackers MSCI World Value 1C','Azionario',51.7,.25,1,.9,0,15.5,8,'E'],
-['DIV','IE00B8GKDB10','Vanguard FTSE All-World High Dividend Yield (Dist)','Azionario',64.8,.29,0,.88,0,13,8,'E'],
+['DIV','IE00B8GKDB10','Vanguard FTSE All-World High Dividend Yield (Dist)','Azionario',64.8,.29,1,.88,0,13,8,'E'],
 ['DIVF','LU0292096186','Xtrackers Stoxx Global Select Dividend 100 1D','Azionario',37.5,.50,1,.85,0,13.5,7.8,'E',1],
 ['SC','IE00BF4RFH31','iShares MSCI World Small Cap (Acc)','Azionario',41.2,.35,0,.88,0,17,9,'E'],
 ['EM','IE00BTJRMP35','Xtrackers MSCI Emerging Markets 1C','Azionario',58.3,.18,1,.85,0,18,8,'E'],
@@ -143,10 +148,19 @@ const RAW=[
 ['ESGW','IE0001GSQ2O9','Amundi MSCI World ESG Broad Transition Acc','Azionario',57.4,.18,1,.95,0,15,8.5,'E'],
 ['ESGS','IE00BCHWNQ94','Xtrackers MSCI World ESG Screened','Azionario',46.2,.20,1,.95,0,15,8.5,'E'],
 ['ESGE','IE00BG370F43','Xtrackers MSCI Emerging Markets ESG 1C','Azionario',30.8,.25,1,.85,0,18,8,'E'],
+['XMOM','IE00BL25JP72','Xtrackers MSCI World Momentum UCITS ETF 1C','Azionario',60,.25,1,.9,0,15,9,'E'],
+['XMVOL','IE00BL25JN58','Xtrackers MSCI World Minimum Volatility UCITS ETF 1C','Azionario',50,.25,1,.8,0,11,7.5,'E'],
+['DIVA','IE00BK5BR626','Vanguard FTSE All-World High Dividend Yield UCITS ETF (USD) Accumulating','Azionario',60,.29,1,.88,0,13,8,'E'],
+['CASH','IE000JJPY166','iShares EUR Cash UCITS ETF EUR (Acc)','Monetario',100,.07,1,0,0,.4,2,'M'],
+['IB28','IE0008UEVOE0','iShares iBonds Dec 2028 Term € Corp UCITS ETF EUR Acc','Obbligazionario',5,.12,1,.3,.6,3,3,'B'],
+['XG13','LU0290356871','Xtrackers II Eurozone Government Bond 1-3 UCITS ETF 1C','Obbligazionario',200,.15,1,0,.5,1.8,1.5,'B'],
+['XG35','LU0290356954','Xtrackers II Eurozone Government Bond 3-5 UCITS ETF 1C','Obbligazionario',200,.15,1,.05,.8,4.2,2.2,'B'],
+['XINF','LU0290358224','Xtrackers II Eurozone Inflation-Linked Bond UCITS ETF 1C','Obbligazionario',200,.25,1,.1,.7,6,2.6,'B'],
+['HY27','LU1109941689','Xtrackers II Rolling Target Maturity Sept 2027 EUR High Yield UCITS ETF 1C','Obbligazionario',100,.30,1,.5,.3,3,4,'B'],
 ];
 const INS=RAW.map(r=>({k:r[0],isin:r[1],name:r[2],cls:r[3],price:r[4],ter:r[5],fin:!!r[6],a:r[7],b:r[8],vol:r[9],mu:r[10],g:r[11],finOnly:!!r[12]}));
 const BY=Object.fromEntries(INS.map(i=>[i.k,i]));
-const FIN_SUB={MOM:'QUAL',MVOL:'QUAL',DIV:'DIVF',SC:'EQW'};   // versione Fineco: ETF fuori lista sostituiti da uno in lista
+const FIN_SUB={MOM:'XMOM',MVOL:'XMVOL',SC:'EQW'};   // versione Fineco: ETF fuori lista sostituiti da uno in lista
 const ESG_P=['P5','P8'];
 const MINY={P1:1,P2:3,P3:3,P4:5,P5:5,P6:7,P7:7,P8:7,P9:10,P10:10};
 const BANDS=['Basso','Medio-basso','Medio-alto','Alto'];
@@ -176,14 +190,16 @@ const bandOf=v=>v<=5.8?0:v<=11.6?1:v<=23.3?2:3;
 /* serie mensili SIMULATE (15 anni): servono solo a mostrare statistiche e grafici nel prototipo */
 function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 function gauss(r){let u=0,v=0;while(!u)u=r();v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
-const NM=180,SIM={};
+const NM=180,SIM={};let ZE,ZR;
+const nzf=a=>{const m=a.reduce((x,y)=>x+y,0)/a.length,sd=Math.sqrt(a.reduce((x,y)=>x+(y-m)**2,0)/a.length);return a.map(v=>(v-m)/sd)};
+function simAdd(i,n){const rr=rng(n*977+31),c=Math.sqrt(Math.max(0,1-i.a*i.a-i.b*i.b));const eps=nzf(ZE.map(()=>gauss(rr)));
+  SIM[i.k]=ZE.map((z,t)=>i.mu/1200+i.vol/100/Math.sqrt(12)*(i.a*z+i.b*ZR[t]+c*eps[t]))}
 (function(){
   const r=rng(2026),Ze=[],Zr=[];for(let i=0;i<NM;i++){Ze.push(gauss(r));Zr.push(gauss(r))}
   [36,37,38].forEach((i,k)=>Ze[i]=-[2.2,1.8,1.2][k]);[120,121].forEach(i=>Ze[i]=-1.9);Zr[96]=-1.6;Zr[97]=-1.6;
   const nz=a=>{const m=a.reduce((x,y)=>x+y,0)/a.length,sd=Math.sqrt(a.reduce((x,y)=>x+(y-m)**2,0)/a.length);return a.map(v=>(v-m)/sd)};
-  Ze.splice(0,NM,...nz(Ze));Zr.splice(0,NM,...nz(Zr));
-  INS.forEach((i,n)=>{const rr=rng(n*977+31),c=Math.sqrt(Math.max(0,1-i.a*i.a-i.b*i.b));const eps=nz(Ze.map(()=>gauss(rr)));
-    SIM[i.k]=Ze.map((z,t)=>i.mu/1200+i.vol/100/Math.sqrt(12)*(i.a*z+i.b*Zr[t]+c*eps[t]))});
+  Ze.splice(0,NM,...nz(Ze));Zr.splice(0,NM,...nz(Zr));ZE=Ze;ZR=Zr;
+  INS.forEach((i,n)=>simAdd(i,n));
 })();
 function stats(w){
   const r=new Array(NM).fill(0);Object.entries(w).forEach(([k,p])=>{const a=SIM[k];for(let i=0;i<NM;i++)r[i]+=p/100*a[i]});
@@ -192,6 +208,27 @@ function stats(w){
   let w12=0;for(let i=12;i<vals.length;i++)w12=Math.min(w12,vals[i]/vals[i-12]-1);
   const ter=Object.entries(w).reduce((a,[k,p])=>a+p/100*BY[k].ter,0);
   return{cagr:Math.pow(v,12/NM)-1,vol:sd,mdd,w12,ter,vals,va:varAnnuo(w)};
+}
+
+/* ======================= CATALOGO ESTESO ======================= */
+function classifica(nome){
+  const t=nome.toLowerCase();
+  const esg=/esg|sri|screened|sustainab|climate|paris|leaders|green|social/.test(t);
+  let cls='Azionario';
+  if(/gold|physical|silver|commodit|bitcoin|crypto|\boro\b/.test(t))cls='Oro';
+  else if(/overnight|\bcash\b|money market|ultrashort|t-bill|estr|rate swap|liquidity/.test(t))cls='Monetario';
+  else if(/bond|govt|government|treasury|gilt|aggregate|corporate|inflation|credit|high yield|ibonds|btp|oat|bund|floating|obblig/.test(t))cls='Obbligazionario';
+  return{cls,esg};
+}
+const CLS_LABEL={Azionario:'Azionario',Obbligazionario:'Obbligazionario',Monetario:'Monetario',Oro:'Materie prime / oro'};
+function addIns(r){ // r: {isin,nome,prezzo,sd,k?}
+  const ex=INS.find(i=>i.isin===r.isin);if(ex){if(r.prezzo)ex.price=r.prezzo;return ex.k}
+  const {cls,esg}=classifica(r.nome),g={Azionario:'E',Obbligazionario:'B',Monetario:'M',Oro:'G'}[cls];
+  const hy=/high yield|\bhy\b/i.test(r.nome);
+  const o={k:r.k||('X'+r.isin),isin:r.isin,name:r.nome,cls,price:r.prezzo||100,ter:.25,fin:true,esg,
+    a:cls==='Azionario'?.9:cls==='Oro'?.1:hy?.5:cls==='Obbligazionario'?.1:0,b:cls==='Obbligazionario'?(hy?.3:.8):0,
+    vol:r.sd?r.sd*16*100:({Azionario:15,Obbligazionario:5,Monetario:.4,Oro:15}[cls]),mu:{Azionario:7.5,Obbligazionario:2.5,Monetario:2,Oro:4}[cls],g,finOnly:false,ext:true};
+  INS.push(o);BY[o.k]=o;simAdd(o,INS.length-1);return o.k;
 }
 /* ======================= QUESTIONARIO (domande Binario F, scoring a soglie) ======================= */
 /* pt = punti per risposta; cap = tetto di fascia (0 Basso … 3 Alto) per risposta */
@@ -319,6 +356,7 @@ const AML=[
 function fresh(){return{role:'cliente',step:'auth',user:{nome:'',email:''},A:{},aml:{},capital:20000,monthly:250,profile:null,chosen:null,variant:'classic',bonds:'etf',bAmt:0,bYrs:3,contract:'cont',status:'none',PF:JSON.parse(JSON.stringify(PF0)),ver:{},held:null,notifs:[],fees:{cont:360,una:200},bank:{iban:'IT00 X000 0000 0000 0000 0000 000',intest:'(intestatario del conto)'},tab:'portafoglio',aid:'P4',edit:null,log:[]}}
 let st;try{st=JSON.parse(localStorage.getItem(KEY))}catch(e){st=null}
 if(!st||!st.PF)st=fresh();
+(st.xins||[]).forEach(r=>{try{addIns(r)}catch(e){}});
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
 const $=(s,r=document)=>r.querySelector(s);
 const eur=(n,d=0)=>n.toLocaleString('it-IT',{minimumFractionDigits:d,maximumFractionDigits:d})+' €';
@@ -436,7 +474,7 @@ const artView=()=>ARTS.map(a=>`<details class="art"><summary>${a[0]}</summary><d
 function notifView(){const l=st.notifs.filter(n=>n.p===st.chosen).slice().reverse();return l.length?l.map(n=>`<div class="alert"><b>${esc(n.date)} · ${esc(n.titolo)}</b><span class="small">${esc(n.motivo)}</span><ul class="why">${n.ops.map(o=>`<li>${o}</li>`).join('')}</ul><span class="small ${n.done?'ok':'ko'}">${n.done?'Eseguita':'Da eseguire'}</span></div>`).join(''):'<p class="muted">Nessuna novità: ti avviseremo quando il portafoglio cambia.</p>'}
 /* ======================= CONSULENTE ======================= */
 function adminView(){
-  const p=PF()[st.aid],w=st.edit||p.w,tot=Object.values(w).reduce((a,b)=>a+b,0),va=varAnnuo(w),b=bandOf(va),b0=pfBand(p.w);
+  const p=PF()[st.aid],w=st.edit||p.w,tot=Object.values(w).reduce((a,b)=>a+b,0),va=varAnnuo(w),b=bandOf(va),b0=fasciaDich(st.aid);
   const ids=Object.keys(PF());
   return monitorCard()+`<div class="card"><h2>Cliente di prova</h2><div class="tablewrap"><table><thead><tr><th>Cliente</th><th>Profilo</th><th>Quiz</th><th>Antiriciclaggio</th><th>Portafoglio</th><th>Stato</th></tr></thead><tbody><tr><td>${esc(st.user.nome||'(senza nome)')}</td><td>${st.profile?BANDS[st.profile.band]:'—'}</td><td>${quizResult(st.A).pass?'<span class="ok">superato</span>':'—'}</td><td>${amlFlags()}</td><td>${st.chosen?esc(PF()[st.chosen].nome)+' · '+(st.variant==='fineco'?'Fineco':'Classica')+' · '+eur(st.capital):'—'}</td><td>${STL[st.status]||'Non ancora inviato'}</td></tr></tbody></table></div>
   <div class="row"><span class="small muted">Avanza lo stato:</span>${[['attesa','Documenti ricevuti'],['firma','Contratto inviato'],['pagamento','Contratto firmato'],['attivo','Pagamento ricevuto'],['scaduto','Rinnovo non pagato']].map(([k,l])=>`<button class="btn sm" data-act="status" data-v="${k}">${l}</button>`).join('')}</div>
@@ -444,10 +482,12 @@ function adminView(){
   <label class="f">Intestatario del conto<input type="text" data-act="bank" data-v="intest" value="${esc(st.bank.intest)}"></label><label class="f">IBAN<input type="text" data-act="bank" data-v="iban" value="${esc(st.bank.iban)}"></label></div></div>
   <div class="card"><h2>Portafogli modello</h2><div class="tablewrap"><table><thead><tr><th>Portafoglio</th><th>Fascia (da VaR)</th><th>VaR annuo</th><th>Azioni</th><th>Strumenti</th></tr></thead><tbody>${ids.map(i=>{const q=PF()[i],v=varAnnuo(q.w);return `<tr><td>${i} · ${esc(q.nome)}</td><td>${BANDS[bandOf(v)]}</td><td class="num">${n1(v)}%</td><td class="num">${Object.entries(q.w).reduce((a,[k,x])=>a+(BY[k].cls==='Azionario'?x:0),0)}%</td><td class="num">${Object.keys(q.w).length}</td></tr>`}).join('')}</tbody></table></div></div>
   <div class="card"><h2>Modifica un portafoglio e avvisa i clienti</h2><div class="row"><div class="seg" role="group">${ids.map(i=>`<button data-act="aid" data-v="${i}" aria-pressed="${st.aid===i}">${i}</button>`).join('')}</div><b>${esc(p.nome)}</b></div>
-  <div class="tablewrap admin-w"><table><thead><tr><th>Strumento</th><th>Attuale %</th><th>Nuovo %</th><th>In lista Fineco</th></tr></thead><tbody>${INS.filter(i=>!i.finOnly||w[i.k]||p.w[i.k]).map(i=>`<tr><td>${esc(i.name)}<div class="small muted">${i.isin}</div></td><td class="num">${p.w[i.k]||0}</td><td><input type="number" min="0" max="100" step="5" data-act="w" data-v="${i.k}" value="${w[i.k]||0}"></td><td>${i.fin?'sì':'no'}</td></tr>`).join('')}</tbody><tfoot><tr><td>Totale</td><td></td><td class="num ${tot===100?'ok':'ko'}">${tot}%</td><td></td></tr></tfoot></table></div>
+  ${posizioniView(p,w)}
+  ${ricercaView(p,w)}
   <div class="alert"><b>Controllo di fascia</b><span class="small">VaR annuo ${n1(va)}% (${REAL?'su prezzi reali a 5 anni':'con volatilità stimate'}) → fascia ${BANDS[b]}. ${b>b0?`<b class="ko">Modifica bloccata: il VaR sfora il limite della fascia ${BANDS[b0]} e il portafoglio passerebbe a ${BANDS[b]}. Riduci la parte rischiosa finché il VaR rientra.</b>`:(b<b0?`La fascia scende da ${BANDS[b0]} a ${BANDS[b]}.`:'Il VaR resta dentro la fascia.')}</span></div>
   <label class="f">Motivazione e analisi costi/benefici (obbligatoria)<textarea id="motivo" rows="3" placeholder="Es.: aumento la quota di obbligazioni brevi per ridurre la duration; costi di transazione stimati inferiori al beneficio atteso.">${esc(st.motivo||'')}</textarea></label>
   <div class="row"><button class="btn pri" data-act="publish" ${tot===100&&b<=b0?'':'disabled'}>Pubblica la variazione e invia la notifica</button><button class="btn" data-act="discard">Annulla modifiche</button></div></div>
+  ${esportaCard()}
   <div class="card"><h2>Registro</h2>${st.log.length?'<ul class="why">'+st.log.slice().reverse().map(l=>`<li>${esc(l)}</li>`).join('')+'</ul>':'<p class="muted">Nessuna operazione.</p>'}</div>`}
 const STC={ok:'ok',preavviso:'warn',allarme:'ko'};
 function monitorCard(){
@@ -459,12 +499,50 @@ function monitorCard(){
   <div class="tablewrap"><table><thead><tr><th>Portafoglio</th><th>Fascia</th><th>Limite VaR</th><th>VaR modello</th><th>VaR con deriva</th><th>Deriva max</th><th>Stato</th></tr></thead><tbody>${rows.map(([k,r])=>`<tr><td>${k} · ${esc(r.nome)}</td><td>${BANDS[r.fascia]}</td><td class="num">${n1(r.limite)}%</td><td class="num">${n1(r.var_modello)}%</td><td class="num">${n1(r.var_attuale)}%</td><td class="num">${n1(r.deriva_max)} pt</td><td class="${r.stato==='ok'?'ok':r.stato==='allarme'?'ko':''}">${{ok:'ok',preavviso:'preavviso',allarme:'allarme'}[r.stato]}</td></tr>`).join('')}</tbody></table></div>
   <p class="small muted">VaR parametrico 99%, storico di 5 anni, annualizzato con radice di 256. La deriva stima i pesi di un cliente che ha ribilanciato alla data dell'ultimo ribilanciamento e da allora non ha più toccato nulla. Gli avvisi nuovi arrivano anche per email.</p></div>`}
 function amlFlags(){const f=AML.filter(q=>q.flag&&st.aml[q.id]===1).map(q=>({pep:'PEP',car:'cariche politiche',soc:'cariche societarie',tit:'titolare effettivo',del:'delegato'}[q.id]));return Object.keys(st.aml).length?(f.length?`<span class="ko">verifica rafforzata: ${f.join(', ')}</span>`:'<span class="ok">nessun indicatore</span>'):'—'}
+/* ======================= MODIFICA PORTAFOGLIO: posizioni, ricerca, esportazione ======================= */
+const fasciaDich=id=>MONI&&MONI.portafogli&&MONI.portafogli[id]?MONI.portafogli[id].fascia:pfBand(PF()[id].w);
+function posizioniView(p,w){
+  const ks=[...new Set([...Object.keys(p.w),...Object.keys(w)])].filter(k=>BY[k]).sort((a,b)=>(w[b]||0)-(w[a]||0));
+  return `<div class="tablewrap admin-w"><table><thead><tr><th>Strumento</th><th>Attuale %</th><th>Nuovo %</th><th></th></tr></thead><tbody>${ks.map(k=>{const i=BY[k];return `<tr><td>${esc(i.name)}<div class="small muted">${i.isin}${i.ext?' · da catalogo':''}</div></td><td class="num">${p.w[k]||0}</td><td><input type="number" min="0" max="100" step="5" data-act="w" data-v="${k}" value="${w[k]||0}"></td><td><button class="btn sm" data-act="rm" data-v="${k}" aria-label="Togli ${esc(i.name)}">Togli</button></td></tr>`}).join('')}</tbody><tfoot><tr><td>Totale</td><td></td><td class="num ${Object.values(w).reduce((a,b)=>a+b,0)===100?'ok':'ko'}">${Object.values(w).reduce((a,b)=>a+b,0)}%</td><td></td></tr></tfoot></table></div>`;
+}
+function ricercaView(p,w){
+  return `<div class="card inner"><h3>Aggiungi uno strumento</h3><div class="grid2"><label class="f">Cerca per ISIN, nome o codice di borsa<input type="search" id="cerca" autocomplete="off" placeholder="es. IE00B4L5Y983, gold, momentum" value="${esc(st.q||'')}"></label>
+  <label class="f">Tipo<select id="qc">${[['','Tutti'],['Azionario','Azionario'],['Obbligazionario','Obbligazionario'],['Monetario','Monetario'],['Oro','Materie prime / oro']].map(([v,l])=>`<option value="${v}" ${(st.qc||'')===v?'selected':''}>${l}</option>`).join('')}</select></label></div>
+  <div id="risultati">${risultatiHtml()}</div>
+  <p class="small muted">${CAT?`Catalogo: ${CAT.strumenti.length} strumenti con prezzo (Borsa Italiana o Xetra), aggiornato ${esc(CAT.aggiornato)}.${CAT.senza_prezzo&&CAT.senza_prezzo.length?` ${CAT.senza_prezzo.length} non hanno un prezzo leggibile e non si possono usare.`:''}`:'Catalogo completo non ancora caricato: per ora si possono cercare solo gli strumenti già nel sistema.'}</p></div>`;
+}
+function elencoRicerca(){
+  const base=CAT?CAT.strumenti.map(c=>({isin:c.isin,nome:c.nome,ticker:c.ticker,prezzo:c.prezzo,sd:c.sd,ok:true})).concat((CAT.senza_prezzo||[]).map(c=>({isin:c.isin,nome:c.nome,ok:false})))
+    :INS.filter(i=>!i.finOnly).map(i=>({isin:i.isin,nome:i.name,prezzo:i.price,ok:true}));
+  return base;
+}
+function risultatiHtml(){
+  const q=(st.q||'').toLowerCase().split(/\s+/).filter(Boolean),qc=st.qc||'';if(!q.length&&!qc)return '<p class="small muted">Scrivi almeno una parte del nome o dell\'ISIN per vedere gli strumenti.</p>';
+  const w=st.edit||PF()[st.aid].w,inW=new Set(Object.keys(w).filter(k=>BY[k]).map(k=>BY[k].isin));
+  const r=elencoRicerca().filter(c=>!inW.has(c.isin)&&q.every(t=>(c.isin+' '+c.nome+' '+(c.ticker||'')).toLowerCase().includes(t))&&(!qc||classifica(c.nome).cls===qc));
+  if(!r.length)return '<p class="small muted">Nessuno strumento trovato (o già presente nel portafoglio).</p>';
+  return `<ul class="srch">${r.slice(0,12).map(c=>{const k=classifica(c.nome);return `<li><div><b>${esc(c.nome)}</b><div class="small muted">${c.isin}${c.ticker?' · '+esc(c.ticker):''} · ${CLS_LABEL[k.cls]}${k.esg?' · ESG':''}${c.prezzo?' · '+eur(c.prezzo,2):''}${c.sd?' · vol. '+n1(c.sd*16*100)+'%':''}</div></div>${c.ok?`<button class="btn sm" data-act="add" data-v="${c.isin}">Aggiungi</button>`:'<span class="small ko">senza prezzo</span>'}</li>`}).join('')}</ul>${r.length>12?`<p class="small muted">Primi 12 di ${r.length}: restringi la ricerca.</p>`:''}`;
+}
+function esportaModelli(){
+  const pesi={},out={nota:"Pesi dei portafogli modello per ISIN. 'ultimo_ribilanciamento' è la data dell'ultima volta che i clienti hanno riportato il portafoglio ai pesi del modello: aggiornala quando pubblichi una variazione. 'fascia' è la fascia dichiarata (0 Basso, 1 Medio-basso, 2 Medio-alto, 3 Alto).",portafogli:{},soglie:{deriva_punti:5,preavviso_var:0.9},nomi:{}};
+  Object.entries(PF()).forEach(([id,p])=>{const o={};Object.entries(p.w).forEach(([k,x])=>{if(BY[k]){o[BY[k].isin]=x;out.nomi[BY[k].isin]=BY[k].name}});
+    out.portafogli[id]={nome:p.nome,fascia:fasciaDich(id),ultimo_ribilanciamento:(st.rib&&st.rib[id])||'2026-10-31',pesi:o}});
+  return JSON.stringify(out,null,1);
+}
+function esportaCard(){return `<div class="card"><h2>Esporta per il monitoraggio</h2><p class="small muted">Dopo aver pubblicato variazioni, copia questo testo e incollalo nel file <code>modelli.json</code> del repository (sostituisce tutto il contenuto). Così il monitoraggio quotidiano controlla i portafogli aggiornati.</p><textarea id="export" rows="6" readonly>${esc(esportaModelli())}</textarea></div>`}
+let CAT=null,CATTRY=false;
+function loadCat(){if(CAT||CATTRY)return;CATTRY=true;try{fetch('catalogo.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.strumenti)return;CAT=j;
+  setReal({isin:j.strumenti.map(s=>s.isin),sd:j.strumenti.map(s=>s.sd),corr:j.corr.map(r=>r.map(x=>x/100)),giorni:j.giorni});
+  j.strumenti.forEach(s=>{const ex=INS.find(i=>i.isin===s.isin);if(ex&&s.prezzo)ex.price=s.prezzo});render()}).catch(()=>{})}catch(e){}}
 /* ======================= EVENTI ======================= */
 function diffOps(o,n){const ops=[];const ks=new Set([...Object.keys(o),...Object.keys(n)]);
   ks.forEach(k=>{const d=(n[k]||0)-(o[k]||0);if(d)ops.push(`<b>${d>0?'Acquista':'Vendi'}</b> ${BY[k].name}: ${(o[k]||0)}% → ${(n[k]||0)}% (${eur(Math.abs(d)/100*st.capital)} su ${eur(st.capital)})`)});return ops}
 document.addEventListener('click',e=>{
   const t=e.target.closest('[data-act]');if(!t||t.tagName==='INPUT'&&t.type!=='radio')return;const a=t.dataset.act,v=t.dataset.v,q=t.dataset.q;
-  if(a==='role')st.role=v;
+  if(a==='role'){st.role=v;if(v==='consulente')loadCat()}
+  else if(a==='add'){const c=elencoRicerca().find(x=>x.isin===v);if(c){const k=addIns(c);if(BY[k].ext&&!(st.xins||[]).some(x=>x.isin===v)){st.xins=(st.xins||[]).concat([{isin:v,nome:c.nome,prezzo:c.prezzo,sd:c.sd,k}])}
+      st.okpub=false;st.edit=st.edit||JSON.parse(JSON.stringify(PF()[st.aid].w));st.edit[k]=st.edit[k]||5;st.q=''}}
+  else if(a==='rm'){st.okpub=false;st.edit=st.edit||JSON.parse(JSON.stringify(PF()[st.aid].w));delete st.edit[v]}
   else if(a==='reset'){st=fresh()}
   else if(a==='go'){if(st.step==='auth'){st.user.nome=($('#nome')||{}).value||st.user.nome;st.user.email=($('#email')||{}).value||st.user.email}st.step=v}
   else if(a==='ans')st.A[q]=+v;
@@ -484,10 +562,10 @@ document.addEventListener('click',e=>{
   else if(a==='discard'){st.edit=null;st.okpub=false}
   else if(a==='publish'){const m=($('#motivo')||{}).value||st.motivo||'';st.motivo=m;if(!m.trim()){alert_('Scrivi la motivazione.');return}
     const p=PF()[st.aid],nw=st.edit,ops=diffOps(p.w,nw);if(!ops.length){alert_('Nessuna differenza.');return}
-    const b0=pfBand(p.w),b1=bandOf(varAnnuo(nw));
+    const b0=fasciaDich(st.aid),b1=bandOf(varAnnuo(nw));
     if(b1>b0){alert_(`Modifica bloccata: il VaR (${n1(varAnnuo(nw))}%) sfora la fascia ${BANDS[b0]}.`);return}
     st.okpub=false;st.motivo='';st.notifs.push({id:Date.now(),p:st.aid,date:new Date().toLocaleDateString('it-IT'),titolo:`Variazione ${p.nome}`,motivo:m.trim(),ops,done:false});
-    st.log.push(`${st.aid}: variazione pubblicata (${ops.length} operazioni)${b0!==b1?`, fascia da ${BANDS[b0]} a ${BANDS[b1]}`:''}`);p.w=JSON.parse(JSON.stringify(nw));st.edit=null}
+    st.log.push(`${st.aid}: variazione pubblicata (${ops.length} operazioni)${b0!==b1?`, fascia da ${BANDS[b0]} a ${BANDS[b1]}`:''}`);p.w=JSON.parse(JSON.stringify(nw));st.rib=Object.assign({},st.rib,{[st.aid]:new Date().toISOString().slice(0,10)});st.edit=null}
   else return;
   render();
 });
@@ -502,13 +580,15 @@ document.addEventListener('change',e=>{
   else if(a==='fee'){st.fees[v]=+t.value||0}
   else if(a==='bank'){st.bank[v]=t.value}
   else if(a==='w'){st.okpub=false;st.edit=st.edit||JSON.parse(JSON.stringify(PF()[st.aid].w));const x=Math.max(0,Math.min(100,+t.value||0));if(x)st.edit[v]=x;else delete st.edit[v]}
+  else if(t.id==='qc'){st.qc=t.value;const r=$('#risultati');if(r)r.innerHTML=risultatiHtml();return}
   else if(t.id==='motivo'){st.motivo=t.value;save();return}
   else if(t.id==='nome'||t.id==='email'){st.user[t.id==='nome'?'nome':'email']=t.value;save();return}
   else return;
   render();
 });
+document.addEventListener('input',e=>{const t=e.target;if(t.id==='cerca'){st.q=t.value;const r=$('#risultati');if(r)r.innerHTML=risultatiHtml()}});
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.ch[data-act]')){e.preventDefault();e.target.click()}});
-let MONI=null;try{fetch('monitor.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{MONI=j;setReal(j&&j.mercato);render()}).catch(()=>{})}catch(e){}
+let MONI=null;try{fetch('monitor.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{MONI=j;setReal(j&&j.mercato);if(j&&j.mercato&&j.mercato.prezzi)j.mercato.isin.forEach((x,n)=>{const ex=INS.find(i=>i.isin===x);if(ex&&j.mercato.prezzi[n])ex.price=j.mercato.prezzi[n]});if(st.role==='consulente')loadCat();render()}).catch(()=>{})}catch(e){}
 render();
 </script>
 
