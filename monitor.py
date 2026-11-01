@@ -10,7 +10,9 @@ BAND_MAX=[5.8,11.6,23.3,46.5];BANDS=['Basso','Medio-basso','Medio-alto','Alto']
 def var_annuo(w,rets):
     """VaR annuo (%) di un portafoglio con pesi w (dict isin->frazione) sui rendimenti giornalieri, covarianza campionaria, media zero."""
     cols=[c for c in w if c in rets.columns];x=np.array([w[c] for c in cols]);x=x/x.sum()
-    cov=rets[cols].cov().values;sd=float(np.sqrt(x@cov@x))
+    sub=rets[cols].dropna()                      # finestra comune: solo i giorni in cui esistono tutti gli strumenti
+    if len(sub)<250:sub=rets[cols]               # storico troppo corto: uso le coppie disponibili
+    cov=sub.cov().values;sd=float(np.sqrt(max(x@cov@x,0.0)))
     return Z*sd*np.sqrt(GG)*100
 def band_of(v):return next((i for i,m in enumerate(BAND_MAX) if v<=m),3)
 def deriva(w,prices,date0):
@@ -20,7 +22,7 @@ def deriva(w,prices,date0):
     rel=p.iloc[-1]/p.iloc[0];v={c:w[c]*float(rel.get(c,1.0)) for c in w};t=sum(v.values())
     return {c:v[c]/t for c in v}
 def valuta(cfg,prices,prev=None):
-    rets=prices.pct_change().dropna(how='all').tail(5*GG).fillna(0.0);res={};avvisi=[]
+    rets=prices.pct_change().dropna(how='all').tail(5*GG);res={};avvisi=[]
     th=cfg['soglie'];prev=prev or {}
     for k,p in cfg['portafogli'].items():
         w={c:x/100 for c,x in p['pesi'].items()}
@@ -122,10 +124,10 @@ def main():
         else:visto[t]=i
     mancanti=[i for i in isins_pf if i not in ok]
     res,avvisi=valuta(cfg,prices,prev)
-    rets=prices.pct_change().dropna(how='all').tail(5*GG).fillna(0.0)
+    rets=prices.pct_change().dropna(how='all').tail(5*GG)
     ultimo=lambda c:round(float(prices[c].dropna().iloc[-1]),4)
     cols=[c for c in isins_pf if c in ok]
-    mercato={'isin':cols,'sd':[round(float(rets[c].std()),6) for c in cols],'prezzi':[ultimo(c) for c in cols],'corr':[[round(float(x),3) for x in r] for r in rets[cols].corr().values],'giorni':int(len(rets))}
+    mercato={'isin':cols,'sd':[round(float(rets[c].std()),6) for c in cols],'prezzi':[ultimo(c) for c in cols],'corr':[[round(float(x),3) for x in r] for r in rets[cols].corr(min_periods=120).fillna(0).values],'giorni':int(len(rets)),'storico':[int(rets[c].count()) for c in cols]}
     # controllo di coerenza: obbligazionari "normali" con volatilità quasi nulla = probabile ETF sbagliato (es. 0-6 mesi)
     anomalie=[]
     for c in ok:
@@ -139,9 +141,9 @@ def main():
     # catalogo completo (per la ricerca nell'app): prezzo, volatilità e correlazioni reali di ogni strumento
     ca=[c for c in tutti if c in ok]
     rc=rets[ca]
-    cat={'aggiornato':adesso,'strumenti':[{'isin':c,'nome':nomi_y.get(c) or nomi.get(c,c),'ticker':tick[c],'prezzo':ultimo(c),'sd':round(float(rc[c].std()),6)} for c in ca],
+    cat={'aggiornato':adesso,'strumenti':[{'isin':c,'nome':nomi_y.get(c) or nomi.get(c,c),'ticker':tick[c],'prezzo':ultimo(c),'sd':round(float(rc[c].std()),6),'n':int(rc[c].count())} for c in ca],
          'senza_prezzo':[{'isin':c,'nome':nomi.get(c,c)} for c in tutti if c not in ok and c not in [a['isin'] for a in ambigui]],'ambigui':ambigui,'anomalie':anomalie,
-         'corr':[[int(round(float(x)*100)) for x in r] for r in rc.corr().fillna(0).values],'giorni':int(len(rc))}
+         'corr':[[int(round(float(x)*100)) for x in r] for r in rc.corr(min_periods=120).fillna(0).values],'giorni':int(len(rc))}
     json.dump(cat,open(os.path.join(BASE,'catalogo.json'),'w'),ensure_ascii=False,separators=(',',':'))
     print('catalogo:',len(ca),'con prezzo,',len(tutti)-len(ca),'senza')
     ap=os.path.join(BASE,'avvisi.md')
