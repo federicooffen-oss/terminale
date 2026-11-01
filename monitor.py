@@ -114,6 +114,10 @@ def main():
     nomi=dict(cfg.get('nomi',{}));nomi.update({x['isin']:x['nome'] for x in seed if x['isin'] not in nomi})
     tutti=isins_pf+[x['isin'] for x in seed if x['isin'] not in isins_pf]
     tick,nomi_y=risolvi(tutti,nomi,os.path.join(BASE,'isin_cache.json'))
+    try:
+        for i_,t_ in json.load(open(os.path.join(BASE,'ticker_manuali.json'))).items():
+            if i_ in nomi:nomi_y[i_]=nomi[i_]      # per i ticker forzati a mano vale il nome mio, non quello di Yahoo
+    except Exception:pass
     prices=scarica(tick)
     ok=[i for i in tutti if i in prices.columns and prices[i].dropna().shape[0]>=250]
     # stesso codice di borsa per più ISIN (classi diverse dello stesso ETF o abbinamento sbagliato): tengo il primo, segnalo gli altri
