@@ -39,7 +39,13 @@ def pagina(tipo,n):
         try:i=[k for k,c in enumerate(celle) if re.search(r'\d{2}/\d{2}/\d{4}',c)][-1]
         except IndexError:continue
         nome=next((c for c in celle if c!=m.group(1) and re.search(r'[A-Za-z]{3}',c) and not c.startswith(m.group(1)) and 'Aggiungi' not in c),'')
-        out.append({'isin':m.group(1),'nome':nome,'prezzo':num(celle[i-2]) if i>=2 else None,'cedola':num(celle[i-1]) if i>=1 else None,'scadenza':scad})
+        solo=lambda c:bool(re.fullmatch(r'-?[\d.]*,?\d*|-',c)) and c!=''
+        k=[];j=i-1
+        while j>=0 and solo(celle[j]) and len(k)<2 and celle[j]!=m.group(1):k.append(celle[j]);j-=1
+        k=k[::-1]
+        P=num(k[0]) if k else None;C=num(k[1]) if len(k)>1 else None
+        if re.search(r'strip',nome,re.I):continue          # i BTP Strip non sono titoli da proporre ai clienti
+        out.append({'isin':m.group(1),'nome':nome,'prezzo':P,'cedola':C,'tasso':num((re.search(r'(\d+[,.]?\d*)\s*%',nome) or [None,None])[1]) if re.search(r'%',nome) else None,'scadenza':scad})
     return out
 def main():
     oggi=dt.date.today();tutti={};log=[]
