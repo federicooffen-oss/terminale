@@ -529,7 +529,37 @@ function esportaModelli(){
     out.portafogli[id]={nome:p.nome,fascia:fasciaDich(id),ultimo_ribilanciamento:(st.rib&&st.rib[id])||'2026-10-31',pesi:o}});
   return JSON.stringify(out,null,1);
 }
-function esportaCard(){return `<div class="card"><h2>Esporta per il monitoraggio</h2><p class="small muted">Dopo aver pubblicato variazioni, copia questo testo e incollalo nel file <code>modelli.json</code> del repository (sostituisce tutto il contenuto). Così il monitoraggio quotidiano controlla i portafogli aggiornati.</p><textarea id="export" rows="6" readonly>${esc(esportaModelli())}</textarea></div>`}
+const GHK='bf-ghtok';
+const ghTok=()=>{try{return localStorage.getItem(GHK)||''}catch(e){return''}};
+function ghRepo(){const h=location.hostname,m=h.match(/^([^.]+)\.github\.io$/);if(m)return{o:m[1],r:location.pathname.split('/').filter(Boolean)[0]||''};try{const x=(localStorage.getItem('bf-ghrepo')||'').split('/');return{o:x[0]||'',r:x[1]||''}}catch(e){return{o:'',r:''}}}
+async function ghSalva(avvia){
+  const tok=ghTok(),{o,r}=ghRepo();if(!tok){st.ghmsg={e:1,t:'Incolla prima la chiave di accesso GitHub.'};return}
+  if(!o||!r){st.ghmsg={e:1,t:'Questa funzione va usata dalla pagina pubblicata su GitHub Pages.'};return}
+  const H={Authorization:'Bearer '+tok,Accept:'application/vnd.github+json','Content-Type':'application/json'},U=`https://api.github.com/repos/${o}/${r}/contents/modelli.json`;
+  try{
+    const g=await fetch(U,{headers:H,cache:'no-store'});if(!g.ok)throw new Error(g.status===401?'Chiave non valida o scaduta.':g.status===404?'Repository o file non trovato (controlla i permessi della chiave).':'Lettura non riuscita ('+g.status+').');
+    const sha=(await g.json()).sha,txt=esportaModelli(),b64=btoa(String.fromCharCode(...new TextEncoder().encode(txt)));
+    const p=await fetch(U,{method:'PUT',headers:H,body:JSON.stringify({message:"Aggiornamento portafogli dall'app",content:b64,sha})});
+    if(!p.ok)throw new Error(p.status===403||p.status===404?'La chiave non ha il permesso di scrivere (serve "Contents: Read and write").':'Salvataggio non riuscito ('+p.status+').');
+    let t='Portafogli salvati sul repository.';
+    if(avvia){const d=await fetch(`https://api.github.com/repos/${o}/${r}/actions/workflows/monitor.yml/dispatches`,{method:'POST',headers:H,body:JSON.stringify({ref:'main'})});t+=d.ok?' Controllo avviato: tra qualche minuto il monitoraggio userà i nuovi portafogli.':' Il controllo non si è avviato da solo (serve il permesso "Actions: Read and write"): lo trovi in Actions → Run workflow.'}
+    st.ghmsg={e:0,t};st.dirty=false;st.log.push('modelli.json salvato sul repository')
+  }catch(e){st.ghmsg={e:1,t:String(e.message||e)}}
+}
+function esportaCard(){const m=st.ghmsg;return `<div class="card"><h2>Salva sul repository</h2><p class="small muted">Dopo aver pubblicato variazioni, questo pulsante scrive i portafogli nel file <code>modelli.json</code> del repository e fa partire il controllo, così il monitoraggio quotidiano usa subito i portafogli aggiornati.</p>
+  <label class="f">Chiave di accesso GitHub (resta solo su questo computer)<input type="password" id="ghtok" autocomplete="off" placeholder="github_pat_…" value="${esc(ghTok())}"></label>
+  <div class="row"><button class="btn pri" data-act="ghsave" data-v="1">Salva e avvia il controllo</button><button class="btn" data-act="ghsave" data-v="0">Solo salva</button></div>
+  ${m?`<p class="small ${m.e?'ko':'ok'}">${esc(m.t)}</p>`:''}
+  <details><summary class="small">Mostra il testo di modelli.json (per copiarlo a mano)</summary><textarea id="export" rows="6" readonly>${esc(esportaModelli())}</textarea></details></div>`}
+function syncModelli(j){ // il repository è la fonte dei portafogli, salvo variazioni pubblicate qui e non ancora salvate
+  if(!j||!j.portafogli||st.dirty)return;const nomi=j.nomi||{};
+  Object.entries(j.portafogli).forEach(([id,p])=>{if(!PF()[id])return;const w={};
+    Object.entries(p.pesi||{}).forEach(([isin,x])=>{let ex=INS.find(i=>i.isin===isin);
+      if(!ex){const k=addIns({isin,nome:nomi[isin]||isin});ex=BY[k];if(!(st.xins||[]).some(r=>r.isin===isin))st.xins=(st.xins||[]).concat([{isin,nome:nomi[isin]||isin,k}])}
+      w[ex.k]=x});
+    if(Object.keys(w).length)PF()[id].w=w;if(p.ultimo_ribilanciamento){st.rib=Object.assign({},st.rib,{[id]:p.ultimo_ribilanciamento})}});
+  st.edit=null;
+}
 let CAT=null,CATTRY=false;
 function loadCat(){if(CAT||CATTRY)return;CATTRY=true;try{fetch('catalogo.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.strumenti)return;CAT=j;
   setReal({isin:j.strumenti.map(s=>s.isin),sd:j.strumenti.map(s=>s.sd),corr:j.corr.map(r=>r.map(x=>x/100)),giorni:j.giorni});
@@ -542,6 +572,7 @@ document.addEventListener('click',e=>{
   if(a==='role'){st.role=v;if(v==='consulente')loadCat()}
   else if(a==='add'){const c=elencoRicerca().find(x=>x.isin===v);if(c){const k=addIns(c);if(BY[k].ext&&!(st.xins||[]).some(x=>x.isin===v)){st.xins=(st.xins||[]).concat([{isin:v,nome:c.nome,prezzo:c.prezzo,sd:c.sd,k}])}
       st.okpub=false;st.edit=st.edit||JSON.parse(JSON.stringify(PF()[st.aid].w));st.edit[k]=st.edit[k]||5;st.q=''}}
+  else if(a==='ghsave'){st.ghmsg={e:0,t:'Salvataggio in corso…'};render();ghSalva(v==='1').then(()=>{save();render()});return}
   else if(a==='rm'){st.okpub=false;st.edit=st.edit||JSON.parse(JSON.stringify(PF()[st.aid].w));delete st.edit[v]}
   else if(a==='reset'){st=fresh()}
   else if(a==='go'){if(st.step==='auth'){st.user.nome=($('#nome')||{}).value||st.user.nome;st.user.email=($('#email')||{}).value||st.user.email}st.step=v}
@@ -565,7 +596,7 @@ document.addEventListener('click',e=>{
     const b0=fasciaDich(st.aid),b1=bandOf(varAnnuo(nw));
     if(b1>b0){alert_(`Modifica bloccata: il VaR (${n1(varAnnuo(nw))}%) sfora la fascia ${BANDS[b0]}.`);return}
     st.okpub=false;st.motivo='';st.notifs.push({id:Date.now(),p:st.aid,date:new Date().toLocaleDateString('it-IT'),titolo:`Variazione ${p.nome}`,motivo:m.trim(),ops,done:false});
-    st.log.push(`${st.aid}: variazione pubblicata (${ops.length} operazioni)${b0!==b1?`, fascia da ${BANDS[b0]} a ${BANDS[b1]}`:''}`);p.w=JSON.parse(JSON.stringify(nw));st.rib=Object.assign({},st.rib,{[st.aid]:new Date().toISOString().slice(0,10)});st.edit=null}
+    st.log.push(`${st.aid}: variazione pubblicata (${ops.length} operazioni)${b0!==b1?`, fascia da ${BANDS[b0]} a ${BANDS[b1]}`:''}`);p.w=JSON.parse(JSON.stringify(nw));st.rib=Object.assign({},st.rib,{[st.aid]:new Date().toISOString().slice(0,10)});st.dirty=true;st.edit=null}
   else return;
   render();
 });
@@ -580,6 +611,7 @@ document.addEventListener('change',e=>{
   else if(a==='fee'){st.fees[v]=+t.value||0}
   else if(a==='bank'){st.bank[v]=t.value}
   else if(a==='w'){st.okpub=false;st.edit=st.edit||JSON.parse(JSON.stringify(PF()[st.aid].w));const x=Math.max(0,Math.min(100,+t.value||0));if(x)st.edit[v]=x;else delete st.edit[v]}
+  else if(t.id==='ghtok'){try{localStorage.setItem(GHK,t.value.trim())}catch(e){}return}
   else if(t.id==='qc'){st.qc=t.value;const r=$('#risultati');if(r)r.innerHTML=risultatiHtml();return}
   else if(t.id==='motivo'){st.motivo=t.value;save();return}
   else if(t.id==='nome'||t.id==='email'){st.user[t.id==='nome'?'nome':'email']=t.value;save();return}
@@ -588,6 +620,7 @@ document.addEventListener('change',e=>{
 });
 document.addEventListener('input',e=>{const t=e.target;if(t.id==='cerca'){st.q=t.value;const r=$('#risultati');if(r)r.innerHTML=risultatiHtml()}});
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.ch[data-act]')){e.preventDefault();e.target.click()}});
+try{fetch('modelli.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j&&j.portafogli){syncModelli(j);save();render()}}).catch(()=>{})}catch(e){}
 let MONI=null;try{fetch('monitor.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{MONI=j;setReal(j&&j.mercato);if(j&&j.mercato&&j.mercato.prezzi)j.mercato.isin.forEach((x,n)=>{const ex=INS.find(i=>i.isin===x);if(ex&&j.mercato.prezzi[n])ex.price=j.mercato.prezzi[n]});if(st.role==='consulente')loadCat();render()}).catch(()=>{})}catch(e){}
 render();
 </script>
