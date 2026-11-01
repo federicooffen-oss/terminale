@@ -114,21 +114,33 @@ def main():
     tick,nomi_y=risolvi(tutti,nomi,os.path.join(BASE,'isin_cache.json'))
     prices=scarica(tick)
     ok=[i for i in tutti if i in prices.columns and prices[i].dropna().shape[0]>=250]
+    # stesso codice di borsa per più ISIN (classi diverse dello stesso ETF o abbinamento sbagliato): tengo il primo, segnalo gli altri
+    visto={};ambigui=[]
+    for i in list(ok):
+        t=tick[i]
+        if t in visto:ambigui.append({'isin':i,'uguale_a':visto[t],'ticker':t});ok.remove(i)
+        else:visto[t]=i
     mancanti=[i for i in isins_pf if i not in ok]
     res,avvisi=valuta(cfg,prices,prev)
     rets=prices.pct_change().dropna(how='all').tail(5*GG).fillna(0.0)
     ultimo=lambda c:round(float(prices[c].dropna().iloc[-1]),4)
     cols=[c for c in isins_pf if c in ok]
     mercato={'isin':cols,'sd':[round(float(rets[c].std()),6) for c in cols],'prezzi':[ultimo(c) for c in cols],'corr':[[round(float(x),3) for x in r] for r in rets[cols].corr().values],'giorni':int(len(rets))}
+    # controllo di coerenza: obbligazionari "normali" con volatilità quasi nulla = probabile ETF sbagliato (es. 0-6 mesi)
+    anomalie=[]
+    for c in ok:
+        vol=float(rets[c].std())*16*100 if c in rets.columns else None;n=nomi.get(c,'')
+        if vol is not None and re.search(r'bond|govt|government',n,re.I) and not re.search(r'0-6|0-1|overnight|ultrashort|cash|floating|rolling|target|ibonds',n,re.I) and vol<1.0:
+            anomalie.append({'isin':c,'nome':n,'ticker':tick[c],'volatilita_annua':round(vol,2),'messaggio':'Volatilità quasi nulla per un obbligazionario: probabile ETF diverso da quello atteso. Verifica il codice di borsa.'})
     adesso=dt.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')
-    out={'aggiornato':adesso,'ultimo_prezzo':str(prices.index[-1].date()),'strumenti_senza_dati':mancanti,'mercato':mercato,'portafogli':res}
+    out={'aggiornato':adesso,'ultimo_prezzo':str(prices.index[-1].date()),'strumenti_senza_dati':mancanti,'anomalie':[a for a in anomalie if a['isin'] in isins_pf],'mercato':mercato,'portafogli':res}
     json.dump(out,open(out_path,'w'),ensure_ascii=False,indent=1)
     print('OK',out['ultimo_prezzo'],'portafogli senza dati:',mancanti)
     # catalogo completo (per la ricerca nell'app): prezzo, volatilità e correlazioni reali di ogni strumento
     ca=[c for c in tutti if c in ok]
     rc=rets[ca]
     cat={'aggiornato':adesso,'strumenti':[{'isin':c,'nome':nomi_y.get(c) or nomi.get(c,c),'ticker':tick[c],'prezzo':ultimo(c),'sd':round(float(rc[c].std()),6)} for c in ca],
-         'senza_prezzo':[{'isin':c,'nome':nomi.get(c,c)} for c in tutti if c not in ok],
+         'senza_prezzo':[{'isin':c,'nome':nomi.get(c,c)} for c in tutti if c not in ok and c not in [a['isin'] for a in ambigui]],'ambigui':ambigui,'anomalie':anomalie,
          'corr':[[int(round(float(x)*100)) for x in r] for r in rc.corr().fillna(0).values],'giorni':int(len(rc))}
     json.dump(cat,open(os.path.join(BASE,'catalogo.json'),'w'),ensure_ascii=False,separators=(',',':'))
     print('catalogo:',len(ca),'con prezzo,',len(tutti)-len(ca),'senza')
