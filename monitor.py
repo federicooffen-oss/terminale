@@ -119,7 +119,7 @@ def main():
             if i_ in nomi:nomi_y[i_]=nomi[i_]      # per i ticker forzati a mano vale il nome mio, non quello di Yahoo
     except Exception:pass
     prices=scarica(tick)
-    ok=[i for i in tutti if i in prices.columns and prices[i].dropna().shape[0]>=250]
+    ok=[i for i in tutti if i in prices.columns and prices[i].dropna().shape[0]>=60]   # ETF recenti: li tengo, 'n' dice quanti giorni di storico ci sono
     # stesso codice di borsa per più ISIN (classi diverse dello stesso ETF o abbinamento sbagliato): tengo il primo, segnalo gli altri
     visto={};ambigui=[]
     for i in list(ok):
