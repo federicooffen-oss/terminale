@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>
 <title>Binario F Consulenza Indipendente</title>
-
+<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Newsreader:wght@500;600&display=swap">
 <style>
 /* Layout: colonna unica centrata, un passo per schermata per il cliente; vista consulente a due colonne. Palette Binario F (verde, ambra). */
@@ -177,13 +177,11 @@ function rho(a,b){
 }
 let REAL=null; // volatilità e correlazioni reali (5 anni), lette da monitor.json
 function setReal(m){REAL=null;if(!m||!m.isin||!m.sd||!m.corr)return;const ix={};m.isin.forEach((x,i)=>ix[x]=i);REAL={ix,sd:m.sd,corr:m.corr,giorni:m.giorni}}
-function varAnnuo(w){ // VaR parametrico 99% annuo (%): dati reali se disponibili, altrimenti ipotesi per classe
+function varAnnuo(w){ // VaR parametrico 99% annuo (%): dati reali dove ci sono, ipotesi per classe (o duration, per i titoli di Stato) altrove
   const ks=Object.keys(w);let v=0;
-  if(REAL&&ks.every(k=>BY[k]&&REAL.ix[BY[k].isin]!==undefined)){
-    ks.forEach(a=>ks.forEach(b=>{const i=REAL.ix[BY[a].isin],j=REAL.ix[BY[b].isin];v+=w[a]/100*w[b]/100*REAL.sd[i]*REAL.sd[j]*REAL.corr[i][j]}));
-    return 2.326*Math.sqrt(v)*16*100; // 16 = radice di 256 giorni
-  }
-  ks.forEach(a=>ks.forEach(b=>{v+=w[a]/100*w[b]/100*VOLA[a]*VOLA[b]*rho(a,b)}));
+  const ri=k=>REAL&&BY[k]&&!BY[k].bond?REAL.ix[BY[k].isin]:undefined;
+  const vol=k=>{const i=ri(k);return i!==undefined?REAL.sd[i]*16*100:(BY[k]&&BY[k].bond?BY[k].vol:(VOLA[k]!==undefined?VOLA[k]:BY[k].vol))};
+  ks.forEach(a=>ks.forEach(b=>{const i=ri(a),j=ri(b);v+=w[a]/100*w[b]/100*vol(a)*vol(b)*((i!==undefined&&j!==undefined)?REAL.corr[i][j]:rho(a,b))}));
   return 2.326*Math.sqrt(v);
 }
 const bandOf=v=>v<=5.8?0:v<=11.6?1:v<=23.3?2:3;
@@ -220,8 +218,28 @@ function classifica(nome){
   else if(/bond|govt|government|treasury|gilt|aggregate|corporate|inflation|credit|high yield|ibonds|btp|oat|bund|floating|obblig/.test(t))cls='Obbligazionario';
   return{cls,esg};
 }
+const dataIt=s=>{const p=String(s).split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:s};
 const CLS_LABEL={Azionario:'Azionario',Obbligazionario:'Obbligazionario',Monetario:'Monetario',Oro:'Materie prime / oro'};
+/* ======================= TITOLI DI STATO: solo anagrafica, rischio da duration ======================= */
+const TS_Y0=3.0;   // rendimento ipotizzato (%) per calcolare la duration: non serve il prezzo
+const TS_SY=1.0;   // volatilità annua del rendimento (punti %): vol. del titolo = duration modificata × questo valore
+function durataMod(t,oggi){ // duration modificata in anni; t: {tipo,tasso,scad}
+  oggi=oggi||new Date();const T=(new Date(t.scad)-oggi)/(365.25*864e5);if(!(T>0))return 0;const y=TS_Y0/100;
+  if(t.tipo==='CCT')return Math.min(T,.25);             // tasso variabile: si riprezza ogni 6 mesi
+  if(t.tipo==='BOT'||t.tipo==='CTZ'||t.tasso===0)return T/(1+y);   // zero coupon
+  const c=(t.tasso==null?TS_Y0:t.tasso)/100,n=Math.max(1,Math.ceil(T*2-1e-9));let pv=0,pt=0;
+  for(let i=0;i<n;i++){const tt=T-i*.5;if(tt<=0)continue;const cf=c/2+(i===0?1:0),d=cf/Math.pow(1+y/2,2*tt);pv+=d;pt+=tt*d}
+  return pt/pv/(1+y/2);
+}
+const volTitolo=d=>Math.max(.1,d*TS_SY);
+const scaduto=i=>!!(i&&i.bond&&new Date(i.scad)<=new Date());
+function addBond(r){ // r: {isin,nome,tipo,tasso,scad}
+  const ex=INS.find(i=>i.isin===r.isin);if(ex)return ex.k;
+  const d=durataMod(r),o={k:'T'+r.isin,isin:r.isin,name:r.nome,cls:'Obbligazionario',price:100,ter:0,fin:true,esg:false,a:.05,b:.85,vol:volTitolo(d),mu:TS_Y0,g:'B',finOnly:false,ext:true,bond:true,tipo:r.tipo||'BTP',tasso:r.tasso==null?null:r.tasso,scad:r.scad,dur:d};
+  INS.push(o);BY[o.k]=o;simAdd(o,INS.length-1);return o.k;
+}
 function addIns(r){ // r: {isin,nome,prezzo,sd,k?}
+  if(r.bond)return addBond(r);
   const ex=INS.find(i=>i.isin===r.isin);if(ex){if(r.prezzo)ex.price=r.prezzo;return ex.k}
   const {cls,esg}=classifica(r.nome),g={Azionario:'E',Obbligazionario:'B',Monetario:'M',Oro:'G'}[cls];
   const hy=/high yield|\bhy\b/i.test(r.nome);
@@ -504,29 +522,32 @@ function amlFlags(){const f=AML.filter(q=>q.flag&&st.aml[q.id]===1).map(q=>({pep
 const fasciaDich=id=>MONI&&MONI.portafogli&&MONI.portafogli[id]?MONI.portafogli[id].fascia:pfBand(PF()[id].w);
 function posizioniView(p,w){
   const ks=[...new Set([...Object.keys(p.w),...Object.keys(w)])].filter(k=>BY[k]).sort((a,b)=>(w[b]||0)-(w[a]||0));
-  return `<div class="tablewrap admin-w"><table><thead><tr><th>Strumento</th><th>Attuale %</th><th>Nuovo %</th><th></th></tr></thead><tbody>${ks.map(k=>{const i=BY[k];return `<tr><td>${esc(i.name)}<div class="small muted">${i.isin}${i.ext?' · da catalogo':''}</div></td><td class="num">${p.w[k]||0}</td><td><input type="number" min="0" max="100" step="5" data-act="w" data-v="${k}" value="${w[k]||0}"></td><td><button class="btn sm" data-act="rm" data-v="${k}" aria-label="Togli ${esc(i.name)}">Togli</button></td></tr>`}).join('')}</tbody><tfoot><tr><td>Totale</td><td></td><td class="num ${Object.values(w).reduce((a,b)=>a+b,0)===100?'ok':'ko'}">${Object.values(w).reduce((a,b)=>a+b,0)}%</td><td></td></tr></tfoot></table></div>`;
+  const sc=ks.filter(k=>scaduto(BY[k]));
+  return (sc.length?`<div class="alert"><b class="ko">Titolo scaduto nel portafoglio</b><ul class="why">${sc.map(k=>`<li>${esc(BY[k].name)} (${BY[k].isin}) è scaduto il ${esc(dataIt(BY[k].scad))}: il capitale è rientrato ai clienti (${p.w[k]||0}% del portafoglio). Va reinvestito: scegli un titolo con scadenza successiva e pubblica la variazione.</li>`).join('')}</ul></div>`:'')+`<div class="tablewrap admin-w"><table><thead><tr><th>Strumento</th><th>Attuale %</th><th>Nuovo %</th><th></th></tr></thead><tbody>${ks.map(k=>{const i=BY[k];return `<tr><td>${esc(i.name)}<div class="small muted">${i.isin}${i.bond?' · '+i.tipo+' · scade '+esc(dataIt(i.scad))+(scaduto(i)?' · <b class="ko">SCADUTO</b>':' · duration '+n1(i.dur)+' · vol. stimata '+n1(i.vol)+'%'):i.ext?' · da catalogo':''}</div></td><td class="num">${p.w[k]||0}</td><td><input type="number" min="0" max="100" step="5" data-act="w" data-v="${k}" value="${w[k]||0}"></td><td><button class="btn sm" data-act="rm" data-v="${k}" aria-label="Togli ${esc(i.name)}">Togli</button></td></tr>`}).join('')}</tbody><tfoot><tr><td>Totale</td><td></td><td class="num ${Object.values(w).reduce((a,b)=>a+b,0)===100?'ok':'ko'}">${Object.values(w).reduce((a,b)=>a+b,0)}%</td><td></td></tr></tfoot></table></div>`;
 }
 function ricercaView(p,w){
   return `<div class="card inner"><h3>Aggiungi uno strumento</h3><div class="grid2"><label class="f">Cerca per ISIN, nome o codice di borsa<input type="search" id="cerca" autocomplete="off" placeholder="es. IE00B4L5Y983, gold, momentum" value="${esc(st.q||'')}"></label>
-  <label class="f">Tipo<select id="qc">${[['','Tutti'],['Azionario','Azionario'],['Obbligazionario','Obbligazionario'],['Monetario','Monetario'],['Oro','Materie prime / oro']].map(([v,l])=>`<option value="${v}" ${(st.qc||'')===v?'selected':''}>${l}</option>`).join('')}</select></label></div>
+  <label class="f">Tipo<select id="qc">${[['','Tutti'],['Azionario','Azionario'],['Obbligazionario','Obbligazionario'],['Monetario','Monetario'],['Oro','Materie prime / oro'],['TS','Titoli di Stato (BTP, BOT…)']].map(([v,l])=>`<option value="${v}" ${(st.qc||'')===v?'selected':''}>${l}</option>`).join('')}</select></label></div>
   <div id="risultati">${risultatiHtml()}</div>
-  <p class="small muted">${CAT?`Catalogo: ${CAT.strumenti.length} strumenti con prezzo (Borsa Italiana o Xetra), aggiornato ${esc(CAT.aggiornato)}.${CAT.senza_prezzo&&CAT.senza_prezzo.length?` ${CAT.senza_prezzo.length} non hanno un prezzo leggibile e non si possono usare.`:''}`:'Catalogo completo non ancora caricato: per ora si possono cercare solo gli strumenti già nel sistema.'}</p></div>`;
+  <p class="small muted">${CAT?`Catalogo: ${CAT.strumenti.length} strumenti con prezzo (Borsa Italiana o Xetra), aggiornato ${esc(CAT.aggiornato)}.${CAT.senza_prezzo&&CAT.senza_prezzo.length?` ${CAT.senza_prezzo.length} non hanno un prezzo leggibile e non si possono usare.`:''}`:'Catalogo completo non ancora caricato: per ora si possono cercare solo gli strumenti già nel sistema.'}${TITOLI?` Titoli di Stato: ${TITOLI.filter(t=>!scaduto({bond:true,scad:t.scadenza})).length} in circolazione (elenco ufficiale del Tesoro, aggiornato ${esc(TITOLI_AGG||'')}). Senza prezzo: il rischio è stimato dalla duration (rendimento ipotizzato ${n1(TS_Y0)}%, volatilità del rendimento ${n1(TS_SY)} punto) e i titoli scaduti spariscono dall'elenco.`:''}</p></div>`;
 }
 function elencoRicerca(){
   const base=CAT?CAT.strumenti.map(c=>({isin:c.isin,nome:c.nome,ticker:c.ticker,prezzo:c.prezzo,sd:c.sd,ok:true})).concat((CAT.senza_prezzo||[]).map(c=>({isin:c.isin,nome:c.nome,ok:false})))
-    :INS.filter(i=>!i.finOnly).map(i=>({isin:i.isin,nome:i.name,prezzo:i.price,ok:true}));
-  return base;
+    :INS.filter(i=>!i.finOnly&&!i.bond).map(i=>({isin:i.isin,nome:i.name,prezzo:i.price,ok:true}));
+  const ts=(TITOLI||[]).map(t=>({isin:t.isin,nome:t.nome,bond:true,tipo:t.tipo,tasso:t.tasso,scad:t.scadenza,ok:true}))
+    .filter(t=>!scaduto({bond:true,scad:t.scad}));
+  return base.concat(ts);
 }
 function risultatiHtml(){
   const q=(st.q||'').toLowerCase().split(/\s+/).filter(Boolean),qc=st.qc||'';if(!q.length&&!qc)return '<p class="small muted">Scrivi almeno una parte del nome o dell\'ISIN per vedere gli strumenti.</p>';
   const w=st.edit||PF()[st.aid].w,inW=new Set(Object.keys(w).filter(k=>BY[k]).map(k=>BY[k].isin));
-  const r=elencoRicerca().filter(c=>!inW.has(c.isin)&&q.every(t=>(c.isin+' '+c.nome+' '+(c.ticker||'')).toLowerCase().includes(t))&&(!qc||classifica(c.nome).cls===qc));
+  const r=elencoRicerca().filter(c=>!inW.has(c.isin)&&q.every(t=>(c.isin+' '+c.nome+' '+(c.ticker||'')+' '+(c.bond?c.tipo+' '+c.scad:'')).toLowerCase().includes(t))&&(!qc||(qc==='TS'?!!c.bond:!c.bond&&classifica(c.nome).cls===qc)));
   if(!r.length)return '<p class="small muted">Nessuno strumento trovato (o già presente nel portafoglio).</p>';
-  return `<ul class="srch">${r.slice(0,12).map(c=>{const k=classifica(c.nome);return `<li><div><b>${esc(c.nome)}</b><div class="small muted">${c.isin}${c.ticker?' · '+esc(c.ticker):''} · ${CLS_LABEL[k.cls]}${k.esg?' · ESG':''}${c.prezzo?' · '+eur(c.prezzo,2):''}${c.sd?' · vol. '+n1(c.sd*16*100)+'%':''}</div></div>${c.ok?`<button class="btn sm" data-act="add" data-v="${c.isin}">Aggiungi</button>`:'<span class="small ko">senza prezzo</span>'}</li>`}).join('')}</ul>${r.length>12?`<p class="small muted">Primi 12 di ${r.length}: restringi la ricerca.</p>`:''}`;
+  return `<ul class="srch">${r.slice(0,12).map(c=>{const k=classifica(c.nome),dd=c.bond?durataMod({tipo:c.tipo,tasso:c.tasso,scad:c.scad}):0;return `<li><div><b>${esc(c.nome)}</b><div class="small muted">${c.isin}${c.ticker?' · '+esc(c.ticker):''} · ${c.bond?c.tipo+' · scade '+esc(dataIt(c.scad))+(c.tasso?' · cedola '+n1(c.tasso)+'%':'')+' · duration '+n1(dd)+' · vol. stimata '+n1(volTitolo(dd))+'%':CLS_LABEL[k.cls]}${k.esg?' · ESG':''}${c.prezzo?' · '+eur(c.prezzo,2):''}${c.sd?' · vol. '+n1(c.sd*16*100)+'%':''}</div></div>${c.ok?`<button class="btn sm" data-act="add" data-v="${c.isin}">Aggiungi</button>`:'<span class="small ko">senza prezzo</span>'}</li>`}).join('')}</ul>${r.length>12?`<p class="small muted">Primi 12 di ${r.length}: restringi la ricerca.</p>`:''}`;
 }
 function esportaModelli(){
   const pesi={},out={nota:"Pesi dei portafogli modello per ISIN. 'ultimo_ribilanciamento' è la data dell'ultima volta che i clienti hanno riportato il portafoglio ai pesi del modello: aggiornala quando pubblichi una variazione. 'fascia' è la fascia dichiarata (0 Basso, 1 Medio-basso, 2 Medio-alto, 3 Alto).",portafogli:{},soglie:{deriva_punti:5,preavviso_var:0.9},nomi:{}};
-  Object.entries(PF()).forEach(([id,p])=>{const o={};Object.entries(p.w).forEach(([k,x])=>{if(BY[k]){o[BY[k].isin]=x;out.nomi[BY[k].isin]=BY[k].name}});
+  Object.entries(PF()).forEach(([id,p])=>{const o={};Object.entries(p.w).forEach(([k,x])=>{if(BY[k]){o[BY[k].isin]=x;out.nomi[BY[k].isin]=BY[k].name;if(BY[k].bond){out.titoli=out.titoli||{};out.titoli[BY[k].isin]={nome:BY[k].name,tipo:BY[k].tipo,tasso:BY[k].tasso,scadenza:BY[k].scad,duration:Math.round(BY[k].dur*100)/100,vol_stimata:Math.round(BY[k].vol*100)/100}}}});
     out.portafogli[id]={nome:p.nome,fascia:fasciaDich(id),ultimo_ribilanciamento:(st.rib&&st.rib[id])||'2026-10-31',pesi:o}});
   return JSON.stringify(out,null,1);
 }
@@ -556,13 +577,15 @@ function syncModelli(j){ // il repository è la fonte dei portafogli, salvo vari
   if(!j||!j.portafogli||st.dirty)return;const nomi=j.nomi||{};
   Object.entries(j.portafogli).forEach(([id,p])=>{if(!PF()[id])return;const w={};
     Object.entries(p.pesi||{}).forEach(([isin,x])=>{let ex=INS.find(i=>i.isin===isin);
-      if(!ex){const k=addIns({isin,nome:nomi[isin]||isin});ex=BY[k];if(!(st.xins||[]).some(r=>r.isin===isin))st.xins=(st.xins||[]).concat([{isin,nome:nomi[isin]||isin,k}])}
+      if(!ex){const tb=(j.titoli||{})[isin],rr=tb?{isin,nome:tb.nome,bond:true,tipo:tb.tipo,tasso:tb.tasso,scad:tb.scadenza}:{isin,nome:nomi[isin]||isin};const k=addIns(rr);ex=BY[k];if(!(st.xins||[]).some(r=>r.isin===isin))st.xins=(st.xins||[]).concat([Object.assign({k},rr)])}
       w[ex.k]=x});
     if(Object.keys(w).length)PF()[id].w=w;if(p.ultimo_ribilanciamento){st.rib=Object.assign({},st.rib,{[id]:p.ultimo_ribilanciamento})}});
   st.edit=null;
 }
+let TITOLI=null,TITOLI_AGG='';
+function loadTitoli(){try{fetch('titoli_stato.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.titoli)return;TITOLI=j.titoli;TITOLI_AGG=j.aggiornato||'';render()}).catch(()=>{})}catch(e){}}
 let CAT=null,CATTRY=false;
-function loadCat(){if(CAT||CATTRY)return;CATTRY=true;try{fetch('catalogo.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.strumenti)return;CAT=j;
+function loadCat(){if(CAT||CATTRY)return;CATTRY=true;loadTitoli();try{fetch('catalogo.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.strumenti)return;CAT=j;
   setReal({isin:j.strumenti.map(s=>s.isin),sd:j.strumenti.map(s=>s.sd),corr:j.corr.map(r=>r.map(x=>x/100)),giorni:j.giorni});
   j.strumenti.forEach(s=>{const ex=INS.find(i=>i.isin===s.isin);if(ex&&s.prezzo)ex.price=s.prezzo});render()}).catch(()=>{})}catch(e){}}
 /* ======================= EVENTI ======================= */
@@ -571,7 +594,7 @@ function diffOps(o,n){const ops=[];const ks=new Set([...Object.keys(o),...Object
 document.addEventListener('click',e=>{
   const t=e.target.closest('[data-act]');if(!t||t.tagName==='INPUT'&&t.type!=='radio')return;const a=t.dataset.act,v=t.dataset.v,q=t.dataset.q;
   if(a==='role'){st.role=v;if(v==='consulente')loadCat()}
-  else if(a==='add'){const c=elencoRicerca().find(x=>x.isin===v);if(c){const k=addIns(c);if(BY[k].ext&&!(st.xins||[]).some(x=>x.isin===v)){st.xins=(st.xins||[]).concat([{isin:v,nome:c.nome,prezzo:c.prezzo,sd:c.sd,k}])}
+  else if(a==='add'){const c=elencoRicerca().find(x=>x.isin===v);if(c){const k=addIns(c);if(BY[k].ext&&!(st.xins||[]).some(x=>x.isin===v)){st.xins=(st.xins||[]).concat([c.bond?{isin:v,nome:c.nome,bond:true,tipo:c.tipo,tasso:c.tasso,scad:c.scad,k}:{isin:v,nome:c.nome,prezzo:c.prezzo,sd:c.sd,k}])}
       st.okpub=false;st.edit=st.edit||JSON.parse(JSON.stringify(PF()[st.aid].w));st.edit[k]=st.edit[k]||5;st.q=''}}
   else if(a==='ghsave'){st.ghmsg={e:0,t:'Salvataggio in corso…'};render();ghSalva(v==='1').then(()=>{save();render()});return}
   else if(a==='rm'){st.okpub=false;st.edit=st.edit||JSON.parse(JSON.stringify(PF()[st.aid].w));delete st.edit[v]}

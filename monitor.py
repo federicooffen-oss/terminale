@@ -7,12 +7,47 @@ import numpy as np,pandas as pd
 BASE=os.path.dirname(os.path.abspath(__file__));ROOT=os.path.dirname(BASE)
 Z=2.326;GG=256
 BAND_MAX=[5.8,11.6,23.3,46.5];BANDS=['Basso','Medio-basso','Medio-alto','Alto']
+TS_Y0=3.0;TS_SY=1.0          # come nell'app: rendimento ipotizzato 3%, volatilità annua del rendimento 1 punto
+BONDS={}                      # isin -> {nome,tipo,tasso,scadenza,vol (% annua), scaduto}
+GRP={}                        # isin -> gruppo dell'ETF (E azionario, B obbligazionario, M monetario, G oro, H high yield)
+def durata_mod(t,oggi=None):
+    oggi=oggi or dt.date.today();T=(dt.date.fromisoformat(t['scadenza'])-oggi).days/365.25
+    if T<=0:return 0.0
+    y=TS_Y0/100
+    if t.get('tipo')=='CCT':return min(T,.25)
+    if t.get('tipo') in('BOT','CTZ') or t.get('tasso')==0:return T/(1+y)
+    c=(TS_Y0 if t.get('tasso') is None else t['tasso'])/100;n=max(1,int(np.ceil(T*2-1e-9)));pv=pt=0.0
+    for i in range(n):
+        tt=T-i*.5
+        if tt<=0:continue
+        d=(c/2+(1 if i==0 else 0))/(1+y/2)**(2*tt);pv+=d;pt+=tt*d
+    return pt/pv/(1+y/2)
+def gruppo(nome):
+    t=nome.lower()
+    if re.search(r'gold|physical|silver|commodit|bitcoin|crypto|\boro\b',t):return 'G'
+    if re.search(r'overnight|\bcash\b|money market|ultrashort|t-bill|estr|rate swap|liquidity',t):return 'M'
+    if re.search(r'high yield|\bhy\b',t):return 'H'
+    if re.search(r'bond|govt|government|treasury|gilt|aggregate|corporate|inflation|credit|ibonds|btp|oat|bund|floating|obblig',t):return 'B'
+    return 'E'
+def rho_titolo(g):  # correlazione ipotizzata tra un titolo di Stato e uno strumento di gruppo g (come nell'app)
+    return {'B':.8,'H':.45,'M':.05,'G':.2,'E':.1}.get(g,.1)
 def var_annuo(w,rets):
-    """VaR annuo (%) di un portafoglio con pesi w (dict isin->frazione) sui rendimenti giornalieri, covarianza campionaria, media zero."""
-    cols=[c for c in w if c in rets.columns];x=np.array([w[c] for c in cols]);x=x/x.sum()
-    sub=rets[cols].dropna()                      # finestra comune: solo i giorni in cui esistono tutti gli strumenti
-    if len(sub)<250:sub=rets[cols]               # storico troppo corto: uso le coppie disponibili
-    cov=sub.cov().values;sd=float(np.sqrt(max(x@cov@x,0.0)))
+    """VaR annuo (%) di un portafoglio con pesi w (dict isin->frazione): ETF da covarianza campionaria (media zero);
+    titoli di Stato da duration (vol. = duration x 1 punto) con correlazioni ipotizzate. Giorni = radice di 256."""
+    ec=[c for c in w if c in rets.columns];bc=[c for c in w if c in BONDS]
+    cols=ec+bc;x=np.array([w[c] for c in cols]);x=x/x.sum()
+    sub=rets[ec].dropna() if ec else None            # finestra comune: solo i giorni in cui esistono tutti gli strumenti
+    if sub is not None and len(sub)<250:sub=rets[ec]
+    n=len(cols);cov=np.zeros((n,n))
+    if ec:cov[:len(ec),:len(ec)]=sub.cov().values
+    sd_b=[BONDS[c]['vol']/100/np.sqrt(GG) for c in bc]
+    for a,ca in enumerate(bc):
+        i=len(ec)+a
+        for b,cb in enumerate(bc):
+            cov[i,len(ec)+b]=sd_b[a]*sd_b[b]*(1 if a==b else .8)
+        for j,ce in enumerate(ec):
+            sdj=float(np.sqrt(max(cov[j,j],0)));cov[i,j]=cov[j,i]=sd_b[a]*sdj*rho_titolo(GRP.get(ce,'E'))
+    sd=float(np.sqrt(max(x@cov@x,0.0)))
     return Z*sd*np.sqrt(GG)*100
 def band_of(v):return next((i for i,m in enumerate(BAND_MAX) if v<=m),3)
 def deriva(w,prices,date0):
@@ -33,6 +68,16 @@ def valuta(cfg,prices,prev=None):
             stato='allarme';msgs.append(f"Il VaR annuo ({max(v0,vd):.1f}%) supera il limite della fascia {BANDS[p['fascia']]} ({lim}%).")
         elif max(v0,vd)>=lim*th['preavviso_var']:
             stato='preavviso';msgs.append(f"Il VaR annuo ({max(v0,vd):.1f}%) ha raggiunto il {th['preavviso_var']*100:.0f}% del limite della fascia {BANDS[p['fascia']]} ({lim}%).")
+        oggi_=dt.date.today()
+        for c in p['pesi']:
+            b=BONDS.get(c)
+            if not b:continue
+            gg=(dt.date.fromisoformat(b['scadenza'])-oggi_).days
+            if gg<=0:
+                stato='allarme';msgs.append(f"Il titolo {b['nome']} ({c}) è scaduto il {b['scadenza']}: il capitale ({p['pesi'][c]}% del portafoglio) è rientrato e va reinvestito.")
+            elif gg<=30:
+                if stato=='ok':stato='preavviso'
+                msgs.append(f"Il titolo {b['nome']} ({c}) scade tra {gg} giorni ({b['scadenza']}): prepara il reinvestimento del {p['pesi'][c]}%.")
         if dm>=th['deriva_punti']:
             if stato=='ok':stato='preavviso'
             msgs.append(f"Un peso si è spostato di {dm:.1f} punti dal modello dall'ultimo ribilanciamento ({p['ultimo_ribilanciamento']}): valuta un ribilanciamento.")
@@ -108,10 +153,14 @@ def main():
     cfg=json.load(open(os.path.join(BASE,'modelli.json')))
     out_path=os.path.join(BASE,'monitor.json')
     prev=json.load(open(out_path)).get('portafogli',{}) if os.path.exists(out_path) else {}
-    isins_pf=sorted({c for p in cfg['portafogli'].values() for c in p['pesi']})
+    BONDS.clear()
+    for i,t in (cfg.get('titoli') or {}).items():
+        d=durata_mod(t);BONDS[i]={'nome':t.get('nome',i),'tipo':t.get('tipo'),'tasso':t.get('tasso'),'scadenza':t['scadenza'],'vol':max(.1,d*TS_SY),'duration':round(d,2)}
+    isins_pf=sorted({c for p in cfg['portafogli'].values() for c in p['pesi'] if c not in BONDS})
     cat_p=os.path.join(BASE,'catalogo_isin.json')
     seed=json.load(open(cat_p)) if os.path.exists(cat_p) else []
     nomi=dict(cfg.get('nomi',{}));nomi.update({x['isin']:x['nome'] for x in seed if x['isin'] not in nomi})
+    GRP.update({i:gruppo(n) for i,n in nomi.items()})
     tutti=isins_pf+[x['isin'] for x in seed if x['isin'] not in isins_pf]
     tick,nomi_y=risolvi(tutti,nomi,os.path.join(BASE,'isin_cache.json'))
     try:
