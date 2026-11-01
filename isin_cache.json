@@ -290,7 +290,9 @@
   "LU3116008346": "Xtrackers Diversified Portfolio 20% Equity UCITS ETF 1C",
   "LU3116008429": "Xtrackers Diversified Portfolio 40% Equity UCITS ETF 1C",
   "LU3116008692": "Xtrackers Diversified Portfolio 60% Equity UCITS ETF 1C",
-  "LU3116008775": "Xtrackers Diversified Portfolio 80% Equity UCITS ETF 1C"
+  "LU3116008775": "Xtrackers Diversified Portfolio 80% Equity UCITS ETF 1C",
+  "IE00BMVB5P51": "Vanguard LifeStrategy 60% Equity UCITS ETF (EUR) Accumulating",
+  "IE00BMVB5M21": "Vanguard LifeStrategy 40% Equity UCITS ETF (EUR) Accumulating"
  },
  "_falliti": {
   "FR0000021842": "2026-11-01",
@@ -402,7 +404,9 @@
   "LU2391437253": "2026-11-01",
   "LU2572257124": "2026-11-01",
   "LU2611731824": "2026-11-01",
-  "LU2655993207": "2026-11-01"
+  "LU2655993207": "2026-11-01",
+  "IE00BK5BQT80": "2026-11-01",
+  "IE00BMVB5R75": "2026-11-01"
  },
  "FR0013416716": "GOLD.MI",
  "IE0001GSQ2O9": "LWCR.MI",
@@ -693,5 +697,7 @@
  "LU3116008346": "XEQ2.MI",
  "LU3116008429": "XEQ4.MI",
  "LU3116008692": "XEQ6.MI",
- "LU3116008775": "XEQ8.MI"
+ "LU3116008775": "XEQ8.MI",
+ "IE00BMVB5P51": "VNGA60.MI",
+ "IE00BMVB5M21": "VNGA40.MI"
 }
