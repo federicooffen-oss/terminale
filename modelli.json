@@ -19,8 +19,9 @@
     "IE00BK5BQT80": 7,
     "LU1650487413": 40,
     "LU0290358497": 25,
-    "IT0005323032": 20,
-    "LU1650491282": 8
+    "LU1650491282": 8,
+    "IT0005388167": 10,
+    "IT0005532723": 10
    }
   },
   "P3": {
@@ -147,8 +148,9 @@
   "IT0005735094": "BOT 365 gg 14.10.2026 - 14.10.2027",
   "LU1650487413": "Amundi Euro Government Bond 1-3Y Acc",
   "IE00BK5BQT80": "Vanguard FTSE All-World UCITS ETF (USD) Accumulating",
-  "IT0005323032": "BTP 2% 1.2.2018 - 1.2.2028",
   "LU1650491282": "Amundi Euro Govt Inflation-Linked Acc",
+  "IT0005388167": "BTPITALIA 0,65% 28.10.2019 - 28.10.2027",
+  "IT0005532723": "BTPITALIA 2% 14.3.2023 - 14.3.2028",
   "IT0005521981": "BTP 3,4% 30.11.2022 - 1.4.2028",
   "IT0001278511": "BTP 5,25% 1.11.1998 - 1.11.2029",
   "LU2082999306": "Amundi Smart Overnight Return UCITS ETF Dist",
@@ -187,14 +189,23 @@
    "duration": 0.92,
    "vol_stimata": 0.92
   },
-  "IT0005323032": {
-   "nome": "BTP 2% 1.2.2018 - 1.2.2028",
+  "IT0005388167": {
+   "nome": "BTPITALIA 0,65% 28.10.2019 - 28.10.2027",
    "tipo": "BTP",
-   "serie": "BTP",
+   "serie": "BTP Italia",
+   "tasso": 0.65,
+   "scadenza": "2027-10-28",
+   "duration": 0.97,
+   "vol_stimata": 0.97
+  },
+  "IT0005532723": {
+   "nome": "BTPITALIA 2% 14.3.2023 - 14.3.2028",
+   "tipo": "BTP",
+   "serie": "BTP Italia",
    "tasso": 2,
-   "scadenza": "2028-02-01",
-   "duration": 1.21,
-   "vol_stimata": 1.21
+   "scadenza": "2028-03-14",
+   "duration": 1.32,
+   "vol_stimata": 1.32
   },
   "IT0005521981": {
    "nome": "BTP 3,4% 30.11.2022 - 1.4.2028",
