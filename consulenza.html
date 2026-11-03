@@ -112,6 +112,7 @@ tfoot td{font-weight:700;background:var(--chip)}
 .stp span.done{color:var(--good)}
 .imp{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px;align-items:end;margin:6px 0}@media(max-width:640px){.imp{grid-template-columns:1fr}}
 .imp select{width:100%}
+.imp2{display:grid;grid-template-columns:2fr 1fr auto;gap:10px;align-items:end;margin:6px 0}@media(max-width:640px){.imp2{grid-template-columns:1fr}}
 .sub{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
 .sub select{width:100%}
 .srch{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
@@ -380,10 +381,10 @@ function buildPlan(pf,capital,opt){
   if(!monthly&&mc<=0)w={};
   if(tier.k!=='full'&&Object.keys(w).length){const m=mergeLines(w,tier,monthly?1e9:total);w=m.w;merged=m.merged}
   const lines=[];
-  imps.forEach((x,ix)=>{const bot=x.mesi<=12,ch=x.ch,pct=x.amt/capital*100,base={k:'IMP'+ix,pct,imp:true,idx:ix,motivo:x.motivo,entro:x.data||'',mesi:x.mesi};
-    if(ch&&ch.etf){const i=BY[ch.k],q=Math.floor(x.amt/i.price);lines.push({...base,isin:i.isin,name:i.name,cls:'Monetario',amt:q*i.price,price:i.price,qty:q,unit:'',fin:i.fin,sing:false})}
-    else if(ch){const q=Math.floor(x.amt/1000);lines.push({...base,isin:ch.isin,name:ch.nome,cls:'Obbligazionario',amt:q*1000,price:1000,qty:q,unit:'taglio 1.000 €',fin:false,sing:true,scad:ch.scad})}
-    else{const q=Math.floor(x.amt/1000);lines.push({...base,isin:'da scegliere',name:bot?`BOT o monetario con scadenza entro ${x.mesi} mesi`:`BTP con scadenza vicina a ${scadLabel(x.mesi)} (titolo singolo)`,cls:bot?'Monetario':'Obbligazionario',amt:q*1000,price:1000,qty:q,unit:'taglio 1.000 €',fin:false,sing:true})}});
+  imps.forEach((x,ix)=>(x.parti&&x.parti.length?x.parti:[{amt:x.amt,ch:x.ch}]).forEach((p,pj)=>{const bot=x.mesi<=12,ch=p.ch,am=p.amt||0,pct=am/capital*100,base={k:'IMP'+ix+'_'+pj,pct,imp:true,idx:ix,pj,motivo:x.motivo,entro:x.data||'',mesi:x.mesi};
+    if(ch&&ch.etf){const i=BY[ch.k],q=Math.floor(am/i.price);lines.push({...base,isin:i.isin,name:i.name,cls:'Monetario',amt:q*i.price,price:i.price,qty:q,unit:'',fin:i.fin,sing:false})}
+    else if(ch){const q=Math.floor(am/1000);lines.push({...base,isin:ch.isin,name:ch.nome,cls:'Obbligazionario',amt:q*1000,price:1000,qty:q,unit:'taglio 1.000 €',fin:false,sing:true,scad:ch.scad})}
+    else{const q=Math.floor(am/1000);lines.push({...base,isin:'da scegliere',name:bot?`BOT o monetario con scadenza entro ${x.mesi} mesi`:`BTP con scadenza vicina a ${scadLabel(x.mesi)} (titolo singolo)`,cls:bot?'Monetario':'Obbligazionario',amt:q*1000,price:1000,qty:q,unit:'taglio 1.000 €',fin:false,sing:true})}}));
   let ws=Object.entries(w);
   if(tier.k==='full'&&opt.bonds==='mista'){ // 30% della quota governativa 3-5 anni / generale in BTP singoli
     const key=w.GOVB?'GOVB':w.GOVM?'GOVM':null;
@@ -434,7 +435,11 @@ const PF=()=>st.PF;
 const impDate=x=>{if(x.data)return x.data;const d=new Date();d.setMonth(d.getMonth()+x.mesi);return d.toISOString().slice(0,10)};
 const mmYYYY=iso=>{const d=new Date(iso);return String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear()};
 const impOk=A=>A.imp===0||(A.imp===1&&(st.imp||[]).length>0&&st.imp.every(x=>x.amt>0&&x.mesi>0));
-const impAct=()=>st.A.imp===1?(st.imp||[]):[];
+const pnum=id=>+String(id||'').replace('P','');
+const impAll=()=>st.A.imp===1?(st.imp||[]):[];
+const SLEEVE_DA=4; // i portafogli 1-3 sono abbastanza prudenti: le spese previste restano nel modello
+const impAct=()=>(!st.chosen||pnum(st.chosen)>=SLEEVE_DA)?impAll():[];
+const partsOf=x=>{if(!x.parti||!x.parti.length)x.parti=[{isin:x.isin,amt:x.amt}];return x.parti};
 function impBlock(){
   const A=st.A;if(A.imp===0&&(st.imp||[]).length)st.imp=[];
   if(A.imp===1&&!(st.imp||[]).length)st.imp=[{motivo:IMP_MOTIVI[0],amt:0,mesi:36,data:impDate({mesi:36})}];
@@ -442,7 +447,7 @@ function impBlock(){
   let h=`<div class="q"><div class="t">Hai spese importanti previste nei prossimi anni (casa, auto, viaggi, studi…) che pagherai con una parte del capitale che investirai?</div>${opt({id:'imp',o:['No','Sì']},A.imp,'ans')}</div>`;
   if(A.imp===1){
     h+=L.map((x,i)=>`<div class="imp"><label class="f">Motivo<select data-act="impmot" data-v="${i}">${IMP_MOTIVI.map(m=>`<option ${x.motivo===m?'selected':''}>${esc(m)}</option>`).join('')}</select></label><label class="f">Importo (€)<input type="number" min="0" step="1000" data-act="impamt" data-v="${i}" value="${x.amt||''}" placeholder="es. 20000"></label><label class="f">Quando ti serve<select data-act="impmesi" data-v="${i}">${IMP_MESI.map(([m,l])=>`<option value="${m}" ${x.mesi===m?'selected':''}>${l}</option>`).join('')}</select></label>${L.length>1?`<button class="btn sm" data-act="imprm" data-v="${i}">Togli</button>`:''}</div>`).join('');
-    h+=(L.length<3?`<div class="row"><button class="btn sm" data-act="impadd">Aggiungi un'altra spesa</button></div>`:'')+`<p class="small muted">Le somme che ti servono entro 3 anni non vanno nel portafoglio modello: vengono coperte con titoli di Stato a scadenza (BOT o monetario entro 12 mesi, BTP da 1 a 3 anni). Le spese oltre i 3 anni restano nel portafoglio.</p>`;
+    h+=(L.length<3?`<div class="row"><button class="btn sm" data-act="impadd">Aggiungi un'altra spesa</button></div>`:'')+`<p class="small muted">Se scegli un portafoglio dal 4 in poi, le somme che ti servono entro 3 anni non vanno nel portafoglio modello: vengono coperte con titoli di Stato a scadenza (BOT o monetario entro 12 mesi, BTP da 1 a 3 anni). Con i portafogli 1-3, molto prudenti, e per le spese oltre i 3 anni, tutto resta nel portafoglio modello.</p>`;
   }
   return h;
 }
@@ -504,7 +509,7 @@ function profiloView(){
   ${tier.k==='full'?'':`<div class="alert"><b>Versione ${tier.n}</b><span class="small">${{pac:'Capitali sotto i 3.000 €: Piano di Accumulo con versamenti mensili su 1-3 ETF.',ess:'Fino a 3 strumenti: i comparti simili sono accorpati.',std:'Fino a 6 strumenti: i comparti principali del modello.',full:''}[tier.k]}</span></div>`}
   ${tier.k==='pac'&&st.capital>=3000?'':''}
   ${impSummary()}
-  <div class="row"><button class="btn" data-act="go" data-v="aml">Indietro</button><button class="btn pri" data-act="go" data-v="contratto" ${st.chosen&&el.includes(st.chosen)&&impAct().reduce((a,x)=>a+x.amt,0)<=st.capital?'':'disabled'}>Procedi</button></div></div>
+  <div class="row"><button class="btn" data-act="go" data-v="aml">Indietro</button><button class="btn pri" data-act="go" data-v="contratto" ${st.chosen&&el.includes(st.chosen)&&impAll().reduce((a,x)=>a+x.amt,0)<=st.capital?'':'disabled'}>Procedi</button></div></div>
   ${st.chosen&&el.includes(st.chosen)?previewLock():''}`;
 }
 function previewLock(){const pl=planOf(st.chosen);return `<div class="lock"><div class="blur">${pl.lines.slice(0,5).map(l=>`<div><span>${esc(l.name)}</span><b>${n1(l.pct)}%</b></div>`).join('')}</div><div class="over"><b>Composizione riservata</b><span class="small">Si sblocca dopo la firma del contratto e il pagamento. Versione ${pl.tier.n}: ${pl.lines.length} ${pl.lines.length===1?'strumento':'strumenti'}.</span></div></div>`}
@@ -517,9 +522,10 @@ function impCands(x){
   L=L.sort((p,q)=>new Date(q.scadenza)-new Date(p.scadenza)).slice(0,30).map(t=>({isin:t.isin,nome:t.nome,tipo:t.tipo,serie:t.serie,tasso:t.tasso,scad:t.scadenza}));
   if(bot&&BY.MON)L.push({etf:true,k:'MON',isin:BY.MON.isin,nome:BY.MON.name+' (ETF monetario, senza scadenza)'});
   return L}
-const impResolve=x=>{const L=impCands(x);return L.find(c=>c.isin===x.isin)||L[0]||null};
-const planOf=(id,w)=>buildPlan({w:w||PF()[id].w},st.capital,{variant:st.variant,bonds:st.bonds,imps:impAct().map(x=>({...x,ch:impResolve(x)})),monthly:st.monthly});
+const impResolve=(x,p)=>{const L=impCands(x);return L.find(c=>c.isin===(p||x).isin)||L[0]||null};
+const planOf=(id,w)=>buildPlan({w:w||PF()[id].w},st.capital,{variant:st.variant,bonds:st.bonds,imps:impAct().map((x,_i)=>({...x,_i,parti:partsOf(x).map(p=>({...p,ch:impResolve(x,p)}))})),monthly:st.monthly});
 function impSummary(){
+  const L0=impAll();if(L0.length&&st.chosen&&pnum(st.chosen)<SLEEVE_DA)return `<div class="alert"><b>Le tue spese previste</b><span class="small">Il portafoglio scelto è abbastanza prudente: tutto il capitale (${eur(st.capital)}) segue il modello, senza titoli separati per le spese previste.</span></div>`;
   const L=impAct();if(!L.length||st.capital<3000)return '';
   const tot=L.reduce((a,x)=>a+x.amt,0),short=impsOf(L),sOut=short.reduce((a,x)=>a+x.amt,0),mc=st.capital-sOut;
   return `<div class="alert"><b>Le tue spese previste</b><ul class="why">${L.map(x=>`<li>${eur(x.amt)} · ${esc(x.motivo)} · ${esc(IMP_MESI.find(m=>m[0]===x.mesi)[1].toLowerCase())}: ${x.mesi<=12?'BOT o monetario':x.mesi<=IMP_MAX?'BTP con scadenza vicina alla data':'resta nel portafoglio modello'}</li>`).join('')}</ul>
@@ -548,14 +554,16 @@ function attivoView(){
   ${st.tab==='portafoglio'?portView(pend):st.tab==='dashboard'?dashView():st.tab==='approfondimenti'?artView():notifView()}</div>`}
 const notifsCli=()=>st.notifs.filter(x=>x.p===st.chosen&&x.id>(st.attivoDal||0));
 function pendingNotif(){const n=notifsCli().slice(-1)[0];return n&&!n.done?n:null}
-const linesTable=(rows,pl,pctF,tot)=>`<div class="tablewrap"><table><thead><tr><th>Strumento</th><th>%</th><th>${pl.monthly?'€ al mese':'Importo'}</th><th>Prezzo</th><th>${pl.monthly?'':'Quantità'}</th></tr></thead><tbody>${rows.map(l=>`<tr><td><b>${esc(l.name)}</b><div class="small muted">${esc(l.isin)} · ${esc(l.cls)}${l.sing?(l.scad?' · scade '+esc(dataIt(l.scad)):''):l.fin?' · Fineco: commissione di acquisto zero':' · non in lista Fineco'}</div></td><td class="num">${n1(l.pct*pctF)}%</td><td class="num">${eur(l.amt)}</td><td class="num">${l.sing?'100 per 100 nominali':eur(l.price,2)}</td><td class="num">${l.qty==null?'—':l.sing?eur(l.qty*1000)+' nominali':l.qty}</td></tr>`).join('')}</tbody>${tot?`<tfoot><tr><td>${tot[0]}</td><td></td><td class="num">${eur(tot[1])}</td><td></td><td class="num">${pl.monthly?'':'Resto '+eur(tot[2])}</td></tr></tfoot>`:''}</table></div>`;
-function impCard(l,pl){
-  const x=pl.imps[l.idx],L=impCands(x),sel=l.isin;
+const linesTable=(rows,pl,pctF,tot)=>`<div class="tablewrap"><table><thead><tr><th>Strumento</th><th>%</th><th>${pl.monthly?'€ al mese':'Importo'}</th><th>Prezzo</th><th>${pl.monthly?'':'Quantità'}</th></tr></thead><tbody>${rows.map(l=>`<tr><td><b>${esc(l.name)}</b><div class="small muted">${esc(l.isin)} · ${esc(l.cls)}${l.sing?(l.scad?' · scade '+esc(dataIt(l.scad)):''):l.fin?' · Fineco: commissione di acquisto zero':' · non in lista Fineco'}</div></td><td class="num">${n1(l.pct*pctF)}%</td><td class="num">${l.sing?'≈ ':''}${eur(l.amt)}</td><td class="num">${l.sing?'<span class="muted">prezzo del giorno</span>':eur(l.price,2)}</td><td class="num">${l.qty==null?'—':l.sing?eur(l.qty*1000)+' di valore nominale':l.qty}</td></tr>`).join('')}</tbody>${tot?`<tfoot><tr><td>${tot[0]}</td><td></td><td class="num">${eur(tot[1])}</td><td></td><td class="num">${pl.monthly?'':'Resto '+eur(tot[2])}</td></tr></tfoot>`:''}</table></div>`;
+function impCard(ix,pl){
+  const x=pl.imps[ix],L=impCands(x),rows=pl.lines.filter(l=>l.imp&&l.idx===ix),P=partsOf(st.imp[x._i]),tot=P.reduce((a,p)=>a+(p.amt||0),0),left=x.amt-tot;
+  const idx=x._i;
   return `<div class="sub"><h3>Spesa prevista · ${esc(x.motivo)} · ${eur(x.amt)}</h3>
-  <div class="alert"><b>Ti serve entro ${mmYYYY(impDate(x))}</b><span class="small">${x.mesi<=12?'Scegli un BOT che scade a ridosso di quella data, ma non dopo, oppure l\'ETF monetario.':'Scegli un BTP che scade a ridosso di quella data, ma non dopo: il mese di scadenza è quello in cui riavrai il capitale.'}</span></div>
-  ${L.length?`<label class="f">Titolo da acquistare<select data-act="impsel" data-v="${l.idx}">${L.map(c=>`<option value="${esc(c.isin)}" ${c.isin===sel?'selected':''}>${esc(c.etf?c.nome:c.nome+' · scade '+mmYYYY(c.scad))}</option>`).join('')}</select></label>`:'<p class="small muted">Nessun titolo disponibile per quella scadenza: il consulente ti indicherà quello più adatto.</p>'}
-  ${linesTable([l],pl,1,null)}
-  <p class="small muted">Importo in titoli: ${eur(l.amt)} su ${eur(x.amt)}${x.amt-l.amt>=1?' (resto per il taglio minimo di 1.000 €)':''}.</p></div>`}
+  <div class="alert"><b>Ti serve entro ${mmYYYY(impDate(x))}</b><span class="small">${x.mesi<=12?'Scegli un BOT che scade a ridosso di quella data, ma non dopo, oppure l\'ETF monetario.':'Scegli un BTP che scade a ridosso di quella data, ma non dopo: il mese di scadenza è quello in cui riavrai il capitale.'} Puoi dividere la somma su più titoli, con scadenze diverse.</span></div>
+  ${L.length?P.map((p,j)=>{const sel=(rows[j]||{}).isin;return `<div class="imp2"><label class="f">Titolo ${P.length>1?(j+1):'da acquistare'}<select data-act="impsel" data-v="${idx}:${j}">${L.map(c=>`<option value="${esc(c.isin)}" ${c.isin===sel?'selected':''}>${esc(c.etf?c.nome:c.nome+' · scade '+mmYYYY(c.scad))}</option>`).join('')}</select></label><label class="f">Importo (€)<input type="number" min="0" step="1000" data-act="impamtp" data-v="${idx}:${j}" value="${p.amt||0}"></label>${P.length>1?`<button class="btn sm" data-act="imprmp" data-v="${idx}:${j}">Togli</button>`:''}</div>`}).join(''):'<p class="small muted">Nessun titolo disponibile per quella scadenza: il consulente ti indicherà quello più adatto.</p>'}
+  ${P.length<4?`<div class="row"><button class="btn sm" data-act="impaddp" data-v="${idx}">Aggiungi un altro titolo</button></div>`:''}
+  ${Math.abs(left)>=1?`<div class="alert"><b>${left>0?'Da assegnare: '+eur(left):'Hai assegnato '+eur(-left)+' in più'}</b><span class="small">La somma dei titoli deve essere ${eur(x.amt)}.</span></div>`:''}
+  ${linesTable(rows,pl,1,null)}</div>`}
 function portView(pend){
   const id=st.chosen,pl=planOf(id,st.held&&st.held.id===id?st.held.w:null);
   const ml=pl.lines.filter(l=>!l.imp),il=pl.lines.filter(l=>l.imp),has=il.length>0;
@@ -563,8 +571,8 @@ function portView(pend){
   <h3>${has?'Portafoglio modello · '+esc(PF()[id].nome)+' · '+eur(pl.mc):'Il tuo portafoglio'}</h3>
   <div class="alert"><b>Versione ${pl.tier.n}</b><span class="small">${pl.tier.k==='pac'?`Versamento mensile di ${eur(pl.capital)} ripartito così:`:`${has?'Parte del capitale che segue il modello':'Capitale '+eur(st.capital)}: ${ml.length} strumenti.`} ${pl.merged.length?'Alcuni comparti sono stati accorpati per la dimensione del capitale.':''}</span></div>
   ${linesTable(ml,pl,pl.mfac,['Totale investito nel modello',pl.spentM,pl.cashM])}
-  ${il.map(l=>impCard(l,pl)).join('')}
-  <p class="small muted">Prezzi di esempio: nella versione reale sono quelli di mercato del giorno. Ordine a limite consigliato; verifica i costi sul tuo conto titoli.</p>
+  ${[...new Set(il.map(l=>l.idx))].map(ix=>impCard(ix,pl)).join('')}
+  <p class="small muted">Prezzi di esempio: nella versione reale sono quelli di mercato del giorno. Ordine a limite consigliato; verifica i costi sul tuo conto titoli. Per BOT e BTP si ordina il valore nominale: il costo effettivo dipende dal prezzo del giorno e dal rateo di interessi maturato.</p>
   <div class="alert"><b>Raccomandazione di adeguatezza</b><span class="small">Il portafoglio è adeguato al tuo profilo «${BANDS[st.profile.band]}», alla tua conoscenza, al tuo orizzonte e alle tue preferenze di sostenibilità. Costi ex ante: TER medio ponderato ${n1(stats(PF()[id].w).ter)}% annuo, più i costi del tuo intermediario. Il consulente rivede il portafoglio periodicamente; la decisione di investire resta tua.</span></div>`}
 function growth(vals,h=200){const W=640,P=34,mx=Math.max(...vals),mn=Math.min(...vals),X=i=>P+i*(W-P-8)/(vals.length-1),Y=v=>h-22-(v-mn)/(mx-mn||1)*(h-36);
   return `<svg class="chart" viewBox="0 0 ${W} ${h}" width="100%" role="img" aria-label="Andamento storico simulato"><polyline fill="none" stroke="var(--brand)" stroke-width="2" points="${vals.map((v,i)=>X(i)+','+Y(v)).join(' ')}"/><text x="${P}" y="${h-4}">15 anni fa</text><text x="${W-8}" y="${h-4}" text-anchor="end">oggi</text><text x="2" y="${Y(mx)+4}">${n1(mx)}</text><text x="2" y="${Y(mn)+4}">${n1(mn)}</text></svg>`}
@@ -573,7 +581,7 @@ function fullW(id){ // portafoglio completo del cliente: modello sul capitale re
   const w=PF()[id].w,imps=impsOf(impAct());if(!imps.length||st.capital<3000)return{w:{...w},extra:0};
   const out=imps.reduce((a,x)=>a+x.amt,0),f=(st.capital-out)/st.capital,o={};
   Object.entries(w).forEach(([k,p])=>o[k]=p*f);
-  imps.forEach(x=>{const c=impResolve(x);let k=x.mesi<=12?'MON':'GOVS';if(c&&c.etf)k=c.k;else if(c)k=addBond({isin:c.isin,nome:c.nome,tipo:c.tipo,serie:c.serie,tasso:c.tasso,scad:c.scad});o[k]=(o[k]||0)+x.amt/st.capital*100});
+  imps.forEach(x=>partsOf(x).forEach(p=>{const c=impResolve(x,p);let k=x.mesi<=12?'MON':'GOVS';if(c&&c.etf)k=c.k;else if(c)k=addBond({isin:c.isin,nome:c.nome,tipo:c.tipo,serie:c.serie,tasso:c.tasso,scad:c.scad});o[k]=(o[k]||0)+(p.amt||0)/st.capital*100}));
   return{w:o,extra:out}}
 function dashView(){
   const id=st.chosen,fw=fullW(id),w=fw.w,s=stats(w),by={};Object.entries(w).forEach(([k,p])=>by[BY[k].cls]=(by[BY[k].cls]||0)+p);
@@ -694,6 +702,8 @@ document.addEventListener('click',e=>{
   else if(a==='undo'){st.okpub=false;st.edit=st.edit||JSON.parse(JSON.stringify(PF()[st.aid].w));st.edit[v]=PF()[st.aid].w[v]||5}
   else if(a==='impadd'){st.imp=st.imp||[];if(st.imp.length<3)st.imp.push({motivo:IMP_MOTIVI[0],amt:0,mesi:36,data:impDate({mesi:36})})}
   else if(a==='imprm'){st.imp.splice(+v,1)}
+  else if(a==='impaddp'){const x=st.imp[+v],P=partsOf(x),L=P.reduce((m,p)=>(p.amt||0)>(m.amt||0)?p:m,P[0]),half=Math.floor((L.amt||0)/2000)*1000;L.amt=(L.amt||0)-half;P.push({isin:undefined,amt:half})}
+  else if(a==='imprmp'){const [i,j]=v.split(':').map(Number);partsOf(st.imp[i]).splice(j,1)}
   else if(a==='rm'){st.okpub=false;st.edit=st.edit||JSON.parse(JSON.stringify(PF()[st.aid].w));delete st.edit[v]}
   else if(a==='reset'){st=fresh()}
   else if(a==='go'){if(st.step==='auth'){st.user.nome=($('#nome')||{}).value||st.user.nome;st.user.email=($('#email')||{}).value||st.user.email}st.step=v}
@@ -729,9 +739,10 @@ document.addEventListener('change',e=>{
   if(a==='capital'){st.capital=Math.max(0,+t.value||0)}
   else if(a==='monthly'){st.monthly=Math.max(0,+t.value||0)}
   else if(a==='impmot'){st.imp[+v].motivo=t.value}
-  else if(a==='impamt'){st.imp[+v].amt=Math.max(0,+t.value||0)}
-  else if(a==='impmesi'){const x=st.imp[+v];x.mesi=+t.value;x.data=impDate({mesi:x.mesi});delete x.isin}
-  else if(a==='impsel'){st.imp[+v].isin=t.value}
+  else if(a==='impamt'){const x=st.imp[+v];x.amt=Math.max(0,+t.value||0);delete x.parti}
+  else if(a==='impmesi'){const x=st.imp[+v];x.mesi=+t.value;x.data=impDate({mesi:x.mesi});delete x.isin;delete x.parti}
+  else if(a==='impsel'){const [i,j]=v.split(':').map(Number);partsOf(st.imp[i])[j].isin=t.value}
+  else if(a==='impamtp'){const [i,j]=v.split(':').map(Number);partsOf(st.imp[i])[j].amt=Math.max(0,+t.value||0)}
   else if(a==='bAmt'){st.bAmt=Math.max(0,+t.value||0)}
   else if(a==='bYrs'){st.bYrs=Math.min(10,Math.max(1,+t.value||1))}
   else if(a==='fee'){st.fees[v]=+t.value||0}
