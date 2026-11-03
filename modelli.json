@@ -72,10 +72,11 @@
    "pesi": {
     "IE00BK5BQT80": 30,
     "LU1650487413": 25,
-    "LU1650491282": 20,
+    "LU1650491282": 10,
     "IE00BK5BR626": 10,
     "LU0290358497": 10,
-    "IE00BP3QZ825": 5
+    "IE00BP3QZ825": 5,
+    "IE00BL25JN58": 10
    }
   },
   "P7": {
@@ -166,6 +167,7 @@
   "IE000LAUZQT6": "Xtrackers MSCI World Value ESG UCITS ETF 1C",
   "IE00BK5BR626": "Vanguard FTSE All-World High Dividend Yield UCITS ETF (USD) Accumulating",
   "IE00BP3QZ825": "iShares Edge MSCI World Momentum Factor (Acc)",
+  "IE00BL25JN58": "Xtrackers MSCI World Minimum Volatility UCITS ETF 1C",
   "FR0010315770": "Amundi MSCI World II UCITS ETF Dist",
   "LU0832436512": "Amundi Global Equity Quality Income UCITS ETF Dist",
   "IT0005542797": "BTP 3,7% 17.4.2023 - 15.6.2030",
@@ -173,7 +175,6 @@
   "IT0005508590": "BTPGREEN 4% 30.4.2022 - 30.4.2035",
   "IE00BF4RFH31": "iShares MSCI World Small Cap (Acc)",
   "FR0013416716": "Amundi Physical Gold ETC (C)",
-  "IE00BL25JN58": "Xtrackers MSCI World Minimum Volatility UCITS ETF 1C",
   "IE00BM67HT60": "Xtrackers MSCI World Information Technology 1C"
  },
  "titoli": {
