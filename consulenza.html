@@ -308,7 +308,7 @@ const QE=[
  {id:'e9',t:'Come ti informi sugli investimenti?',o:['Non mi informo','Consigli di amici o familiari','Siti, giornali, social','Fonti specializzate e documenti informativi (KID, prospetti)'],pt:[0,1,2,3]},
  {id:'e10',t:'Hai già vissuto un calo superiore al 20% su un tuo investimento?',o:['No, non ho mai investito','No','Sì, e ho venduto','Sì, e ho mantenuto la posizione'],pt:[0,1,1,3]},
 ];
-const EXP_MAX=QE.reduce((a,q)=>a+Math.max(...q.pt),0),EXP_TH=[4,11,19];
+const EXP_MAX=QE.reduce((a,q)=>a+Math.max(...q.pt),0),EXP_LIV=[8,16,23]; // soglie solo descrittive (principiante, intermedio, esperto…): non entrano nel profilo
 /* spese previste: quanto e quando serve una parte del capitale */
 const IMP_MOTIVI=['Casa (acquisto o ristrutturazione)','Auto','Viaggi','Studi o formazione','Spese familiari o sanitarie','Altro'];
 const IMP_MESI=[[6,'Entro 6 mesi'],[12,'Entro 12 mesi'],[24,'Entro 2 anni'],[36,'Entro 3 anni'],[60,'Oltre 3 anni']];
@@ -320,7 +320,7 @@ function quizResult(a){
   const done=QUIZ.every(q=>a[q.id]!=null);if(!done)return{done:false};
   const err=QUIZ.filter(q=>a[q.id]!==q.ok);
   const etfKo=err.some(q=>q.etf);
-  return{done:true,errors:err.length,pass:err.length<=1&&!etfKo,etfKo,wrong:err};
+  return{done:true,errors:err.length,pass:err.length<=2&&!etfKo,etfKo,wrong:err};
 }
 function scoreProfile(A){
   const reasons=[];let cap=0,tol=0;const capCaps=[],tolCaps=[];
@@ -330,10 +330,9 @@ function scoreProfile(A){
   let capF=capB;capCaps.forEach(c=>{if(c[0]<capF){capF=c[0];reasons.push(`«${c[2]}» (${c[1].replace(/\?$/,'')}) limita la capacità a ${BANDS[c[0]]}.`)}});
   let tolF=tolB;tolCaps.forEach(c=>{if(c[0]<tolF){tolF=c[0];reasons.push(`La reazione a un calo («${c[2]}») limita la tolleranza a ${BANDS[c[0]]}.`)}});
   const d1=A.d1,hc=HOR.cap[A.hor];
-  let exp=0;QE.forEach(q=>{exp+=q.pt[A[q.id]]||0});const expF=band4(exp,EXP_TH);
-  const prof=Math.min(capF,tolF,d1,hc,expF);
-  reasons.unshift(`Capacità di sopportare perdite: ${BANDS[capF]} (${cap} punti su 22).`,`Tolleranza al rischio: ${BANDS[tolF]} (${tol} punti su 18).`,`Conoscenza ed esperienza: ${BANDS[expF]} (${exp} punti su ${EXP_MAX}).`,`Perdita massima indicata: ${BANDS[d1]}.`,`Orizzonte (${HOR.o[A.hor].toLowerCase()}): massimo ${BANDS[hc]}.`);
-  return{band:prof,capF,tolF,d1,hc,expF,cap,tol,exp,reasons};
+  let exp=0;QE.forEach(q=>{exp+=q.pt[A[q.id]]||0});const prof=Math.min(capF,tolF,d1,hc); // l'esperienza è informativa: non peggiora mai il profilo
+  reasons.unshift(`Capacità di sopportare perdite: ${BANDS[capF]} (${cap} punti su 22).`,`Tolleranza al rischio: ${BANDS[tolF]} (${tol} punti su 18).`,`Conoscenza ed esperienza: ${exp} punti su ${EXP_MAX} (non limita il profilo).`,`Perdita massima indicata: ${BANDS[d1]}.`,`Orizzonte (${HOR.o[A.hor].toLowerCase()}): massimo ${BANDS[hc]}.`);
+  return{band:prof,capF,tolF,d1,hc,cap,tol,exp,reasons};
 }
 const QA_DONE=A=>QB.every(q=>A[q.id]!=null)&&QT.every(q=>A[q.id]!=null)&&A.d1!=null&&A.hor!=null&&A.esg!=null&&(A.esg===0||(A.esgp!=null))&&QE.every(q=>A[q.id]!=null)&&impOk(A);
 /* portafogli: fascia dal VaR calcolato; eleggibilità */
@@ -482,7 +481,7 @@ function clientView(){
   if(s==='quiz'){const r=quizResult(st.A);
     return `<div class="card">${stepper(2)}<h2>Verifica di conoscenza</h2><p class="muted small">Quattro domande sugli strumenti dei nostri portafogli. Serve a verificare che tu li conosca abbastanza per investire con consapevolezza.</p>
     ${QUIZ.map(q=>block(q,st.A[q.id],'quiz')).join('')}
-    ${r.done?(r.pass?`<div class="alert"><b class="ok">Verifica superata.</b></div>`:`<div class="alert"><b class="ko">Verifica non superata.</b><p>Con più di un errore, o con un errore sull'ETF, non possiamo raccomandarti un portafoglio. Leggi le spiegazioni e riprova.</p><ul class="why">${r.wrong.map(q=>`<li><b>${esc(q.t)}</b> ${esc(q.why)}</li>`).join('')}</ul><div class="row"><button class="btn" data-act="quizreset">Rifai il test</button></div></div>`):''}
+    ${r.done?(r.pass?`<div class="alert"><b class="ok">Verifica superata.</b>${r.errors?`<p class="small">Hai sbagliato ${r.errors} ${r.errors===1?'domanda':'domande'}: ecco le spiegazioni.</p><ul class="why">${r.wrong.map(q=>`<li><b>${esc(q.t)}</b> ${esc(q.why)}</li>`).join('')}</ul>`:''}</div>`:`<div class="alert"><b class="ko">Verifica non superata.</b><p>Con più di due errori, o con un errore sull'ETF, non possiamo raccomandarti un portafoglio. Leggi le spiegazioni e riprova.</p><ul class="why">${r.wrong.map(q=>`<li><b>${esc(q.t)}</b> ${esc(q.why)}</li>`).join('')}</ul><div class="row"><button class="btn" data-act="quizreset">Rifai il test</button></div></div>`):''}
     <div class="row"><button class="btn" data-act="go" data-v="quest">Indietro</button><button class="btn pri" data-act="go" data-v="aml" ${r.pass?'':'disabled'}>Continua</button></div></div>`}
   if(s==='aml')return `<div class="card">${stepper(3)}<h2>Scheda antiriciclaggio</h2><p class="muted small">Informazioni richieste dal D.Lgs. 231/2007 per l'adeguata verifica. I documenti d'identità andranno inviati via email al passo successivo.</p>
     ${AML.map(q=>block(q,st.aml[q.id],'aml')).join('')}
