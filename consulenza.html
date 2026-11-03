@@ -112,6 +112,7 @@ tfoot td{font-weight:700;background:var(--chip)}
 .stp span.done{color:var(--good)}
 .srch{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
 .srch li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:8px}
+.rem td{background:var(--bg2,rgba(209,138,28,.10))}.rem td:first-child{text-decoration:line-through}.rem td:first-child b,.rem td:first-child div{text-decoration:none;display:inline-block}
 .srch li>div{min-width:0;overflow-wrap:anywhere}
 .card.inner{margin-top:10px;background:var(--bg)}
 #export{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px}
@@ -120,7 +121,7 @@ tfoot td{font-weight:700;background:var(--chip)}
 <div id="band"></div>
 <div class="wrap" id="app"></div>
 <script>
-const PF0={"P1": {"nome": "Liquidità Plus", "obiettivo": "Protezione", "w": {"MON": 60, "GOVS": 30, "INFL": 10}}, "P2": {"nome": "Prudente Anti-inflazione", "obiettivo": "Proteggere il potere d'acquisto", "w": {"MON": 25, "GOVS": 40, "GOVM": 5, "INFL": 15, "CORP": 5, "EQW": 5, "GOLD": 5}}, "P3": {"nome": "Rendita Prudente", "obiettivo": "Flusso di cedole", "w": {"GOVS": 15, "GOVM": 10, "GOVB": 10, "CORP": 25, "INFL": 10, "MON": 10, "HY": 5, "DIV": 10, "REIT": 5}}, "P4": {"nome": "Bilanciato Prudente", "obiettivo": "Crescita moderata", "w": {"GOVS": 25, "GOVM": 10, "GOVB": 10, "INFL": 10, "CORP": 15, "MON": 5, "GOLD": 5, "EQW": 10, "MVOL": 5, "QUAL": 5}}, "P5": {"nome": "ESG Prudente", "obiettivo": "Crescita moderata sostenibile", "w": {"GOVS": 20, "BESG": 40, "ESGW": 10, "ESGS": 10, "MON": 15, "GOLD": 5}}, "P6": {"nome": "Bilanciato Crescita", "obiettivo": "Crescita", "w": {"GOVS": 5, "GOVM": 5, "GOVB": 10, "INFL": 5, "CORP": 10, "GOLD": 5, "EQW": 20, "QUAL": 10, "MOM": 5, "MVOL": 5, "VAL": 5, "DIV": 5, "SC": 5, "EM": 5}}, "P7": {"nome": "Rendita Dinamica", "obiettivo": "Dividendi e cedole", "w": {"GOVM": 5, "GOVB": 5, "CORP": 20, "HY": 5, "INFL": 5, "MON": 5, "GOLD": 5, "DIV": 25, "EQW": 10, "VAL": 5, "REIT": 5, "EM": 5}}, "P8": {"nome": "ESG Crescita", "obiettivo": "Crescita sostenibile", "w": {"ESGW": 35, "ESGS": 10, "ESGE": 10, "BESG": 20, "GOVS": 10, "GOLD": 5, "MON": 10}}, "P9": {"nome": "Crescita Globale", "obiettivo": "Crescita", "w": {"EQW": 25, "QUAL": 10, "MOM": 10, "VAL": 10, "MVOL": 5, "DIV": 10, "SC": 5, "EM": 10, "GOLD": 5, "GOVS": 10}}, "P10": {"nome": "Crescita Dinamica", "obiettivo": "Crescita con satellite settoriale", "w": {"EQW": 20, "QUAL": 10, "MOM": 10, "VAL": 5, "DIV": 10, "SC": 10, "EM": 15, "TECH": 10, "HC": 5, "GOLD": 5}}};
+const PF0={"P1": {"nome": "Liquidità Plus", "obiettivo": "Protezione", "w": {"MON": 60, "TIT0005735094": 30, "GOVS": 10}}, "P2": {"nome": "Prudente Anti-inflazione", "obiettivo": "Proteggere il potere d'acquisto", "w": {"VWCE": 7, "GOVS": 40, "MON": 25, "TIT0005323032": 20, "INFL": 8}}, "P3": {"nome": "Rendita Prudente", "obiettivo": "Flusso di cedole", "w": {"TIT0005521981": 20, "TIT0001278511": 20, "SOND": 20, "TIT0005733636": 15, "DIV": 10, "GOVSD": 10, "WDJ": 5}}, "P4": {"nome": "Bilanciato Prudente", "obiettivo": "Crescita moderata", "w": {"GOVS": 35, "MON": 15, "QUAL": 15, "INFL": 10, "MVOL": 10, "TIT0005024234": 10, "XWRLD": 5}}, "P5": {"nome": "ESG Prudente", "obiettivo": "Crescita moderata sostenibile", "w": {"GOVS": 25, "ESGS": 18, "BESG": 15, "MON": 15, "TIT0005542359": 15, "ESGE": 7, "XWV": 5}}, "P6": {"nome": "Bilanciato Crescita", "obiettivo": "Crescita", "w": {"VWCE": 30, "GOVS": 25, "INFL": 20, "DIVA": 10, "MON": 10, "MOM": 5}}, "P7": {"nome": "Rendita Dinamica", "obiettivo": "Dividendi e cedole", "w": {"WLD2": 25, "GOVSD": 20, "DIV": 15, "QINC": 15, "SOND": 10, "TIT0005542797": 10, "HYUS": 5}}, "P8": {"nome": "ESG Crescita", "obiettivo": "Crescita sostenibile", "w": {"ESGS": 45, "XWV": 13, "BESG": 10, "GOVS": 10, "TIT0005508590": 10, "ESGE": 7, "MON": 5}}, "P9": {"nome": "Crescita Globale", "obiettivo": "Crescita", "w": {"QUAL": 40, "DIVA": 15, "MVOL": 10, "GOVS": 10, "SC": 8, "MOM": 7, "GOLD": 5, "MON": 5}}, "P10": {"nome": "Crescita Dinamica", "obiettivo": "Crescita con satellite settoriale", "w": {"QUAL": 40, "XMVOL": 15, "DIVA": 12, "GOVS": 10, "SC": 8, "MOM": 7, "MON": 5, "TECH": 3}}};
 /* ======================= DATI DI PROVA ======================= */
 /* [chiave, isin, nome, classe, prezzo(esempio), TER(esempio), in lista Fineco, carico azionario, carico tassi, volatilità sim %, rendimento sim %, gruppo] */
 const RAW=[
@@ -156,6 +157,15 @@ const RAW=[
 ['XG13','LU0290356871','Xtrackers II Eurozone Government Bond 1-3 UCITS ETF 1C','Obbligazionario',200,.15,1,0,.5,1.8,1.5,'B'],
 ['XG35','LU0290356954','Xtrackers II Eurozone Government Bond 3-5 UCITS ETF 1C','Obbligazionario',200,.15,1,.05,.8,4.2,2.2,'B'],
 ['XINF','LU0290358224','Xtrackers II Eurozone Inflation-Linked Bond UCITS ETF 1C','Obbligazionario',200,.25,1,.1,.7,6,2.6,'B'],
+['WDJ','FR0007056841','Amundi Dow Jones Industrial Average UCITS ETF Dist','Azionario',100,.18,1,.9,0,14,8,'E'],
+['WLD2','FR0010315770','Amundi MSCI World II UCITS ETF Dist','Azionario',100,.30,1,.95,0,15,8.5,'E'],
+['XWV','IE000LAUZQT6','Xtrackers MSCI World Value ESG UCITS ETF 1C','Azionario',100,.25,1,.93,0,14,8,'E'],
+['XWRLD','IE00BJ0KDQ92','Xtrackers MSCI World UCITS ETF 1C','Azionario',100,.19,1,.95,0,15,8.5,'E'],
+['VWCE','IE00BK5BQT80','Vanguard FTSE All-World UCITS ETF (USD) Accumulating','Azionario',100,.19,1,.95,0,15,8.5,'E'],
+['QINC','LU0832436512','Amundi Global Equity Quality Income UCITS ETF Dist','Azionario',100,.40,1,.88,0,13,7.5,'E'],
+['HYUS','LU1435356149','Amundi USD High Yield Corporate Bond ESG UCITS ETF Dist','Obbligazionario',100,.40,1,.5,.3,7,4.5,'B'],
+['GOVSD','LU1650487926','Amundi Euro Government Bond 1-3Y UCITS ETF Dist','Obbligazionario',100,.14,1,0,.5,1.8,1.5,'B'],
+['SOND','LU2082999306','Amundi Smart Overnight Return UCITS ETF Dist','Monetario',100,.10,1,0,0,.4,2,'M'],
 ['HY27','LU1109941689','Xtrackers II Rolling Target Maturity Sept 2027 EUR High Yield UCITS ETF 1C','Obbligazionario',100,.30,1,.5,.3,3,4,'B'],
 ];
 const INS=RAW.map(r=>({k:r[0],isin:r[1],name:r[2],cls:r[3],price:r[4],ter:r[5],fin:!!r[6],a:r[7],b:r[8],vol:r[9],mu:r[10],g:r[11],finOnly:!!r[12]}));
@@ -248,6 +258,9 @@ function addIns(r){ // r: {isin,nome,prezzo,sd,k?}
     vol:r.sd?r.sd*16*100:({Azionario:15,Obbligazionario:5,Monetario:.4,Oro:15}[cls]),mu:{Azionario:7.5,Obbligazionario:2.5,Monetario:2,Oro:4}[cls],g,finOnly:false,ext:true};
   INS.push(o);BY[o.k]=o;simAdd(o,INS.length-1);return o.k;
 }
+/* titoli di Stato dei portafogli modello (anagrafica MEF): così l'app funziona anche prima di caricare titoli_stato.json */
+const TS_MODELLI=[{"isin": "IT0005735094", "nome": "BOT 365 gg 14.10.2026 - 14.10.2027", "tipo": "BOT", "serie": "BOT", "tasso": 0.0, "scad": "2027-10-14"}, {"isin": "IT0005323032", "nome": "BTP 2% 1.2.2018 - 1.2.2028", "tipo": "BTP", "serie": "BTP", "tasso": 2.0, "scad": "2028-02-01"}, {"isin": "IT0005521981", "nome": "BTP 3,4% 30.11.2022 - 1.4.2028", "tipo": "BTP", "serie": "BTP", "tasso": 3.4, "scad": "2028-04-01"}, {"isin": "IT0001278511", "nome": "BTP 5,25% 1.11.1998 - 1.11.2029", "tipo": "BTP", "serie": "BTP", "tasso": 5.25, "scad": "2029-11-01"}, {"isin": "IT0005733636", "nome": "BTP 3,95% 1.10.2026 - 1.2.2032", "tipo": "BTP", "serie": "BTP", "tasso": 2.64, "scad": "2032-02-01"}, {"isin": "IT0005024234", "nome": "BTP 3,5% 1.3.2014 - 1.3.2030", "tipo": "BTP", "serie": "BTP", "tasso": 3.5, "scad": "2030-03-01"}, {"isin": "IT0005542359", "nome": "BTPGREEN 4% 13.4.2023 - 30.10.2031", "tipo": "BTP", "serie": "BTP Green", "tasso": 4.0, "scad": "2031-10-30"}, {"isin": "IT0005508590", "nome": "BTPGREEN 4% 30.4.2022 - 30.4.2035", "tipo": "BTP", "serie": "BTP Green", "tasso": 4.0, "scad": "2035-04-30"}, {"isin": "IT0005542797", "nome": "BTP 3,7% 17.4.2023 - 15.6.2030", "tipo": "BTP", "serie": "BTP", "tasso": 3.7, "scad": "2030-06-15"}];
+TS_MODELLI.forEach(addBond);
 /* ======================= QUESTIONARIO (domande Binario F, scoring a soglie) ======================= */
 /* pt = punti per risposta; cap = tetto di fascia (0 Basso … 3 Alto) per risposta */
 const QUIZ=[
@@ -523,7 +536,7 @@ const fasciaDich=id=>MONI&&MONI.portafogli&&MONI.portafogli[id]?MONI.portafogli[
 function posizioniView(p,w){
   const ks=[...new Set([...Object.keys(p.w),...Object.keys(w)])].filter(k=>BY[k]).sort((a,b)=>(w[b]||0)-(w[a]||0));
   const sc=ks.filter(k=>scaduto(BY[k]));
-  return (sc.length?`<div class="alert"><b class="ko">Titolo scaduto nel portafoglio</b><ul class="why">${sc.map(k=>`<li>${esc(BY[k].name)} (${BY[k].isin}) è scaduto il ${esc(dataIt(BY[k].scad))}: il capitale è rientrato ai clienti (${p.w[k]||0}% del portafoglio). Va reinvestito: scegli un titolo con scadenza successiva e pubblica la variazione.</li>`).join('')}</ul></div>`:'')+`<div class="tablewrap admin-w"><table><thead><tr><th>Strumento</th><th>Attuale %</th><th>Nuovo %</th><th></th></tr></thead><tbody>${ks.map(k=>{const i=BY[k];return `<tr><td>${esc(i.name)}<div class="small muted">${i.isin}${i.bond?' · '+(i.serie||i.tipo)+' · scade '+esc(dataIt(i.scad))+(scaduto(i)?' · <b class="ko">SCADUTO</b>':' · duration '+n1(i.dur)+' · vol. stimata '+n1(i.vol)+'%'):i.ext?' · da catalogo':''}</div></td><td class="num">${p.w[k]||0}</td><td><input type="number" min="0" max="100" step="5" data-act="w" data-v="${k}" value="${w[k]||0}"></td><td><button class="btn sm" data-act="rm" data-v="${k}" aria-label="Togli ${esc(i.name)}">Togli</button></td></tr>`}).join('')}</tbody><tfoot><tr><td>Totale</td><td></td><td class="num ${Object.values(w).reduce((a,b)=>a+b,0)===100?'ok':'ko'}">${Object.values(w).reduce((a,b)=>a+b,0)}%</td><td></td></tr></tfoot></table></div>`;
+  return (sc.length?`<div class="alert"><b class="ko">Titolo scaduto nel portafoglio</b><ul class="why">${sc.map(k=>`<li>${esc(BY[k].name)} (${BY[k].isin}) è scaduto il ${esc(dataIt(BY[k].scad))}: il capitale è rientrato ai clienti (${p.w[k]||0}% del portafoglio). Va reinvestito: scegli un titolo con scadenza successiva e pubblica la variazione.</li>`).join('')}</ul></div>`:'')+`<div class="tablewrap admin-w"><table><thead><tr><th>Strumento</th><th>Attuale %</th><th>Nuovo %</th><th></th></tr></thead><tbody>${ks.map(k=>{const i=BY[k];const rem=(w[k]||0)===0&&(p.w[k]||0)>0;return `<tr class="${rem?'rem':''}"><td>${esc(i.name)}${rem?' <b class="ko small">tolto: verrà venduto</b>':''}<div class="small muted">${i.isin}${i.bond?' · '+(i.serie||i.tipo)+' · scade '+esc(dataIt(i.scad))+(scaduto(i)?' · <b class="ko">SCADUTO</b>':' · duration '+n1(i.dur)+' · vol. stimata '+n1(i.vol)+'%'):i.ext?' · da catalogo':''}</div></td><td class="num">${p.w[k]||0}</td><td><input type="number" min="0" max="100" step="5" data-act="w" data-v="${k}" value="${w[k]||0}"></td><td>${rem?`<button class="btn sm" data-act="undo" data-v="${k}" aria-label="Ripristina ${esc(i.name)}">Ripristina</button>`:`<button class="btn sm" data-act="rm" data-v="${k}" aria-label="Togli ${esc(i.name)}">Togli</button>`}</td></tr>`}).join('')}</tbody><tfoot><tr><td>Totale</td><td></td><td class="num ${Object.values(w).reduce((a,b)=>a+b,0)===100?'ok':'ko'}">${Object.values(w).reduce((a,b)=>a+b,0)}%</td><td></td></tr></tfoot></table></div>`;
 }
 function ricercaView(p,w){
   return `<div class="card inner"><h3>Aggiungi uno strumento</h3><div class="grid2"><label class="f">Cerca per ISIN, nome o codice di borsa<input type="search" id="cerca" autocomplete="off" placeholder="es. IE00B4L5Y983, gold, momentum" value="${esc(st.q||'')}"></label>
@@ -597,6 +610,7 @@ document.addEventListener('click',e=>{
   else if(a==='add'){const c=elencoRicerca().find(x=>x.isin===v);if(c){const k=addIns(c);if(BY[k].ext&&!(st.xins||[]).some(x=>x.isin===v)){st.xins=(st.xins||[]).concat([c.bond?{isin:v,nome:c.nome,bond:true,tipo:c.tipo,serie:c.serie,tasso:c.tasso,scad:c.scad,k}:{isin:v,nome:c.nome,prezzo:c.prezzo,sd:c.sd,k}])}
       st.okpub=false;st.edit=st.edit||JSON.parse(JSON.stringify(PF()[st.aid].w));st.edit[k]=st.edit[k]||5;st.q=''}}
   else if(a==='ghsave'){st.ghmsg={e:0,t:'Salvataggio in corso…'};render();ghSalva(v==='1').then(()=>{save();render()});return}
+  else if(a==='undo'){st.okpub=false;st.edit=st.edit||JSON.parse(JSON.stringify(PF()[st.aid].w));st.edit[v]=PF()[st.aid].w[v]||5}
   else if(a==='rm'){st.okpub=false;st.edit=st.edit||JSON.parse(JSON.stringify(PF()[st.aid].w));delete st.edit[v]}
   else if(a==='reset'){st=fresh()}
   else if(a==='go'){if(st.step==='auth'){st.user.nome=($('#nome')||{}).value||st.user.nome;st.user.email=($('#email')||{}).value||st.user.email}st.step=v}
@@ -648,5 +662,4 @@ try{fetch('modelli.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=
 let MONI=null;try{fetch('monitor.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{MONI=j;setReal(j&&j.mercato);if(j&&j.mercato&&j.mercato.prezzi)j.mercato.isin.forEach((x,n)=>{const ex=INS.find(i=>i.isin===x);if(ex&&j.mercato.prezzi[n])ex.price=j.mercato.prezzi[n]});if(st.role==='consulente')loadCat();render()}).catch(()=>{})}catch(e){}
 render();
 </script>
-
 </body></html>
