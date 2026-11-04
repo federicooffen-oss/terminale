@@ -222,6 +222,7 @@ def main():
     json.dump(out,open(out_path,'w'),ensure_ascii=False,indent=1)
     print('OK',out['ultimo_prezzo'],'portafogli senza dati:',mancanti)
     try:
+        if os.environ.get('STORICO') not in ('1','true') and os.path.exists(os.path.join(BASE,'storico_portafogli.json')):raise RuntimeError('storico già presente: ricalcolo solo su richiesta')
         bt=backtest(cfg,prices)
         json.dump({'aggiornato':adesso,'nota':'Storico retrospettivo (backtest) con i pesi attuali dei portafogli, al lordo dei costi di consulenza. Non è un risultato realmente ottenuto da clienti. I rendimenti passati non sono indicativi di quelli futuri.','portafogli':bt},open(os.path.join(BASE,'storico_portafogli.json'),'w'),ensure_ascii=False,separators=(',',':'))
         print('storico portafogli:',len(bt))
