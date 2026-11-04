@@ -157,14 +157,15 @@ def backtest(cfg,prices,anni=5):
     a minor volatilita' (breve scadenza). E' un'approssimazione, non un risultato reale."""
     import numpy as np
     p=prices.ffill();r=p.pct_change(fill_method=None)
+    r=r.where(r.abs()<0.15)      # scarta variazioni giornaliere assurde (errori nei dati): il giorno viene riempito col sostituto
     fine=r.index[-1];inizio=fine-pd.DateOffset(years=anni);r=r[r.index>inizio]
     g=lambda c:GRP.get(c,'E')
     # proxy per gruppo (media giornaliera degli strumenti del gruppo con dati)
-    prox={k:r[[c for c in r.columns if g(c)==k]].mean(axis=1,skipna=True) for k in 'EBMGH' if any(g(c)==k for c in r.columns)}
+    prox={k:r[[c for c in r.columns if g(c)==k]].median(axis=1,skipna=True) for k in 'EBMGH' if any(g(c)==k for c in r.columns)}
     # proxy titoli di Stato: i 3 strumenti B/M meno volatili con storico lungo
     cand=[c for c in r.columns if g(c) in 'BM' and r[c].count()>=0.8*len(r)]
     cand=sorted(cand,key=lambda c:r[c].std())[:3]
-    stato=r[cand].mean(axis=1,skipna=True) if cand else prox.get('M',prox.get('B'))
+    stato=r[cand].median(axis=1,skipna=True) if cand else prox.get('M',prox.get('B'))
     out={}
     for k,pf in cfg['portafogli'].items():
         tot=sum(pf['pesi'].values())/100
