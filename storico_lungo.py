@@ -39,6 +39,8 @@ PF={
  'P8':('ESG Crescita',{'WORLD':58,'EM':7,'LONG':10,'MONEY':5,'SHORT':10,'AGG':10}),
  'P9':('Crescita Globale',{'GOLD':5,'MINVOL':10,'SMALL':8,'HDY':15,'QUAL':40,'MOM':7,'MONEY':5,'SHORT':10}),
  'P10':('Crescita Dinamica',{'SMALL':8,'HDY':12,'QUAL':40,'MINVOL':15,'IT':3,'MOM':7,'MONEY':5,'SHORT':10})}
+# peggior rendimento mensile accettabile per famiglia: sotto questa soglia i dati dell'ETF sono considerati sospetti
+SOGLIA={'MONEY':-0.02,'SHORT':-0.03,'LONG':-0.08,'IL':-0.08,'AGG':-0.08,'HY':-0.15}
 def scegli(dl):
     sc={};info={}
     for f,(lst,_) in FAM.items():
@@ -50,6 +52,10 @@ def scegli(dl):
             s=s.dropna()
             if len(s)<500:print('troppo corto/assente',t);continue
             anni=(s.index[-1]-s.index[0]).days/365.25;print(f,t,round(anni,1),'anni')
+            lim=SOGLIA.get(f)
+            if lim is not None:
+                pm=float(s.resample('ME').last().pct_change().min())
+                if pm<lim:print('   SCARTATO',t,': in un mese perde',round(pm*100,1),'% (dati sospetti)');continue
             if anni>=ANNI+0.2:best=(t,s,anni);break
             if best is None or anni>best[2]:best=(t,s,anni)
         if best:sc[f]=best[1];info[f]=best[0]
@@ -57,6 +63,8 @@ def scegli(dl):
 def calcola(sc):
     r=pd.DataFrame({f:s.pct_change() for f,s in sc.items()})
     r=r.where(r.abs()<0.15)
+    if 'SHORT' not in r.columns and 'MONEY' in r.columns and 'LONG' in r.columns:
+        r['SHORT']=0.5*r['MONEY']+0.5*r['LONG'];print('SHORT: nessun ETF affidabile, uso 50% monetario + 50% obbligazionario medio')
     # riempimento con la famiglia di ripiego
     tent=0
     for _ in range(4):
