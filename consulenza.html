@@ -125,6 +125,8 @@ tfoot td{font-weight:700;background:var(--chip)}
 
 <div id="band"></div>
 <div class="wrap" id="app"></div>
+<script>window.BF_CONFIG={url:'https://clqjptlzynmixglgjfjy.supabase.co',key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNscWpwdGx6eW5taXhnbGdqZmp5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM3NDc1OTMsImV4cCI6MjEwOTMyMzU5M30.iD9Kwr78mYC-u3xuffCR9Z6XRkegVjz6UaLl0VYFuxg'};</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 const PF0={"P1": {"nome": "Liquidità Plus", "obiettivo": "Protezione", "w": {"MON": 60, "TIT0005735094": 30, "GOVS": 10}}, "P2": {"nome": "Prudente Anti-inflazione", "obiettivo": "Proteggere il potere d'acquisto", "w": {"VWCE": 7, "GOVS": 40, "MON": 25, "TIT0005323032": 20, "INFL": 8}}, "P3": {"nome": "Rendita Prudente", "obiettivo": "Flusso di cedole", "w": {"TIT0005521981": 20, "TIT0001278511": 20, "SOND": 20, "TIT0005733636": 15, "DIV": 10, "GOVSD": 10, "WDJ": 5}}, "P4": {"nome": "Bilanciato Prudente", "obiettivo": "Crescita moderata", "w": {"GOVS": 35, "MON": 15, "QUAL": 15, "INFL": 10, "MVOL": 10, "TIT0005024234": 10, "XWRLD": 5}}, "P5": {"nome": "ESG Prudente", "obiettivo": "Crescita moderata sostenibile", "w": {"GOVS": 25, "ESGS": 18, "BESG": 15, "MON": 15, "TIT0005542359": 15, "ESGE": 7, "XWV": 5}}, "P6": {"nome": "Bilanciato Crescita", "obiettivo": "Crescita", "w": {"VWCE": 30, "GOVS": 25, "INFL": 20, "DIVA": 10, "MON": 10, "MOM": 5}}, "P7": {"nome": "Rendita Dinamica", "obiettivo": "Dividendi e cedole", "w": {"WLD2": 25, "GOVSD": 20, "DIV": 15, "QINC": 15, "SOND": 10, "TIT0005542797": 10, "HYUS": 5}}, "P8": {"nome": "ESG Crescita", "obiettivo": "Crescita sostenibile", "w": {"ESGS": 45, "XWV": 13, "BESG": 10, "GOVS": 10, "TIT0005508590": 10, "ESGE": 7, "MON": 5}}, "P9": {"nome": "Crescita Globale", "obiettivo": "Crescita", "w": {"QUAL": 40, "DIVA": 15, "MVOL": 10, "GOVS": 10, "SC": 8, "MOM": 7, "GOLD": 5, "MON": 5}}, "P10": {"nome": "Crescita Dinamica", "obiettivo": "Crescita con satellite settoriale", "w": {"QUAL": 40, "XMVOL": 15, "DIVA": 12, "GOVS": 10, "SC": 8, "MOM": 7, "MON": 5, "TECH": 3}}};
 /* ======================= DATI DI PROVA ======================= */
@@ -192,7 +194,7 @@ function rho(a,b){
 }
 let REAL=null; // volatilità e correlazioni reali (5 anni), lette da monitor.json
 function setReal(m){REAL=null;if(!m||!m.isin||!m.sd||!m.corr)return;const ix={};m.isin.forEach((x,i)=>ix[x]=i);REAL={ix,sd:m.sd,corr:m.corr,giorni:m.giorni}}
-function varAnnuo(w){ // VaR parametrico 99% annuo (%): dati reali dove ci sono, ipotesi per classe (o duration, per i titoli di Stato) altrove
+function varAnnuo(w){if(w&&w.__pub)return w.__pub.va; // VaR parametrico 99% annuo (%): dati reali dove ci sono, ipotesi per classe (o duration, per i titoli di Stato) altrove
   const ks=Object.keys(w);let v=0;
   const ri=k=>REAL&&BY[k]&&!BY[k].bond?REAL.ix[BY[k].isin]:undefined;
   const vol=k=>{const i=ri(k);return i!==undefined?REAL.sd[i]*16*100:(BY[k]&&BY[k].bond?BY[k].vol:(VOLA[k]!==undefined?VOLA[k]:BY[k].vol))};
@@ -215,6 +217,7 @@ function simAdd(i,n){const rr=rng(n*977+31),c=Math.sqrt(Math.max(0,1-i.a*i.a-i.b
   INS.forEach((i,n)=>simAdd(i,n));
 })();
 function stats(w){
+  if(w&&w.__pub){const p=w.__pub;return{cagr:p.cagr,vol:p.vol,mdd:p.mdd,w12:p.w12,ter:p.ter,vals:[1],va:p.va}}
   const r=new Array(NM).fill(0);Object.entries(w).forEach(([k,p])=>{const a=SIM[k];for(let i=0;i<NM;i++)r[i]+=p/100*a[i]});
   let v=1,pk=1,mdd=0;const vals=[1];r.forEach(x=>{v*=1+x;vals.push(v);pk=Math.max(pk,v);mdd=Math.min(mdd,v/pk-1)});
   const m=r.reduce((a,b)=>a+b,0)/r.length,sd=Math.sqrt(r.reduce((a,b)=>a+(b-m)**2,0)/(r.length-1))*Math.sqrt(12);
@@ -402,6 +405,289 @@ function buildPlan(pf,capital,opt){
   return{tier,lines,cash:capital-spent,cashM:(monthly?capital:mc)-spentM,spentM,merged,spent,monthly,capital,imps,mc,mfac:(monthly||mc<=0)?1:capital/mc};
 }
 const viewW=(pf,variant)=>applyVariant(pf.w,variant);
+/* ======================= BACKEND (Supabase): accesso, clienti, raccomandazioni ======================= */
+const BCFG=window.BF_CONFIG||{};
+const BE={on:!!(BCFG.url&&BCFG.key&&window.supabase),sb:null,view:'landing',me:null,ready:false,loading:false,msg:null,f:{},
+  cli:null,racc:[],imp:{},mod:null,pubs:[],
+  clienti:[],profili:{},raccAll:[],reg:[],sel:null,tab:'clienti',filtro:'tutti',saveT:0,saveErr:null,seeding:false};
+const SLOCAL={registrato:'none',questionario:'none',documenti:'attesa',firma:'firma',pagamento:'pagamento',attivo:'attivo',scaduto:'scaduto',uscito:'uscito'};
+const SNOME={registrato:'Registrato',questionario:'Questionario completato',documenti:'Documenti inviati',firma:'Contratto da firmare',pagamento:'In attesa del bonifico',attivo:'Attivo',scaduto:'Scaduto',uscito:'Uscito'};
+const SEARLY=['registrato','questionario'];
+const SSEGUI=['questionario','documenti','firma','pagamento'];
+const beMsg=(t,e)=>{BE.msg=t?{t,e:!!e}:null};
+const beDate=s=>s?new Date(s).toLocaleDateString('it-IT'):'—';
+const beISO=s=>{if(!s)return '';const d=new Date(s),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())};
+const beDT=s=>s?new Date(s).toLocaleString('it-IT',{dateStyle:'short',timeStyle:'short'}):'—';
+const bePesi=w=>{const o={};Object.entries(w).forEach(([k,p])=>{o[BY[k].isin]=p});return o};
+const beChiavi=(pesi,nomi,titoli)=>{const w={};Object.entries(pesi||{}).forEach(([isin,x])=>{let ex=INS.find(i=>i.isin===isin);
+  if(!ex){const tb=(titoli||{})[isin],rr=tb?{isin,nome:tb.nome,bond:true,tipo:tb.tipo,serie:tb.serie,tasso:tb.tasso,scad:tb.scadenza||tb.scad}:{isin,nome:(nomi||{})[isin]||isin};ex=BY[addIns(rr)]}
+  w[ex.k]=x});return w};
+const beStub=(pub)=>{const w={};const s=Object.assign({},pub.stats||{});if(s.va==null)s.va=+pub.var_annuo||0;s.n=pub.n_strumenti||0;
+  Object.defineProperty(w,'__pub',{value:s,enumerable:false});return w};
+function pubSummary(id,w){const s=stats(w),az=Object.entries(w).reduce((a,[k,x])=>a+(BY[k].cls==='Azionario'?x:0),0);
+  return{fascia:bandOf(s.va),var_annuo:+s.va.toFixed(2),stats:{cagr:+s.cagr.toFixed(4),vol:+s.vol.toFixed(4),mdd:+s.mdd.toFixed(4),w12:+s.w12.toFixed(4),ter:+s.ter.toFixed(3),va:+s.va.toFixed(2),az,esg:ESG_P.includes(id)}}}
+function opsData(o,n){const ops=[];new Set([...Object.keys(o),...Object.keys(n)]).forEach(k=>{const a=o[k]||0,b=n[k]||0;if(a!==b)ops.push({isin:BY[k].isin,nome:BY[k].name,azione:b>a?(a?'aumenta':'acquista'):(b?'riduci':'vendi'),da:a,a:b})});return ops}
+const beVerbo={acquista:'Acquista',vendi:'Vendi',aumenta:'Aumenta',riduci:'Riduci'};
+function opHtml(o,cap){const d=Math.abs((o.a||0)-(o.da||0));return `<b>${beVerbo[o.azione]||esc(o.azione)}</b> ${esc(o.nome)} (${esc(o.isin)}): ${o.da||0}% → ${o.a||0}%${cap?` (${eur(d/100*cap)} su ${eur(cap)})`:''}`}
+const beErr=e=>{const m=(e&&e.message)||String(e);
+  if(/Invalid login/i.test(m))return 'Email o password non corrette.';
+  if(/Email not confirmed/i.test(m))return 'Devi prima confermare l\'email: controlla la posta (anche lo spam).';
+  if(/already registered/i.test(m))return 'Esiste già un account con questa email: usa «Accedi».';
+  if(/Password should be/i.test(m))return 'La password deve avere almeno 8 caratteri.';
+  if(/rate limit/i.test(m))return 'Troppi tentativi: riprova tra qualche minuto.';
+  return m};
+
+/* ---------- avvio e sessione ---------- */
+function beInit(){
+  BE.sb=supabase.createClient(BCFG.url,BCFG.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  BE.sb.auth.onAuthStateChange((ev,s)=>{
+    setTimeout(()=>{
+      if(ev==='PASSWORD_RECOVERY'){BE.view='newpw';BE.ready=true;render();return}
+      if(ev==='SIGNED_OUT'){BE.me=null;BE.cli=null;BE.view='landing';BE.ready=true;st=fresh();render();return}
+      if(s&&s.user&&(!BE.me||BE.me.id!==s.user.id)&&BE.view!=='newpw')beLoad(s.user)
+    },0)});
+  BE.sb.auth.getSession().then(({data})=>{if(!data.session){BE.ready=true;render()}});
+  setInterval(()=>{if(!document.hidden)beRefresh()},45000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)beRefresh()});
+}
+async function beLoad(user){
+  BE.loading=true;render();
+  try{
+    const {data:pr,error}=await BE.sb.from('profili').select('*').eq('id',user.id).single();
+    if(error)throw error;
+    BE.me={id:user.id,email:user.email,nome:pr.nome,ruolo:pr.ruolo};
+    st=fresh();st.role=BE.me.ruolo==='consulente'?'consulente':'cliente';st.user={nome:pr.nome,email:user.email};
+    await beLoadImp();await beLoadPF();
+    if(BE.me.ruolo==='consulente'){await beLoadAdmin();loadCat()}else await beLoadClient();
+    BE.view='app';beMsg(null)
+  }catch(e){BE.view='landing';beMsg('Errore di caricamento: '+beErr(e),1)}
+  BE.ready=true;BE.loading=false;render();
+}
+async function beLoadImp(){const {data}=await BE.sb.from('impostazioni').select('*');(data||[]).forEach(r=>{BE.imp[r.chiave]=r.valore});
+  if(BE.imp.parcelle)st.fees=Object.assign({},st.fees,BE.imp.parcelle);if(BE.imp.banca)st.bank=Object.assign({},st.bank,BE.imp.banca)}
+async function beLoadPF(){
+  const {data,error}=await BE.sb.from('portafogli_pub').select('*').order('ordine');if(error)throw error;
+  BE.pubs=data||[];st.PF={};
+  BE.pubs.forEach(p=>{st.PF[p.id]={nome:p.nome,obiettivo:p.obiettivo||'',w:beStub(p)};if(p.min_anni)MINY[p.id]=p.min_anni});
+  if(BE.pubs.some(p=>p.stats&&p.stats.esg!==undefined)){ESG_P.length=0;BE.pubs.forEach(p=>{if(p.stats&&p.stats.esg)ESG_P.push(p.id)})}
+  const {data:pv}=await BE.sb.from('portafogli_priv').select('*');beApplyPriv(pv||[]);
+}
+function beApplyPriv(rows){ // composizioni complete: consulente (tutte) o cliente attivo (solo la sua)
+  const j={portafogli:{},nomi:{},titoli:{}};
+  rows.forEach(r=>{if(!st.PF[r.id])return;j.portafogli[r.id]={pesi:r.pesi,ultimo_ribilanciamento:r.ultimo_ribilanciamento};Object.assign(j.nomi,r.nomi||{});Object.assign(j.titoli,r.titoli||{})});
+  const d=st.dirty;st.dirty=false;syncModelli(j);st.dirty=d;
+}
+/* ---------- cliente ---------- */
+async function beLoadClient(){
+  const {data:c,error}=await BE.sb.from('clienti').select('*').eq('id',BE.me.id).single();if(error)throw error;
+  BE.cli=c;const d=c.dati||{};
+  Object.assign(st,{A:d.A||{},aml:d.aml||{},capital:d.capitale!=null?d.capitale:20000,monthly:d.monthly!=null?d.monthly:250,variant:d.variant||'classic',bonds:d.bonds||'etf',contract:d.contract||'cont',imp:d.spese||[],
+    profile:c.profilo||null,chosen:c.portafoglio||null,tab:d.tab||'portafoglio',status:SLOCAL[c.stato]||'none'});
+  if(SEARLY.includes(c.stato)){st.step=(d.step&&STEPS.includes(d.step)&&d.step!=='auth')?d.step:'quest';if(st.step==='profilo'&&!st.profile)st.step='quest'}
+  else st.step='stato';
+  if(c.stato==='attivo'||c.stato==='scaduto'){await beLoadRacc();
+    if(c.stato==='attivo'&&c.portafoglio){const {data:pv}=await BE.sb.from('portafogli_priv').select('*').eq('id',c.portafoglio);beApplyPriv(pv||[]);
+      if(c.posizione&&Object.keys(c.posizione).length){const pr=(pv||[])[0]||{};st.held={id:c.portafoglio,w:beChiavi(c.posizione,pr.nomi,pr.titoli)}}else st.held={id:c.portafoglio,w:null}}}
+}
+async function beLoadRacc(){
+  const {data}=await BE.sb.from('raccomandazioni').select('*').eq('cliente_id',BE.me.id).order('id');BE.racc=data||[];
+  st.notifs=BE.racc.map(r=>({id:r.id,p:r.portafoglio,tipo:r.tipo,date:beDate(r.creato_il),titolo:r.tipo==='iniziale'?'Composizione iniziale':'Variazione del portafoglio',motivo:r.motivo||'',
+    ops:r.tipo==='iniziale'?[]:(r.operazioni||[]).map(o=>opHtml(o,r.capitale)),done:r.eseguita}));
+}
+function beSaveSoon(){if(!BE.cli||!BE.me||BE.me.ruolo==='consulente'||!SEARLY.includes(BE.cli.stato))return;clearTimeout(BE.saveT);BE.saveT=setTimeout(beSave,700)}
+async function beSave(){
+  if(!BE.cli||!SEARLY.includes(BE.cli.stato))return;
+  const stato=st.status==='attesa'?'documenti':(st.profile?'questionario':'registrato');
+  const dati={A:st.A,aml:st.aml,capitale:st.capital,monthly:st.monthly,variant:st.variant,bonds:st.bonds,contract:st.contract,spese:st.imp||[],step:st.step,tab:st.tab};
+  const {error}=await BE.sb.from('clienti').update({dati,profilo:st.profile||null,portafoglio:st.chosen||null,stato}).eq('id',BE.me.id);
+  if(error){BE.saveErr=beErr(error);const b=$('#besave');if(b)b.textContent='Salvataggio non riuscito: '+BE.saveErr}
+  else{BE.saveErr=null;BE.cli.stato=stato;const b=$('#besave');if(b)b.textContent=''}
+}
+async function beDone(id){
+  const {error}=await BE.sb.rpc('esegui_raccomandazione',{p_id:+id});if(error){beMsg(beErr(error),1);render();return}
+  await beLoadClient();render();
+}
+/* ---------- consulente ---------- */
+async function beLoadAdmin(){
+  const [a,b,c,d]=await Promise.all([
+    BE.sb.from('clienti').select('*').order('aggiornato_il',{ascending:false}),
+    BE.sb.from('profili').select('id,email,nome,ruolo,consenso_privacy,creato_il'),
+    BE.sb.from('raccomandazioni').select('*').order('id',{ascending:false}).limit(1000),
+    BE.sb.from('registro').select('*').order('id',{ascending:false}).limit(200)]);
+  [a,b,c,d].forEach(x=>{if(x.error)throw x.error});
+  BE.profili=Object.fromEntries(b.data.map(p=>[p.id,p]));
+  BE.clienti=a.data.filter(x=>BE.profili[x.id]&&BE.profili[x.id].ruolo==='cliente');
+  BE.raccAll=c.data;BE.reg=d.data;
+}
+async function beRefresh(){
+  if(!BE.me||!BE.sb||BE.loading)return;
+  try{
+    if(BE.me.ruolo==='consulente'){if(st.edit||BE.busy)return;const f=document.activeElement;if(f&&/INPUT|TEXTAREA|SELECT/.test(f.tagName))return;await beLoadAdmin();render()}
+    else if(BE.cli&&!SEARLY.includes(BE.cli.stato)||BE.cli&&BE.cli.stato==='documenti'){
+      const {data}=await BE.sb.from('clienti').select('stato').eq('id',BE.me.id).single();
+      const nr=BE.cli.stato==='attivo'?(await BE.sb.from('raccomandazioni').select('id',{count:'exact',head:true}).eq('cliente_id',BE.me.id)).count:0;
+      if(data&&(data.stato!==BE.cli.stato||(BE.cli.stato==='attivo'&&nr!==BE.racc.length))){const f=document.activeElement;if(f&&/INPUT|TEXTAREA|SELECT/.test(f.tagName))return;await beLoadImp();await beLoadClient();render()}}
+  }catch(e){}
+}
+async function beCambiaStato(cid,stato){
+  const c=BE.clienti.find(x=>x.id===cid);if(!c)return;
+  if(stato==='attivo'&&!c.portafoglio){beMsg('Il cliente non ha ancora scelto un portafoglio.',1);return}
+  if(stato==='attivo'&&!confirm('Attivare il servizio per '+(BE.profili[cid].nome||BE.profili[cid].email)+'? Da questo momento riceverà la composizione del portafoglio e tutte le variazioni future.'))return;
+  if(stato==='uscito'&&!confirm('Segnare il cliente come uscito? Lo storico delle raccomandazioni resta conservato.'))return;
+  const {error}=await BE.sb.from('clienti').update({stato}).eq('id',cid);
+  if(error){beMsg(beErr(error),1)}else{beMsg('Stato aggiornato: '+SNOME[stato]+'.')}
+  await beLoadAdmin();render();
+}
+async function beNota(cid,t){const {error}=await BE.sb.from('clienti').update({note_consulente:t}).eq('id',cid);beMsg(error?beErr(error):'Nota salvata.',!!error);if(!error){const c=BE.clienti.find(x=>x.id===cid);if(c)c.note_consulente=t}render()}
+async function beImp(k,v){const {error}=await BE.sb.rpc('salva_impostazione',{p_chiave:k,p_valore:v});if(error)beMsg(beErr(error),1);else{BE.imp[k]=v;beMsg('Salvato.')}render()}
+async function bePublish(){
+  const m=($('#motivo')||{}).value||st.motivo||'';st.motivo=m;if(!m.trim()){alert_('Scrivi la motivazione.');return}
+  const id=st.aid,p=PF()[id],nw=st.edit,ops=opsData(p.w,nw);if(!ops.length){alert_('Nessuna differenza.');return}
+  const b0=fasciaDich(id),b1=bandOf(varAnnuo(nw));if(b1>b0){alert_(`Modifica bloccata: il VaR (${n1(varAnnuo(nw))}%) sfora la fascia ${BANDS[b0]}.`);return}
+  const nomi={},titoli={};Object.keys(nw).forEach(k=>{const i=BY[k];nomi[i.isin]=i.name;if(i.bond)titoli[i.isin]={nome:i.name,tipo:i.tipo,serie:i.serie,tasso:i.tasso,scadenza:i.scad}});
+  BE.busy=true;
+  const {data,error}=await BE.sb.rpc('pubblica_variazione',{p_portafoglio:id,p_pesi:bePesi(nw),p_nomi:nomi,p_titoli:titoli,p_motivo:m.trim(),p_ops:ops,p_pub:pubSummary(id,nw)});
+  BE.busy=false;
+  if(error){alert_('Pubblicazione non riuscita: '+beErr(error));return}
+  p.w=JSON.parse(JSON.stringify(nw));st.rib=Object.assign({},st.rib,{[id]:new Date().toISOString().slice(0,10)});st.dirty=true;st.edit=null;st.okpub=false;st.motivo='';
+  st.log.push(`${id}: variazione pubblicata, inviata a ${data.inviate} ${data.inviate===1?'cliente':'clienti'}`);
+  beMsg(`Variazione pubblicata e inviata a ${data.inviate} ${data.inviate===1?'cliente attivo':'clienti attivi'}. Ricordati di salvare sul repository, così il monitoraggio usa i nuovi pesi.`);
+  await beLoadAdmin();render();
+}
+async function beSeed(){
+  const j=BE.mod;if(!j){beMsg('modelli.json non ancora caricato: riprova tra un istante.',1);render();return}
+  const items=Object.entries(j.portafogli).map(([id,p],i)=>{const w=beChiavi(p.pesi,j.nomi,j.titoli),sp=pubSummary(id,w),nm=nomiDi(p.pesi,j.nomi,j.titoli);
+    return{id,ordine:pnum(id)||i+1,nome:p.nome,obiettivo:(PF0[id]||{}).obiettivo||'',fascia:sp.fascia,var_annuo:sp.var_annuo,min_anni:MINY[id]||null,pesi:p.pesi,nomi:nm.nomi,titoli:nm.titoli,stats:sp.stats}});
+  BE.busy=true;const {data,error}=await BE.sb.rpc('inizializza_portafogli',{p:items});BE.busy=false;
+  if(error){beMsg('Caricamento non riuscito: '+beErr(error),1);render();return}
+  beMsg(`Caricati ${data} portafogli.`);await beLoadPF();render();
+}
+function nomiDi(pesi,nomi,titoli){const o={nomi:{},titoli:{}};Object.keys(pesi||{}).forEach(isin=>{o.nomi[isin]=(nomi||{})[isin]||((titoli||{})[isin]||{}).nome||(INS.find(i=>i.isin===isin)||{}).name||isin;if((titoli||{})[isin])o.titoli[isin]=titoli[isin]});return o}
+/* ---------- esportazione CSV (storico per OCF) ---------- */
+const csvC=v=>{v=v==null?'':String(v);return /[";\n,]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+async function beCsv(cid){
+  let all=[],from=0;
+  for(;;){let q=BE.sb.from('raccomandazioni').select('*').order('id').range(from,from+999);if(cid)q=q.eq('cliente_id',cid);
+    const {data,error}=await q;if(error){beMsg(beErr(error),1);render();return}all=all.concat(data);if(data.length<1000)break;from+=1000}
+  const H=['data_ora','cliente','email','portafoglio','versione','tipo','motivo','strumento','isin','azione','da_%','a_%','capitale_su_modello','eseguita','data_esecuzione','gruppo','id'];
+  const L=[H.join(';')];
+  all.forEach(r=>{const pr=BE.profili[r.cliente_id]||{},ops=(r.operazioni&&r.operazioni.length)?r.operazioni:[{}];
+    ops.forEach(o=>L.push([beISO(r.creato_il),pr.nome,pr.email,r.portafoglio,r.versione,r.tipo,r.motivo,o.nome,o.isin,o.azione,o.da,o.a,r.capitale,r.eseguita?'sì':'no',beISO(r.eseguita_il),r.gruppo,r.id].map(csvC).join(';')))});
+  const blob=new Blob(['﻿'+L.join('\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download='raccomandazioni'+(cid?'_'+((BE.profili[cid]||{}).nome||'cliente').replace(/\W+/g,'_'):'_tutti')+'_'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();a.remove();
+}
+/* ======================= VISTE ======================= */
+const PROTO_BE=`<div class="proto"><b>Versione di test.</b> Prezzi, rendimenti e statistiche sono simulati e il servizio non è ancora attivo: usala solo se sei stato invitato dal consulente.</div>`;
+function beHead(){const m=BE.me;return`<div class="in"><div class="brand"><img alt="" src="${SYM}"><div><b>Binario F</b><span>Consulenza Finanziaria Indipendente</span></div></div>
+<div class="row">${m?`<span class="small" style="color:#DCE8E0">${esc(m.nome||m.email)}${m.ruolo==='consulente'?' · consulente':''}</span><button class="btn sm" data-act="be-logout">Esci</button>`:`<button class="btn sm" data-act="be-go" data-v="login">Accedi</button><button class="btn sm" data-act="be-go" data-v="register">Registrati</button>`}</div></div>`}
+function beRender(){
+  ['email','nome'].forEach(k=>{const x=document.getElementById('be-'+k);if(x)BE.f[k]=x.value});{const x=document.getElementById('be-priv');if(x)BE.f.priv=x.checked;const p=document.getElementById('be-pw');if(p)BE.f.pw=p.value;const a=document.activeElement;BE.f.focus=a&&a.id&&a.id.indexOf('be-')===0?a.id:''}
+  const bd=$('#band');bd.innerHTML=beHead();const adm=BE.me&&BE.me.ruolo==='consulente'&&BE.view==='app';bd.dataset.r=adm?'consulente':'cliente';app.className='wrap'+(adm?' wide':'');
+  let h;
+  if(!BE.ready||BE.loading)h=`<div class="card"><p class="muted">Caricamento…</p></div>`;
+  else if(BE.view==='app'&&BE.me)h=(BE.msg?`<div class="${BE.msg.e?'err':'alert'}">${esc(BE.msg.t)}</div>`:'')+(BE.me.ruolo==='consulente'?adminView():clientView()+'<div class="small muted" id="besave"></div>');
+  else h=beOut();
+  app.innerHTML=PROTO_BE+h+FOOT;
+  if(BE.view==='app'&&BE.me&&BE.me.ruolo!=='consulente')beSaveSoon();
+  {const p=document.getElementById('be-pw');if(p&&BE.f.pw)p.value=BE.f.pw;const x=BE.f.focus&&document.getElementById(BE.f.focus);if(x)x.focus()}
+}
+function beOut(){
+  const v=BE.view,M=BE.msg?`<div class="${BE.msg.e?'err':'alert'}">${esc(BE.msg.t)}</div>`:'',f=BE.f;
+  if(v==='login')return `<div class="card"><h1>Accedi</h1>${M}<label class="f">Email<input type="email" id="be-email" autocomplete="username" value="${esc(f.email||'')}"></label><label class="f">Password<input type="password" id="be-pw" autocomplete="current-password"></label>
+    <div class="row"><button class="btn pri" data-act="be-login">Accedi</button><button class="btn" data-act="be-go" data-v="register">Non ho un account</button><button class="btn" data-act="be-go" data-v="reset">Password dimenticata</button></div></div>`;
+  if(v==='register')return `<div class="card"><h1>Crea il tuo account</h1><p class="muted small">Ti servono pochi minuti. Dopo la registrazione rispondi al questionario di adeguatezza: serve a capire quale portafoglio è adatto a te.</p>${M}
+    <label class="f">Nome e cognome<input type="text" id="be-nome" autocomplete="name" value="${esc(f.nome||'')}"></label><label class="f">Email<input type="email" id="be-email" autocomplete="username" value="${esc(f.email||'')}"></label>
+    <label class="f">Password (almeno 8 caratteri)<input type="password" id="be-pw" autocomplete="new-password"></label>
+    <label class="opt"><input type="checkbox" id="be-priv" ${f.priv?'checked':''}> <span class="small">Acconsento al trattamento dei miei dati personali per l'erogazione del servizio di consulenza, come descritto nell'informativa privacy.</span></label>
+    <div class="row"><button class="btn pri" data-act="be-register">Registrati</button><button class="btn" data-act="be-go" data-v="login">Ho già un account</button></div></div>`;
+  if(v==='reset')return `<div class="card"><h1>Recupera la password</h1><p class="muted small">Ti inviamo un link per scegliere una nuova password.</p>${M}<label class="f">Email<input type="email" id="be-email" value="${esc(f.email||'')}"></label>
+    <div class="row"><button class="btn pri" data-act="be-reset">Invia il link</button><button class="btn" data-act="be-go" data-v="login">Indietro</button></div></div>`;
+  if(v==='newpw')return `<div class="card"><h1>Nuova password</h1>${M}<label class="f">Nuova password (almeno 8 caratteri)<input type="password" id="be-pw" autocomplete="new-password"></label><div class="row"><button class="btn pri" data-act="be-newpw">Salva</button></div></div>`;
+  return landing(M);
+}
+function landing(M){
+  const P=(t,d)=>`<div class="ch" style="cursor:default"><h3>${t}</h3><span class="small muted">${d}</span></div>`;
+  return `<div class="card"><h1>Il tuo portafoglio, da un consulente indipendente</h1>
+  <p>Un servizio di <b>consulenza in materia di investimenti</b> su portafogli modello di ETF e titoli di Stato, costruiti per fasce di rischio e seguiti nel tempo da un consulente finanziario iscritto all'Albo Unico. Ti indichiamo cosa comprare e, quando serve, cosa cambiare: le operazioni le esegui tu, dal tuo conto titoli.</p>${M}
+  <div class="row"><button class="btn pri" data-act="be-go" data-v="register">Registrati</button><button class="btn" data-act="be-go" data-v="login">Accedi</button></div></div>
+  <div class="card"><h2>Come funziona</h2><div class="choices">
+  ${P('1 · Registrati e rispondi al questionario','Situazione finanziaria, obiettivi, tolleranza al rischio, conoscenza degli strumenti e spese previste. Sono le domande richieste dalla normativa MiFID II.')}
+  ${P('2 · Scopri il tuo profilo e scegli','Ti mostriamo il tuo profilo di rischio e i portafogli adatti. Vedi rischio e rendimenti storici; la composizione si sblocca all\'attivazione.')}
+  ${P('3 · Firma il contratto','Il contratto di consulenza ti arriva per firma elettronica avanzata. Il pagamento è con bonifico.')}
+  ${P('4 · Ricevi le indicazioni','Vedi tutte le operazioni da fare, con data e motivazione. Ogni volta che il portafoglio cambia ricevi la variazione e confermi quando l\'hai eseguita.')}</div></div>
+  <div class="card"><h2>Cosa facciamo e cosa no</h2><ul class="why"><li>Consulenza <b>indipendente</b>: non riceviamo incentivi dagli emittenti degli strumenti.</li><li>Non gestiamo il tuo patrimonio e non abbiamo accesso al tuo conto: <b>decidi e ordini tu</b>.</li><li>Non promettiamo rendimenti: i risultati passati, e quelli simulati, non sono indicativi di quelli futuri.</li><li>Lo storico delle raccomandazioni che ricevi viene conservato, come previsto per i consulenti iscritti all'Albo.</li></ul></div>`;
+}
+/* ---------- area consulente ---------- */
+const beNome=id=>{const p=BE.profili[id]||{};return p.nome||p.email||'(senza nome)'};
+function amlFlagsOf(aml){const f=AML.filter(q=>q.flag&&(aml||{})[q.id]===1).map(q=>({pep:'PEP',car:'cariche politiche',soc:'cariche in società/trust',tit:'titolare effettivo',del:'delegato'}[q.id]));return f.length?`<b class="ko">${f.join(', ')}</b>`:'nessun elemento'}
+function beAdmin(){
+  const T=[['clienti','Clienti'],['portafogli','Portafogli'],['impostazioni','Parcelle e IBAN'],['registro','Registro']];
+  return `<div class="row"><div class="seg" role="group">${T.map(([k,l])=>`<button data-act="be-tab" data-v="${k}" aria-pressed="${BE.tab===k}">${l}${k==='clienti'&&BE.clienti.filter(c=>c.stato==='questionario'||c.stato==='documenti').length?'<span class="badge">'+BE.clienti.filter(c=>c.stato==='questionario'||c.stato==='documenti').length+'</span>':''}</button>`).join('')}</div></div>`+
+   (BE.tab==='clienti'?(BE.sel?beCliente(BE.sel):beElenco()):BE.tab==='portafogli'?(BE.pubs.length?monitorCard()+admPortf():beSeedCard()):BE.tab==='impostazioni'?beImpostazioni():beRegistro());
+}
+function beSeedCard(){return `<div class="card"><h2>Portafogli modello</h2><p>Nel database non ci sono ancora portafogli. Carico i 10 portafogli attuali dal repository (<code>modelli.json</code>): da quel momento il database è la fonte, e ogni variazione pubblicata da qui parte verso i clienti.</p>
+  <div class="row"><button class="btn pri" data-act="be-seed" ${BE.mod&&!BE.busy?'':'disabled'}>Carica i portafogli</button>${BE.mod?'':'<span class="muted small">Sto leggendo modelli.json…</span>'}</div></div>`}
+function beElenco(){
+  const C=BE.clienti,F=BE.filtro,conta=f=>C.filter(f).length;
+  const filtri=[['tutti','Tutti',()=>true],['seguire','Da seguire',c=>SSEGUI.includes(c.stato)],['attivi','Attivi',c=>c.stato==='attivo'],['altri','Registrati, scaduti, usciti',c=>['registrato','scaduto','uscito'].includes(c.stato)]];
+  const fx=(filtri.find(x=>x[0]===F)||filtri[0])[2],L=C.filter(fx);
+  return `<div class="card"><div class="row sb"><h2>Clienti</h2><button class="btn sm" data-act="be-csv" data-v="">Esporta tutto lo storico (CSV)</button></div>
+  <div class="row">${filtri.map(([k,l,f])=>`<button class="btn sm ${F===k?'pri':''}" data-act="be-filtro" data-v="${k}">${l} (${conta(f)})</button>`).join('')}</div>
+  ${L.length?`<div class="tablewrap"><table><thead><tr><th>Cliente</th><th>Stato</th><th>Profilo</th><th>Portafoglio</th><th>Capitale</th><th>Ultimo aggiornamento</th></tr></thead><tbody>${L.map(c=>{const pr=c.profilo,pf=c.portafoglio&&PF()[c.portafoglio];
+    return `<tr><td><a href="#" data-act="be-cli" data-v="${c.id}"><b>${esc(beNome(c.id))}</b></a><div class="small muted">${esc((BE.profili[c.id]||{}).email||'')}</div></td><td>${SNOME[c.stato]}</td><td>${pr?BANDS[pr.band]:'—'}</td><td>${pf?esc(c.portafoglio+' · '+pf.nome):'—'}</td><td class="num">${(c.dati||{}).capitale?eur(c.dati.capitale):'—'}</td><td>${beDate(c.aggiornato_il)}</td></tr>`}).join('')}</tbody></table></div>`:'<p class="muted">Nessun cliente in questo elenco.</p>'}
+  <p class="small muted">Il nome compare qui appena il cliente si registra; con il questionario completato lo stato diventa «Questionario completato». Clicca il nome per vedere il dettaglio e tutte le raccomandazioni.</p></div>`}
+function beCliente(cid){
+  const c=BE.clienti.find(x=>x.id===cid);if(!c){BE.sel=null;return beElenco()}
+  const p=BE.profili[cid]||{},d=c.dati||{},pr=c.profilo,pf=c.portafoglio&&PF()[c.portafoglio],R=BE.raccAll.filter(r=>r.cliente_id===cid).sort((a,b)=>b.id-a.id);
+  const qz=d.A?quizResult(d.A):{pass:false},spese=(d.spese||[]).length?`<ul class="why">${d.spese.map(x=>`<li>${eur(x.amt)} · ${esc(x.motivo||'')} · entro ${x.mesi} mesi</li>`).join('')}</ul>`:'nessuna';
+  const bt=(k,l)=>`<button class="btn sm" data-act="be-stato" data-v="${cid}:${k}" ${c.stato===k?'disabled':''}>${l}</button>`;
+  return `<div class="card"><div class="row sb"><h2>${esc(beNome(cid))}</h2><button class="btn sm" data-act="be-cli" data-v="">← Tutti i clienti</button></div>
+  <div class="grid2"><div><div class="small muted">Email</div>${esc(p.email||'')}<div class="small muted" style="margin-top:8px">Registrato il</div>${beDate(p.creato_il)} · consenso privacy ${p.consenso_privacy?beDate(p.consenso_privacy):'<b class="ko">non registrato</b>'}</div>
+  <div><div class="small muted">Stato</div><b>${SNOME[c.stato]}</b>${c.attivo_dal?'<div class="small muted">Attivo dal '+beDate(c.attivo_dal)+'</div>':''}${c.uscito_il?'<div class="small muted">Uscito il '+beDate(c.uscito_il)+'</div>':''}</div></div>
+  <h3>Profilo</h3><div class="grid2"><div>Profilo di rischio: <b>${pr?BANDS[pr.band]:'—'}</b><div class="small muted">${pr?pr.reasons.map(esc).join('<br>'):'Questionario non ancora completato.'}</div></div>
+  <div>Verifica di conoscenza: ${qz.pass?'<span class="ok">superata</span>':'—'}<br>Antiriciclaggio: ${d.aml&&Object.keys(d.aml).length?amlFlagsOf(d.aml):'—'}<br>Portafoglio scelto: <b>${pf?esc(c.portafoglio+' · '+pf.nome):'—'}</b> (${d.variant==='fineco'?'Fineco':'Classica'})<br>Capitale: ${d.capitale?eur(d.capitale):'—'}${d.capitale?` · sul modello ${eur(Math.max(0,d.capitale-((c.portafoglio&&pnum(c.portafoglio)>=SLEEVE_DA)?(d.spese||[]).filter(x=>x.mesi<=IMP_MAX).reduce((a,x)=>a+(x.amt||0),0):0)))}`:''}<br>Spese previste: ${spese}<br>Contratto: ${d.contract==='una'?'Una tantum':'Continuativa'}</div></div>
+  <h3>Avanza lo stato</h3><div class="row">${bt('firma','Contratto inviato per la firma')}${bt('pagamento','Contratto firmato')}${bt('attivo','Pagamento ricevuto: attiva')}${bt('scaduto','Rinnovo non pagato')}${bt('uscito','Segna come uscito')}</div>
+  <p class="small muted">Alla attivazione il cliente riceve in automatico la composizione iniziale del portafoglio, con data e ora. Da lì in poi riceve ogni variazione che pubblichi per quel portafoglio.</p>
+  <label class="f">Note interne (visibili solo a te)<textarea id="be-nota" rows="3">${esc(c.note_consulente||'')}</textarea></label><div class="row"><button class="btn sm" data-act="be-nota" data-v="${cid}">Salva la nota</button></div></div>
+  <div class="card"><div class="row sb"><h2>Raccomandazioni ricevute (${R.length})</h2><button class="btn sm" data-act="be-csv" data-v="${cid}">Esporta in CSV</button></div>
+  ${R.length?`<div class="tablewrap"><table><thead><tr><th>Data</th><th>Tipo</th><th>Portafoglio</th><th>Motivazione e operazioni</th><th>Eseguita</th></tr></thead><tbody>${R.map(r=>`<tr><td>${beDT(r.creato_il)}</td><td>${{iniziale:'Iniziale',variazione:'Variazione',spesa_prevista:'Spesa prevista',altro:'Altro'}[r.tipo]}</td><td>${esc(r.portafoglio)} v${r.versione||''}</td>
+   <td>${esc(r.motivo||'')}<ul class="why">${(r.operazioni||[]).map(o=>'<li>'+opHtml(o,r.capitale)+'</li>').join('')}</ul></td><td>${r.eseguita?'<span class="ok">sì</span><div class="small muted">'+beDT(r.eseguita_il)+'</div>':'<span class="ko">no</span>'}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Nessuna raccomandazione ancora: la prima parte quando attivi il servizio.</p>'}
+  <p class="small muted">Lo storico è permanente: nessuno, nemmeno tu, può modificarlo o cancellarlo da qui.</p></div>`}
+function beImpostazioni(){const f=BE.imp.parcelle||{cont:360,una:200},b=BE.imp.banca||{intest:'',iban:''};
+  return `<div class="card"><h2>Parcelle e coordinate bancarie</h2><p class="muted small">Sono i valori che i clienti vedono nel contratto e nella schermata del bonifico.</p>
+  <div class="grid2"><label class="f">Parcella continuativa (€ / anno)<input type="number" id="be-fc" value="${f.cont}"></label><label class="f">Parcella una tantum (€)<input type="number" id="be-fu" value="${f.una}"></label>
+  <label class="f">Intestatario del conto<input type="text" id="be-int" value="${esc(b.intest||'')}"></label><label class="f">IBAN<input type="text" id="be-iban" value="${esc(b.iban||'')}"></label></div>
+  <div class="row"><button class="btn pri" data-act="be-impsave">Salva</button></div></div>`}
+function beRegistro(){return `<div class="card"><h2>Registro delle operazioni</h2>${BE.reg.length?`<div class="tablewrap"><table><thead><tr><th>Quando</th><th>Chi</th><th>Azione</th><th>Dettagli</th></tr></thead><tbody>${BE.reg.map(r=>`<tr><td>${beDT(r.quando)}</td><td>${esc(r.utente?beNome(r.utente):'')}</td><td>${esc(r.azione)}</td><td class="small">${esc(JSON.stringify(r.dettagli||{}).slice(0,220))}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Nessuna operazione.</p>'}</div>`}
+/* ---------- azioni ---------- */
+const beV=id=>((document.getElementById(id)||{}).value||'').trim();
+document.addEventListener('click',async e=>{
+  const t=e.target.closest('[data-act^="be-"]');if(!t||!BE.on)return;e.preventDefault();const a=t.dataset.act,v=t.dataset.v;
+  if(a==='be-go'){BE.view=v;beMsg(null);BE.f={};render();return}
+  if(a==='be-login'||a==='be-register'||a==='be-reset'||a==='be-newpw'){
+    BE.f={email:beV('be-email'),nome:beV('be-nome'),priv:!!(document.getElementById('be-priv')||{}).checked};const pw=(document.getElementById('be-pw')||{}).value||'';BE.f.pw='';
+    try{
+      if(a==='be-login'){const {error}=await BE.sb.auth.signInWithPassword({email:BE.f.email,password:pw});if(error)throw error}
+      else if(a==='be-register'){
+        if(!BE.f.nome||!BE.f.email){beMsg('Inserisci nome ed email.',1);render();return}if(pw.length<8){beMsg('La password deve avere almeno 8 caratteri.',1);render();return}
+        if(!BE.f.priv){beMsg('Per registrarti serve il consenso al trattamento dei dati.',1);render();return}
+        const {data,error}=await BE.sb.auth.signUp({email:BE.f.email,password:pw,options:{data:{nome:BE.f.nome,consenso:'true'},emailRedirectTo:location.origin+location.pathname}});if(error)throw error;
+        if(!data.session){BE.view='login';beMsg('Registrazione quasi completata: ti abbiamo scritto per confermare l\'email. Dopo la conferma puoi accedere.');render();return}}
+      else if(a==='be-reset'){const {error}=await BE.sb.auth.resetPasswordForEmail(BE.f.email,{redirectTo:location.origin+location.pathname});if(error)throw error;beMsg('Se l\'indirizzo è registrato, ti abbiamo inviato il link.');render();return}
+      else{if(pw.length<8){beMsg('La password deve avere almeno 8 caratteri.',1);render();return}const {error}=await BE.sb.auth.updateUser({password:pw});if(error)throw error;BE.view='app';beMsg('Password aggiornata.');const {data}=await BE.sb.auth.getSession();if(data.session)await beLoad(data.session.user);return}
+    }catch(err){beMsg(beErr(err),1);render()}
+    return}
+  if(a==='be-logout'){await BE.sb.auth.signOut();return}
+  if(a==='be-tab'){BE.tab=v;BE.sel=null;beMsg(null);if(v==='portafogli')loadCat()}
+  else if(a==='be-filtro')BE.filtro=v;
+  else if(a==='be-cli'){BE.sel=v||null;beMsg(null)}
+  else if(a==='be-stato'){const [cid,s]=v.split(':');await beCambiaStato(cid,s);return}
+  else if(a==='be-nota'){await beNota(v,beV('be-nota'));return}
+  else if(a==='be-csv'){await beCsv(v||null);return}
+  else if(a==='be-seed'){await beSeed();return}
+  else if(a==='be-impsave'){await beImp('parcelle',{cont:+beV('be-fc')||0,una:+beV('be-fu')||0});await beImp('banca',{intest:beV('be-int'),iban:beV('be-iban')});return}
+  render();
+});
 /* ======================= STATO ======================= */
 const KEY='bf-robo-proto-v3';
 const AML=[
@@ -415,12 +701,12 @@ const AML=[
  {id:'tit',t:'Esiste un titolare effettivo diverso da te (qualcuno nel cui interesse operi)?',o:['No','Sì'],flag:1},
  {id:'del',t:'C\'è un soggetto delegato a operare per tuo conto (tutore, genitore, amministratore di sostegno, altro)?',o:['No','Sì'],flag:1},
 ];
-function fresh(){return{role:'cliente',step:'auth',user:{nome:'',email:''},A:{},aml:{},capital:20000,monthly:250,profile:null,chosen:null,variant:'classic',bonds:'etf',bAmt:0,bYrs:3,imp:[],contract:'cont',status:'none',PF:JSON.parse(JSON.stringify(PF0)),ver:{},held:null,notifs:[],fees:{cont:360,una:200},bank:{iban:'IT00 X000 0000 0000 0000 0000 000',intest:'(intestatario del conto)'},tab:'portafoglio',aid:'P4',edit:null,log:[]}}
-let st;try{st=JSON.parse(localStorage.getItem(KEY))}catch(e){st=null}
+function fresh(){return{role:'cliente',step:BE.on?'quest':'auth',user:{nome:'',email:''},A:{},aml:{},capital:20000,monthly:250,profile:null,chosen:null,variant:'classic',bonds:'etf',bAmt:0,bYrs:3,imp:[],contract:'cont',status:'none',PF:BE.on?{}:JSON.parse(JSON.stringify(PF0)),ver:{},held:null,notifs:[],fees:{cont:360,una:200},bank:{iban:'IT00 X000 0000 0000 0000 0000 000',intest:'(intestatario del conto)'},tab:'portafoglio',aid:'P4',edit:null,log:[]}}
+let st=null;if(!BE.on){try{st=JSON.parse(localStorage.getItem(KEY))}catch(e){st=null}}
 if(!st||!st.PF)st=fresh();
 (st.xins||[]).forEach(r=>{try{addIns(r)}catch(e){}});
 if(st.status==='attivo'&&!st.attivoDal)st.attivoDal=Date.now(); // chi è già attivo non riceve variazioni di prima della propria attivazione
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
+const save=()=>{if(BE.on)return;try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
 const $=(s,r=document)=>r.querySelector(s);
 const eur=(n,d=0)=>n.toLocaleString('it-IT',{minimumFractionDigits:d,maximumFractionDigits:d})+' €';
 const pc=(n,d=1)=>(n>0?'+':n<0?'−':'')+Math.abs(n*100).toFixed(d).replace('.',',')+'%';
@@ -458,6 +744,7 @@ const PROTO=`<div class="proto"><b>Prototipo di test.</b> Prezzi, rendimenti e s
 const FOOT=`<div class="foot">Dott. Federico Offen, consulente finanziario indipendente iscritto all'Albo Unico OCF (delibera n. 2916) · Binario F, Via Luigi Cibrario 65, Torino · www.binariof.it. Servizio di consulenza in materia di investimenti: le decisioni di investimento restano del cliente. I rendimenti passati, e quelli simulati, non sono indicativi di quelli futuri.</div>`;
 const app=$('#app');
 function render(){
+  if(BE.on)return beRender();
   const bd=$('#band');bd.innerHTML=head();bd.dataset.r=st.role;app.className='wrap'+(st.role==='consulente'?' wide':'');
   app.innerHTML=PROTO+(st.role==='consulente'?adminView():clientView())+FOOT;save();
 }
@@ -500,7 +787,7 @@ function profiloView(){
   const tier=tierFor(st.capital,impAct()),sorted=el.slice().sort((a,b)=>stats(PF()[a].w).va-stats(PF()[b].w).va);
   const ch=sorted.map(id=>{const{p,s,b}=lineOpt(id);return `<div class="ch" role="button" tabindex="0" data-act="pick" data-v="${id}" aria-pressed="${st.chosen===id}"><header><h3>${esc(p.nome)}</h3><span class="muted small">${b===pr.band?'Fascia del tuo profilo':'Più prudente'} · ${BANDS[b]}</span></header>
    <p class="small muted">${esc(p.obiettivo)} · orizzonte consigliato da ${MINY[id]} ${MINY[id]===1?'anno':'anni'}</p>
-   <div class="stats"><div><small>Rendimento annuo storico simulato</small><b>${pc0(s.cagr)}</b></div><div><small>Volatilità</small><b>${pc0(s.vol)}</b></div><div><small>Perdita massima storica</small><b>${pc0(s.mdd)}</b></div><div><small>VaR annuo 99%</small><b>${n1(s.va)}%</b></div><div><small>Azioni</small><b>${Object.entries(p.w).reduce((a,[k,v])=>a+(BY[k].cls==='Azionario'?v:0),0)}%</b></div></div></div>`}).join('');
+   <div class="stats"><div><small>Rendimento annuo storico simulato</small><b>${pc0(s.cagr)}</b></div><div><small>Volatilità</small><b>${pc0(s.vol)}</b></div><div><small>Perdita massima storica</small><b>${pc0(s.mdd)}</b></div><div><small>VaR annuo 99%</small><b>${n1(s.va)}%</b></div><div><small>Azioni</small><b>${pfAz(p.w)}%</b></div></div></div>`}).join('');
   const full=tier.k==='full',pac=tier.k==='pac';
   return head+`<div class="card"><h2>Scegli il portafoglio</h2><p class="muted small">Puoi scegliere il portafoglio della tua fascia o uno più prudente.${st.A.esg===1?' Sono mostrati solo i portafogli con strumenti ESG.':''}</p><div class="choices">${ch}</div></div>
   <div class="card"><h2>Capitale e versione</h2><div class="grid2"><label class="f">${pac?'Importo mensile (PAC)':'Capitale da investire'} (€)<input type="number" id="${pac?'monthly':'capital'}" min="0" step="${pac?50:1000}" value="${pac?st.monthly:st.capital}"></label>
@@ -511,7 +798,8 @@ function profiloView(){
   <div class="row"><button class="btn" data-act="go" data-v="aml">Indietro</button><button class="btn pri" data-act="go" data-v="contratto" ${st.chosen&&el.includes(st.chosen)&&impAll().reduce((a,x)=>a+x.amt,0)<=st.capital?'':'disabled'}>Procedi</button></div></div>
   ${st.chosen&&el.includes(st.chosen)?previewLock():''}`;
 }
-function previewLock(){const pl=planOf(st.chosen);return `<div class="lock"><div class="blur">${pl.lines.slice(0,5).map(l=>`<div><span>${esc(l.name)}</span><b>${n1(l.pct)}%</b></div>`).join('')}</div><div class="over"><b>Composizione riservata</b><span class="small">Si sblocca dopo la firma del contratto e il pagamento. Versione ${pl.tier.n}: ${pl.lines.length} ${pl.lines.length===1?'strumento':'strumenti'}.</span></div></div>`}
+const pfAz=w=>w.__pub?w.__pub.az:Object.entries(w).reduce((a,[k,v])=>a+(BY[k].cls==='Azionario'?v:0),0);
+function previewLock(){const W=PF()[st.chosen].w;let L,n,tn;if(W.__pub){const tr=tierFor(st.capital,impAct());tn=tr.n;n=Math.min(W.__pub.n||1,tr.max||99);L=Array.from({length:Math.min(5,n)},()=>({name:'Strumento riservato',pct:20}))}else{const pl=planOf(st.chosen);L=pl.lines.slice(0,5);n=pl.lines.length;tn=pl.tier.n}return `<div class="lock"><div class="blur">${L.map(l=>`<div><span>${esc(l.name)}</span><b>${n1(l.pct)}%</b></div>`).join('')}</div><div class="over"><b>Composizione riservata</b><span class="small">Si sblocca dopo la firma del contratto e il pagamento. Versione ${tn}: ${n} ${n===1?'strumento':'strumenti'}.</span></div></div>`}
 function impCands(x){
   const tgt=new Date(impDate(x)).getTime(),now=Date.now(),bot=x.mesi<=12,tipi=bot?['BOT']:['BTP','CTZ'];
   const src=(TITOLI||TS_MODELLI.map(t=>({...t,scadenza:t.scad}))).filter(t=>tipi.includes(t.tipo));
@@ -540,7 +828,6 @@ const STL={attesa:'Documenti ricevuti',firma:'Contratto inviato per la firma',pa
 const STF=['attesa','firma','pagamento','attivo'];
 function statoView(){
   const s=st.status;if(s==='attivo')return attivoView();
-  const pl=planOf(st.chosen);
   if(s==='scaduto')return `<div class="card"><h2>Servizio scaduto</h2><p>Il rinnovo annuale non risulta pagato: il portafoglio è nascosto finché non viene saldata la parcella.</p>${previewLock()}${bonifico()}</div>`;
   return `<div class="card"><h2>${STL[s]||'In corso'}</h2><div class="stp">${STF.map((k,i)=>`<span class="${STF.indexOf(s)>i?'done':''} ${s===k?'on':''}">${STL[k]}</span>`).join('')}</div>
   <p class="muted">${{attesa:'Il consulente sta preparando il contratto.',firma:'Controlla la tua email: ti è arrivato il contratto da firmare con firma elettronica avanzata.',pagamento:'Esegui il bonifico indicato qui sotto. Il portafoglio si sblocca quando il pagamento risulta accreditato.'}[s]}</p>${s==='pagamento'?bonifico():''}${previewLock()}
@@ -566,7 +853,7 @@ function impCard(ix,pl){
 function portView(pend){
   const id=st.chosen,pl=planOf(id,st.held&&st.held.id===id?st.held.w:null);
   const ml=pl.lines.filter(l=>!l.imp),il=pl.lines.filter(l=>l.imp),has=il.length>0;
-  return `${pend?`<div class="alert"><b>Il consulente ha aggiornato il portafoglio</b><span class="small">${esc(pend.motivo)}</span><ul class="why">${pend.ops.map(o=>`<li>${o}</li>`).join('')}</ul><div class="row"><button class="btn pri" data-act="done" data-v="${pend.id}">Ho eseguito le operazioni</button></div></div>`:''}
+  return `${pend?`<div class="alert"><b>${pend.tipo==='iniziale'?'Composizione iniziale: da eseguire':'Il consulente ha aggiornato il portafoglio'}</b><span class="small">${pend.tipo==='iniziale'?'Acquista gli strumenti indicati qui sotto dal tuo conto titoli, poi conferma.':esc(pend.motivo)}</span><ul class="why">${pend.ops.map(o=>`<li>${o}</li>`).join('')}</ul><div class="row"><button class="btn pri" data-act="done" data-v="${pend.id}">Ho eseguito le operazioni</button></div></div>`:''}
   <h3>${has?'Portafoglio modello · '+esc(PF()[id].nome)+' · '+eur(pl.mc):'Il tuo portafoglio'}</h3>
   <div class="alert"><b>Versione ${pl.tier.n}</b><span class="small">${pl.tier.k==='pac'?`Versamento mensile di ${eur(pl.capital)} ripartito così:`:`${has?'Parte del capitale che segue il modello':'Capitale '+eur(st.capital)}: ${ml.length} strumenti.`} ${pl.merged.length?'Alcuni comparti sono stati accorpati per la dimensione del capitale.':''}</span></div>
   ${linesTable(ml,pl,pl.mfac,['Totale investito nel modello',pl.spentM,pl.cashM])}
@@ -592,22 +879,22 @@ const ARTS=[['Come comprare un ETF dal tuo conto titoli','Usa un ordine a limite
 const artView=()=>ARTS.map(a=>`<details class="art"><summary>${a[0]}</summary><div>${a[1]}</div></details>`).join('');
 function notifView(){const l=notifsCli().slice().reverse();return l.length?l.map(n=>`<div class="alert"><b>${esc(n.date)} · ${esc(n.titolo)}</b><span class="small">${esc(n.motivo)}</span><ul class="why">${n.ops.map(o=>`<li>${o}</li>`).join('')}</ul><span class="small ${n.done?'ok':'ko'}">${n.done?'Eseguita':'Da eseguire'}</span></div>`).join(''):'<p class="muted">Nessuna novità: ti avviseremo quando il portafoglio cambia.</p>'}
 /* ======================= CONSULENTE ======================= */
-function adminView(){
-  const p=PF()[st.aid],w=st.edit||p.w,tot=Object.values(w).reduce((a,b)=>a+b,0),va=varAnnuo(w),b=bandOf(va),b0=fasciaDich(st.aid);
-  const ids=Object.keys(PF());
-  return monitorCard()+`<div class="card"><h2>Cliente di prova</h2><div class="tablewrap"><table><thead><tr><th>Cliente</th><th>Profilo</th><th>Quiz</th><th>Antiriciclaggio</th><th>Portafoglio</th><th>Stato</th></tr></thead><tbody><tr><td>${esc(st.user.nome||'(senza nome)')}</td><td>${st.profile?BANDS[st.profile.band]:'—'}</td><td>${quizResult(st.A).pass?'<span class="ok">superato</span>':'—'}</td><td>${amlFlags()}</td><td>${st.chosen?esc(PF()[st.chosen].nome)+' · '+(st.variant==='fineco'?'Fineco':'Classica')+' · '+eur(st.capital):'—'}</td><td>${STL[st.status]||'Non ancora inviato'}</td></tr></tbody></table></div>
+function adminView(){if(BE.on)return beAdmin();return monitorCard()+`<div class="card"><h2>Cliente di prova</h2><div class="tablewrap"><table><thead><tr><th>Cliente</th><th>Profilo</th><th>Quiz</th><th>Antiriciclaggio</th><th>Portafoglio</th><th>Stato</th></tr></thead><tbody><tr><td>${esc(st.user.nome||'(senza nome)')}</td><td>${st.profile?BANDS[st.profile.band]:'—'}</td><td>${quizResult(st.A).pass?'<span class="ok">superato</span>':'—'}</td><td>${amlFlags()}</td><td>${st.chosen?esc(PF()[st.chosen].nome)+' · '+(st.variant==='fineco'?'Fineco':'Classica')+' · '+eur(st.capital):'—'}</td><td>${STL[st.status]||'Non ancora inviato'}</td></tr></tbody></table></div>
   <div class="row"><span class="small muted">Avanza lo stato:</span>${[['attesa','Documenti ricevuti'],['firma','Contratto inviato'],['pagamento','Contratto firmato'],['attivo','Pagamento ricevuto'],['scaduto','Rinnovo non pagato']].map(([k,l])=>`<button class="btn sm" data-act="status" data-v="${k}">${l}</button>`).join('')}</div>
   <div class="grid2"><label class="f">Parcella continuativa (€)<input type="number" data-act="fee" data-v="cont" value="${st.fees.cont}"></label><label class="f">Parcella una tantum (€)<input type="number" data-act="fee" data-v="una" value="${st.fees.una}"></label>
   <label class="f">Intestatario del conto<input type="text" data-act="bank" data-v="intest" value="${esc(st.bank.intest)}"></label><label class="f">IBAN<input type="text" data-act="bank" data-v="iban" value="${esc(st.bank.iban)}"></label></div></div>
-  <div class="card"><h2>Portafogli modello</h2><div class="tablewrap"><table><thead><tr><th>Portafoglio</th><th>Fascia (da VaR)</th><th>VaR annuo</th><th>Azioni</th><th>Strumenti</th></tr></thead><tbody>${ids.map(i=>{const q=PF()[i],v=varAnnuo(q.w);return `<tr><td>${i} · ${esc(q.nome)}</td><td>${BANDS[bandOf(v)]}</td><td class="num">${n1(v)}%</td><td class="num">${Object.entries(q.w).reduce((a,[k,x])=>a+(BY[k].cls==='Azionario'?x:0),0)}%</td><td class="num">${Object.keys(q.w).length}</td></tr>`}).join('')}</tbody></table></div></div>
+  `+admPortf()+`<div class="card"><h2>Registro</h2>${st.log.length?'<ul class="why">'+st.log.slice().reverse().map(l=>`<li>${esc(l)}</li>`).join('')+'</ul>':'<p class="muted">Nessuna operazione.</p>'}</div>`}
+function admPortf(){
+  const p=PF()[st.aid],w=st.edit||p.w,tot=Object.values(w).reduce((a,b)=>a+b,0),va=varAnnuo(w),b=bandOf(va),b0=fasciaDich(st.aid);
+  const ids=Object.keys(PF());
+  return `<div class="card"><h2>Portafogli modello</h2><div class="tablewrap"><table><thead><tr><th>Portafoglio</th><th>Fascia (da VaR)</th><th>VaR annuo</th><th>Azioni</th><th>Strumenti</th></tr></thead><tbody>${ids.map(i=>{const q=PF()[i],v=varAnnuo(q.w);return `<tr><td>${i} · ${esc(q.nome)}</td><td>${BANDS[bandOf(v)]}</td><td class="num">${n1(v)}%</td><td class="num">${Object.entries(q.w).reduce((a,[k,x])=>a+(BY[k].cls==='Azionario'?x:0),0)}%</td><td class="num">${Object.keys(q.w).length}</td></tr>`}).join('')}</tbody></table></div></div>
   <div class="card"><h2>Modifica un portafoglio e avvisa i clienti</h2><div class="row"><div class="seg" role="group">${ids.map(i=>`<button data-act="aid" data-v="${i}" aria-pressed="${st.aid===i}">${i}</button>`).join('')}</div><b>${esc(p.nome)}</b></div>
   ${posizioniView(p,w)}
   ${ricercaView(p,w)}
   <div class="alert"><b>Controllo di fascia</b><span class="small">VaR annuo ${n1(va)}% (${REAL?'su prezzi reali a 5 anni':'con volatilità stimate'}) → fascia ${BANDS[b]}. ${b>b0?`<b class="ko">Modifica bloccata: il VaR sfora il limite della fascia ${BANDS[b0]} e il portafoglio passerebbe a ${BANDS[b]}. Riduci la parte rischiosa finché il VaR rientra.</b>`:(b<b0?`La fascia scende da ${BANDS[b0]} a ${BANDS[b]}.`:'Il VaR resta dentro la fascia.')}</span></div>
   <label class="f">Motivazione e analisi costi/benefici (obbligatoria)<textarea id="motivo" rows="3" placeholder="Es.: aumento la quota di obbligazioni brevi per ridurre la duration; costi di transazione stimati inferiori al beneficio atteso.">${esc(st.motivo||'')}</textarea></label>
   <div class="row"><button class="btn pri" data-act="publish" ${tot===100&&b<=b0?'':'disabled'}>Pubblica la variazione e invia la notifica</button><button class="btn" data-act="discard">Annulla modifiche</button></div></div>
-  ${esportaCard()}
-  <div class="card"><h2>Registro</h2>${st.log.length?'<ul class="why">'+st.log.slice().reverse().map(l=>`<li>${esc(l)}</li>`).join('')+'</ul>':'<p class="muted">Nessuna operazione.</p>'}</div>`}
+  ${esportaCard()}`}
 const STC={ok:'ok',preavviso:'warn',allarme:'ko'};
 function monitorCard(){
   if(!MONI)return `<div class="card"><h2>Monitoraggio</h2><p class="muted">Nessun dato di monitoraggio disponibile.</p></div>`;
@@ -684,7 +971,7 @@ function syncModelli(j){ // il repository è la fonte dei portafogli, salvo vari
   st.edit=null;
 }
 let TITOLI=null,TITOLI_AGG='';
-function loadTitoli(){try{fetch('titoli_stato.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.titoli)return;TITOLI=j.titoli;TITOLI_AGG=j.aggiornato||'';render()}).catch(()=>{})}catch(e){}}
+function loadTitoli(){try{fetch('titoli_stato.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.titoli)return;TITOLI=j.titoli;TITOLI_AGG=j.aggiornato||'';if(!BE.on||BE.view==='app')render()}).catch(()=>{})}catch(e){}}
 let CAT=null,CATTRY=false;
 function loadCat(){if(CAT||CATTRY)return;CATTRY=true;loadTitoli();try{fetch('catalogo.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.strumenti)return;CAT=j;
   setReal({isin:j.strumenti.map(s=>s.isin),sd:j.strumenti.map(s=>s.sd),corr:j.corr.map(r=>r.map(x=>x/100)),giorni:j.giorni});
@@ -717,11 +1004,11 @@ document.addEventListener('click',e=>{
   else if(a==='contract')st.contract=v;
   else if(a==='sent'){st.status='attesa';st.step='stato';if(!st.held)st.held={id:st.chosen,w:null}}
   else if(a==='tab')st.tab=v;
-  else if(a==='done'){const n=st.notifs.find(x=>x.id===+v);if(n){n.done=true;st.held={id:n.p,w:JSON.parse(JSON.stringify(PF()[n.p].w))}}}
+  else if(a==='done'){if(BE.on){beDone(v);return}const n=st.notifs.find(x=>x.id===+v);if(n){n.done=true;st.held={id:n.p,w:JSON.parse(JSON.stringify(PF()[n.p].w))}}}
   else if(a==='status'){st.status=v;if(v==='attivo'&&!st.attivoDal){st.attivoDal=Date.now();st.held={id:st.chosen,w:null}}if(st.step!=='stato')st.step='stato';st.log.push(`Stato cliente: ${STL[v]}`)}
   else if(a==='aid'){st.aid=v;st.edit=null;st.okpub=false}
   else if(a==='discard'){st.edit=null;st.okpub=false}
-  else if(a==='publish'){const m=($('#motivo')||{}).value||st.motivo||'';st.motivo=m;if(!m.trim()){alert_('Scrivi la motivazione.');return}
+  else if(a==='publish'){if(BE.on){bePublish();return}const m=($('#motivo')||{}).value||st.motivo||'';st.motivo=m;if(!m.trim()){alert_('Scrivi la motivazione.');return}
     const p=PF()[st.aid],nw=st.edit,ops=diffOps(p.w,nw);if(!ops.length){alert_('Nessuna differenza.');return}
     const b0=fasciaDich(st.aid),b1=bandOf(varAnnuo(nw));
     if(b1>b0){alert_(`Modifica bloccata: il VaR (${n1(varAnnuo(nw))}%) sfora la fascia ${BANDS[b0]}.`);return}
@@ -757,8 +1044,7 @@ document.addEventListener('change',e=>{
 document.addEventListener('input',e=>{const t=e.target;if(t.id==='cerca'){st.q=t.value;const r=$('#risultati');if(r)r.innerHTML=risultatiHtml()}});
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.ch[data-act]')){e.preventDefault();e.target.click()}});
 loadTitoli(); // elenco BOT/BTP per la scelta delle spese previste
-try{fetch('modelli.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j&&j.portafogli){syncModelli(j);save();render()}}).catch(()=>{})}catch(e){}
-let MONI=null;try{fetch('monitor.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{MONI=j;setReal(j&&j.mercato);if(j&&j.mercato&&j.mercato.prezzi)j.mercato.isin.forEach((x,n)=>{const ex=INS.find(i=>i.isin===x);if(ex&&j.mercato.prezzi[n])ex.price=j.mercato.prezzi[n]});if(st.role==='consulente')loadCat();render()}).catch(()=>{})}catch(e){}
-render();
+try{fetch('modelli.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j&&j.portafogli){if(BE.on){BE.mod=j;if(BE.me&&BE.me.ruolo==='consulente')render()}else{syncModelli(j);save();render()}}}).catch(()=>{})}catch(e){}
+let MONI=null;try{fetch('monitor.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{MONI=j;setReal(j&&j.mercato);if(j&&j.mercato&&j.mercato.prezzi)j.mercato.isin.forEach((x,n)=>{const ex=INS.find(i=>i.isin===x);if(ex&&j.mercato.prezzi[n])ex.price=j.mercato.prezzi[n]});if(st.role==='consulente')loadCat();if(BE.on){if(BE.me&&BE.me.ruolo==='consulente')render()}else render()}).catch(()=>{})}catch(e){}
+if(BE.on)beInit();else render();
 </script>
-</body></html>
