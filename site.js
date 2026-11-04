@@ -1,7 +1,7 @@
 /* Binario F · sito pubblico: dati, costi, grafici, simulatore */
 const BF={
   APP:'consulenza.html',
-  DATI:'storico_portafogli.json',
+  DATI:'storico_fisso.json',
   /* ipotesi di rendimento lordo annuo per classe (non sono previsioni): modificabili qui */
   ASS:{Azionario:6.0,Obbligazionario:3.0,Monetario:2.0,Oro:3.0},
   /* costi medi dei fondi comuni: ESMA, Costs and Performance of EU Retail Investment Products 2025 (dati 2024). Fondi misti non ETF. */
