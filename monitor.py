@@ -152,19 +152,34 @@ def scarica(tick):
 
 def backtest(cfg,prices,anni=5):
     """Storico retrospettivo dei portafogli modello (pesi attuali, ribilanciamento periodico, al lordo dei costi di consulenza).
-    Dove uno strumento non ha ancora storico (o è un titolo di Stato, di cui non abbiamo i prezzi) la sua quota è ridistribuita sugli altri;
-    il calcolo parte solo quando almeno il 70% del portafoglio ha dati."""
+    Dove manca lo storico di uno strumento uso un sostituto simile: per un ETF recente la media degli ETF dello stesso gruppo
+    (azionario, obbligazionario, monetario, oro) con dati in quel giorno; per BTP/BOT/titoli di Stato gli ETF obbligazionari/monetari
+    a minor volatilita' (breve scadenza). E' un'approssimazione, non un risultato reale."""
     import numpy as np
     p=prices.ffill();r=p.pct_change(fill_method=None)
     fine=r.index[-1];inizio=fine-pd.DateOffset(years=anni);r=r[r.index>inizio]
+    g=lambda c:GRP.get(c,'E')
+    # proxy per gruppo (media giornaliera degli strumenti del gruppo con dati)
+    prox={k:r[[c for c in r.columns if g(c)==k]].mean(axis=1,skipna=True) for k in 'EBMGH' if any(g(c)==k for c in r.columns)}
+    # proxy titoli di Stato: i 3 strumenti B/M meno volatili con storico lungo
+    cand=[c for c in r.columns if g(c) in 'BM' and r[c].count()>=0.8*len(r)]
+    cand=sorted(cand,key=lambda c:r[c].std())[:3]
+    stato=r[cand].mean(axis=1,skipna=True) if cand else prox.get('M',prox.get('B'))
     out={}
     for k,pf in cfg['portafogli'].items():
-        w={c:x/100 for c,x in pf['pesi'].items() if c in r.columns}
-        if not w:continue
         tot=sum(pf['pesi'].values())/100
-        R=r[list(w)];ww=pd.Series(w)
-        den=(R.notna()*ww).sum(axis=1);num=(R.fillna(0)*ww).sum(axis=1)
-        ret=(num/den).where(den>=0.7*tot).dropna()
+        cols={};reale=0.0
+        for c,x in pf['pesi'].items():
+            w=x/100
+            if c in r.columns and r[c].count()>=0.2*len(r):
+                s_=r[c].copy();gap=s_.isna()
+                s_[gap]=(prox.get(g(c)) if prox.get(g(c)) is not None else stato)[gap]
+                cols[c]=(s_,w);reale+=w*(1-gap.mean())
+            else:
+                cols[c]=(stato if stato is not None else prox.get('B'),w)
+        ret=sum((s_.fillna(0)*w) for s_,w in cols.values())/tot
+        ok=sum((s_.notna()*w) for s_,w in cols.values())/tot
+        ret=ret[ok>=0.95].dropna()
         if len(ret)<120:continue
         nav=(1+ret).cumprod()*100
         anni_eff=(nav.index[-1]-nav.index[0]).days/365.25
@@ -175,7 +190,7 @@ def backtest(cfg,prices,anni=5):
         m12=m.pct_change(12).dropna()
         out[k]={'nome':pf['nome'],'dal':str(nav.index[0].date()),'al':str(nav.index[-1].date()),'anni':round(anni_eff,2),
                 'cagr':round(float(cagr),4),'mdd':round(mdd,4),'vol':round(vol,4),'peggior_12m':round(float(m12.min()),4) if len(m12) else None,
-                'copertura':round(float((den.reindex(ret.index)/tot).mean()),3),
+                'copertura':round(float(reale/tot),3),
                 'serie':[[str(d.date()),round(float(v),2)] for d,v in m.items()]}
     return out
 
