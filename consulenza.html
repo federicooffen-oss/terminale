@@ -440,6 +440,7 @@ const beErr=e=>{const m=(e&&e.message)||String(e);
 /* ---------- avvio e sessione ---------- */
 function beInit(){
   BE.sb=supabase.createClient(BCFG.url,BCFG.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  {const h=(location.hash||'').toLowerCase();if(h==='#registrati')BE.view='register';else if(h==='#accedi')BE.view='login'}
   BE.sb.auth.onAuthStateChange((ev,s)=>{
     setTimeout(()=>{
       if(ev==='PASSWORD_RECOVERY'){BE.view='newpw';BE.ready=true;render();return}
@@ -578,7 +579,7 @@ async function beCsv(cid){
 }
 /* ======================= VISTE ======================= */
 const PROTO_BE=`<div class="proto"><b>Versione di test.</b> Prezzi, rendimenti e statistiche sono simulati e il servizio non è ancora attivo: usala solo se sei stato invitato dal consulente.</div>`;
-function beHead(){const m=BE.me;return`<div class="in"><div class="brand"><img alt="" src="${SYM}"><div><b>Binario F</b><span>Consulenza Finanziaria Indipendente</span></div></div>
+function beHead(){const m=BE.me;return`<div class="in"><a href="home.html" title="Torna al sito" style="text-decoration:none;color:inherit"><div class="brand"><img alt="" src="${SYM}"><div><b>Binario F</b><span>Consulenza Finanziaria Indipendente</span></div></div></a>
 <div class="row">${m?`<span class="small" style="color:#DCE8E0">${esc(m.nome||m.email)}${m.ruolo==='consulente'?' · consulente':''}</span><button class="btn sm" data-act="be-logout">Esci</button>`:`<button class="btn sm" data-act="be-go" data-v="login">Accedi</button><button class="btn sm" data-act="be-go" data-v="register">Registrati</button>`}</div></div>`}
 function beRender(){
   ['email','nome'].forEach(k=>{const x=document.getElementById('be-'+k);if(x)BE.f[k]=x.value});{const x=document.getElementById('be-priv');if(x)BE.f.priv=x.checked;const p=document.getElementById('be-pw');if(p)BE.f.pw=p.value;const a=document.activeElement;BE.f.focus=a&&a.id&&a.id.indexOf('be-')===0?a.id:''}
@@ -634,7 +635,7 @@ function beElenco(){
   return `<div class="card"><div class="row sb"><h2>Clienti</h2><button class="btn sm" data-act="be-csv" data-v="">Esporta tutto lo storico (CSV)</button></div>
   <div class="row">${filtri.map(([k,l,f])=>`<button class="btn sm ${F===k?'pri':''}" data-act="be-filtro" data-v="${k}">${l} (${conta(f)})</button>`).join('')}</div>
   ${L.length?`<div class="tablewrap"><table><thead><tr><th>Cliente</th><th>Stato</th><th>Profilo</th><th>Portafoglio</th><th>Capitale</th><th>Ultimo aggiornamento</th></tr></thead><tbody>${L.map(c=>{const pr=c.profilo,pf=c.portafoglio&&PF()[c.portafoglio];
-    return `<tr><td><a href="#" data-act="be-cli" data-v="${c.id}"><b>${esc(beNome(c.id))}</b></a><div class="small muted">${esc((BE.profili[c.id]||{}).email||'')}</div></td><td>${SNOME[c.stato]}</td><td>${pr?BANDS[pr.band]:'—'}</td><td>${pf?esc(c.portafoglio+' · '+pf.nome):'—'}</td><td class="num">${(c.dati||{}).capitale?eur(c.dati.capitale):'—'}</td><td>${beDate(c.aggiornato_il)}</td></tr>`}).join('')}</tbody></table></div>`:'<p class="muted">Nessun cliente in questo elenco.</p>'}
+    return `<tr><td><a href="#" data-act="be-cli" data-v="${c.id}"><b>${esc(beNome(c.id))}</b></a><div class="small muted">${esc((BE.profili[c.id]||{}).email||'')}</div></td><td>${SNOME[c.stato]}</td><td>${pr?BANDS[pr.band]:'—'}</td><td>${pf?esc(c.portafoglio+' · '+pf.nome):'—'}</td><td class="num">${c.profilo&&(c.dati||{}).capitale?eur(c.dati.capitale):'—'}</td><td>${beDate(c.aggiornato_il)}</td></tr>`}).join('')}</tbody></table></div>`:'<p class="muted">Nessun cliente in questo elenco.</p>'}
   <p class="small muted">Il nome compare qui appena il cliente si registra; con il questionario completato lo stato diventa «Questionario completato». Clicca il nome per vedere il dettaglio e tutte le raccomandazioni.</p></div>`}
 function beCliente(cid){
   const c=BE.clienti.find(x=>x.id===cid);if(!c){BE.sel=null;return beElenco()}
