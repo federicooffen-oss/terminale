@@ -92,5 +92,5 @@ footer .legal{border-top:1px solid rgba(255,255,255,.2);padding-top:22px;font-si
 .mock{margin-bottom:34px}
 .stats-sec{padding-block:40px 8px}
 
-.enti{background:#fff;border-radius:14px;padding:12px 18px;display:inline-block;margin-bottom:26px}.enti img{display:block;height:96px;width:auto;max-width:100%}
+.enti{display:block;width:100%;text-align:center;margin:10px 0 30px}.enti img{display:inline-block;width:min(100%,520px);height:auto}
 details.note summary{list-style:revert;cursor:pointer;display:list-item;color:var(--g)}details.note summary::after{content:none}
