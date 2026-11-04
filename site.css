@@ -94,3 +94,5 @@ footer .legal{border-top:1px solid rgba(255,255,255,.2);padding-top:22px;font-si
 
 .enti{display:block;width:100%;text-align:center;margin:10px 0 30px}.enti img{display:inline-block;width:min(100%,520px);height:auto}
 details.note summary{list-style:revert;cursor:pointer;display:list-item;color:var(--g)}details.note summary::after{content:none}
+
+footer .flinks{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 28px;margin:0 0 26px}footer .flinks a{color:#fff;font-weight:600;font-size:14.5px;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.45);padding-bottom:2px}footer .flinks a:hover{border-color:#D18A1C;color:#F3C77A}
