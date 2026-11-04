@@ -149,6 +149,36 @@ def scarica(tick):
         if t in df.columns:
             for i in isl:out[i]=df[t]
     return pd.DataFrame(out).dropna(how='all').ffill()
+
+def backtest(cfg,prices,anni=5):
+    """Storico retrospettivo dei portafogli modello (pesi attuali, ribilanciamento periodico, al lordo dei costi di consulenza).
+    Dove uno strumento non ha ancora storico (o è un titolo di Stato, di cui non abbiamo i prezzi) la sua quota è ridistribuita sugli altri;
+    il calcolo parte solo quando almeno il 70% del portafoglio ha dati."""
+    import numpy as np
+    p=prices.ffill();r=p.pct_change(fill_method=None)
+    fine=r.index[-1];inizio=fine-pd.DateOffset(years=anni);r=r[r.index>inizio]
+    out={}
+    for k,pf in cfg['portafogli'].items():
+        w={c:x/100 for c,x in pf['pesi'].items() if c in r.columns}
+        if not w:continue
+        tot=sum(pf['pesi'].values())/100
+        R=r[list(w)];ww=pd.Series(w)
+        den=(R.notna()*ww).sum(axis=1);num=(R.fillna(0)*ww).sum(axis=1)
+        ret=(num/den).where(den>=0.7*tot).dropna()
+        if len(ret)<120:continue
+        nav=(1+ret).cumprod()*100
+        anni_eff=(nav.index[-1]-nav.index[0]).days/365.25
+        cagr=(nav.iloc[-1]/100)**(1/anni_eff)-1 if anni_eff>0 else 0
+        mdd=float((nav/nav.cummax()-1).min())
+        vol=float(ret.std()*np.sqrt(252))
+        m=nav.resample('ME').last().dropna()
+        m12=m.pct_change(12).dropna()
+        out[k]={'nome':pf['nome'],'dal':str(nav.index[0].date()),'al':str(nav.index[-1].date()),'anni':round(anni_eff,2),
+                'cagr':round(float(cagr),4),'mdd':round(mdd,4),'vol':round(vol,4),'peggior_12m':round(float(m12.min()),4) if len(m12) else None,
+                'copertura':round(float((den.reindex(ret.index)/tot).mean()),3),
+                'serie':[[str(d.date()),round(float(v),2)] for d,v in m.items()]}
+    return out
+
 def main():
     cfg=json.load(open(os.path.join(BASE,'modelli.json')))
     out_path=os.path.join(BASE,'monitor.json')
@@ -191,6 +221,11 @@ def main():
     out={'aggiornato':adesso,'ultimo_prezzo':str(prices.index[-1].date()),'strumenti_senza_dati':mancanti,'anomalie':[a for a in anomalie if a['isin'] in isins_pf],'mercato':mercato,'portafogli':res}
     json.dump(out,open(out_path,'w'),ensure_ascii=False,indent=1)
     print('OK',out['ultimo_prezzo'],'portafogli senza dati:',mancanti)
+    try:
+        bt=backtest(cfg,prices)
+        json.dump({'aggiornato':adesso,'nota':'Storico retrospettivo (backtest) con i pesi attuali dei portafogli, al lordo dei costi di consulenza. Non è un risultato realmente ottenuto da clienti. I rendimenti passati non sono indicativi di quelli futuri.','portafogli':bt},open(os.path.join(BASE,'storico_portafogli.json'),'w'),ensure_ascii=False,separators=(',',':'))
+        print('storico portafogli:',len(bt))
+    except Exception as e:print('storico non calcolato:',e)
     # catalogo completo (per la ricerca nell'app): prezzo, volatilità e correlazioni reali di ogni strumento
     ca=[c for c in tutti if c in ok]
     rc=rets[ca]
