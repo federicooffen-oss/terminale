@@ -237,11 +237,13 @@ def main():
     json.dump(out,open(out_path,'w'),ensure_ascii=False,indent=1)
     print('OK',out['ultimo_prezzo'],'portafogli senza dati:',mancanti)
     try:
-        if os.environ.get('STORICO') not in ('1','true') and os.path.exists(os.path.join(BASE,'storico_portafogli.json')):raise RuntimeError('storico già presente: ricalcolo solo su richiesta')
+        sp_=os.path.join(BASE,'storico_portafogli.json');gia=os.path.exists(sp_) and json.load(open(sp_)).get('metodo')=='sostituti-v2'
+        if os.environ.get('STORICO') not in ('1','true') and gia:raise RuntimeError('storico già presente: ricalcolo solo su richiesta')
         bt=backtest(cfg,prices)
-        json.dump({'aggiornato':adesso,'nota':'Storico retrospettivo (backtest) con i pesi attuali dei portafogli, al lordo dei costi di consulenza. Non è un risultato realmente ottenuto da clienti. I rendimenti passati non sono indicativi di quelli futuri.','portafogli':bt},open(os.path.join(BASE,'storico_portafogli.json'),'w'),ensure_ascii=False,separators=(',',':'))
+        json.dump({'aggiornato':adesso,'metodo':'sostituti-v2','nota':'Storico retrospettivo (backtest) con i pesi attuali dei portafogli, al lordo dei costi di consulenza. Non è un risultato realmente ottenuto da clienti. I rendimenti passati non sono indicativi di quelli futuri.','portafogli':bt},open(os.path.join(BASE,'storico_portafogli.json'),'w'),ensure_ascii=False,separators=(',',':'))
         print('storico portafogli:',len(bt))
-    except Exception as e:print('storico non calcolato:',e)
+    except Exception as e:
+        import traceback;traceback.print_exc();print('storico non calcolato:',e)
     # catalogo completo (per la ricerca nell'app): prezzo, volatilità e correlazioni reali di ogni strumento
     ca=[c for c in tutti if c in ok]
     rc=rets[ca]
