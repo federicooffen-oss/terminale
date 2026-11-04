@@ -3,6 +3,11 @@ on:
   schedule:
     - cron: '0 17 * * 1-5'
   workflow_dispatch:
+    inputs:
+      storico:
+        description: 'Ricalcola anche lo storico dei portafogli (backtest)'
+        type: boolean
+        default: false
 permissions:
   contents: write
   issues: write
@@ -20,6 +25,8 @@ jobs:
         continue-on-error: true
         run: python anagrafica_titoli.py
       - name: Calcolo VaR e deriva dei pesi
+        env:
+          STORICO: ${{ inputs.storico }}
         run: python monitor.py
       - name: Salva i risultati
         if: always()
