@@ -26,7 +26,7 @@ jobs:
         run: |
           git config user.name "monitor-bot"
           git config user.email "bot@users.noreply.github.com"
-          git add monitor.json catalogo.json isin_cache.json titoli_stato.json || true
+          git add monitor.json catalogo.json isin_cache.json titoli_stato.json storico_portafogli.json || true
           git diff --cached --quiet || git commit -m "Monitoraggio portafogli"
           git pull --rebase || true
           git push || true
@@ -38,5 +38,3 @@ jobs:
           if [ -f avvisi.md ]; then
             gh issue create --title "Avvisi portafogli $(date +%F)" --body-file avvisi.md
           fi
-
-
