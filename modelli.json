@@ -4,138 +4,138 @@
   "P1": {
    "nome": "Liquidità Plus",
    "fascia": 0,
-   "ultimo_ribilanciamento": "2026-11-03",
+   "ultimo_ribilanciamento": "2026-11-04",
    "pesi": {
-    "LU0290358497": 60,
     "IT0005735094": 30,
+    "LU0290358497": 60,
     "LU1650487413": 10
    }
   },
   "P2": {
    "nome": "Prudente Anti-inflazione",
    "fascia": 0,
-   "ultimo_ribilanciamento": "2026-11-03",
+   "ultimo_ribilanciamento": "2026-11-04",
    "pesi": {
     "IE00BK5BQT80": 7,
-    "LU1650487413": 40,
-    "LU0290358497": 25,
-    "LU1650491282": 8,
     "IT0005388167": 10,
-    "IT0005532723": 10
+    "IT0005532723": 10,
+    "LU0290358497": 25,
+    "LU1650487413": 40,
+    "LU1650491282": 8
    }
   },
   "P3": {
    "nome": "Rendita Prudente",
    "fascia": 1,
-   "ultimo_ribilanciamento": "2026-11-03",
+   "ultimo_ribilanciamento": "2026-11-04",
    "pesi": {
-    "IT0005521981": 20,
-    "IT0001278511": 15,
-    "LU2082999306": 20,
-    "IT0005733636": 15,
+    "FR0007056841": 10,
     "IE00B8GKDB10": 10,
+    "IT0001278511": 15,
+    "IT0005521981": 20,
+    "IT0005733636": 15,
     "LU1650487926": 10,
-    "FR0007056841": 10
+    "LU2082999306": 20
    }
   },
   "P4": {
    "nome": "Bilanciato Prudente",
    "fascia": 1,
-   "ultimo_ribilanciamento": "2026-11-03",
+   "ultimo_ribilanciamento": "2026-11-04",
    "pesi": {
-    "LU1650487413": 35,
-    "LU0290358497": 15,
-    "IE00BL25JL35": 15,
-    "LU1650491282": 10,
     "IE00B8FHGS14": 10,
+    "IE00BJ0KDQ92": 5,
+    "IE00BL25JL35": 15,
     "IT0005024234": 10,
-    "IE00BJ0KDQ92": 5
+    "LU0290358497": 15,
+    "LU1650487413": 35,
+    "LU1650491282": 10
    }
   },
   "P5": {
    "nome": "ESG Prudente",
    "fascia": 1,
-   "ultimo_ribilanciamento": "2026-11-03",
+   "ultimo_ribilanciamento": "2026-11-04",
    "pesi": {
-    "LU1650487413": 25,
+    "IE000LAUZQT6": 5,
     "IE00BCHWNQ94": 18,
-    "LU2182388236": 15,
-    "LU0290358497": 15,
-    "IT0005542359": 15,
     "IE00BG370F43": 7,
-    "IE000LAUZQT6": 5
+    "IT0005542359": 15,
+    "LU0290358497": 15,
+    "LU1650487413": 25,
+    "LU2182388236": 15
    }
   },
   "P6": {
    "nome": "Bilanciato Crescita",
    "fascia": 2,
-   "ultimo_ribilanciamento": "2026-11-03",
+   "ultimo_ribilanciamento": "2026-11-04",
    "pesi": {
     "IE00BK5BQT80": 30,
-    "LU1650487413": 25,
-    "LU1650491282": 10,
     "IE00BK5BR626": 10,
-    "LU0290358497": 10,
+    "IE00BL25JN58": 10,
     "IE00BP3QZ825": 5,
-    "IE00BL25JN58": 10
+    "LU0290358497": 10,
+    "LU1650487413": 25,
+    "LU1650491282": 10
    }
   },
   "P7": {
    "nome": "Rendita Dinamica",
    "fascia": 2,
-   "ultimo_ribilanciamento": "2026-11-03",
+   "ultimo_ribilanciamento": "2026-11-04",
    "pesi": {
     "FR0010315770": 25,
-    "LU1650487926": 20,
     "IE00B8GKDB10": 15,
-    "LU0832436512": 15,
-    "LU2082999306": 10,
     "IT0005542797": 10,
-    "LU1435356149": 5
+    "LU0832436512": 15,
+    "LU1435356149": 5,
+    "LU1650487926": 20,
+    "LU2082999306": 10
    }
   },
   "P8": {
    "nome": "ESG Crescita",
    "fascia": 2,
-   "ultimo_ribilanciamento": "2026-11-03",
+   "ultimo_ribilanciamento": "2026-11-04",
    "pesi": {
-    "IE00BCHWNQ94": 45,
     "IE000LAUZQT6": 13,
-    "LU2182388236": 10,
-    "LU1650487413": 10,
-    "IT0005508590": 10,
+    "IE00BCHWNQ94": 50,
     "IE00BG370F43": 7,
-    "LU0290358497": 5
+    "IT0005508590": 10,
+    "LU0290358497": 5,
+    "LU1650487413": 10,
+    "LU2182388236": 5
    }
   },
   "P9": {
    "nome": "Crescita Globale",
    "fascia": 3,
-   "ultimo_ribilanciamento": "2026-11-03",
+   "ultimo_ribilanciamento": "2026-11-04",
    "pesi": {
-    "IE00BL25JL35": 40,
-    "IE00BK5BR626": 15,
-    "IE00B8FHGS14": 10,
-    "LU1650487413": 10,
-    "IE00BF4RFH31": 8,
-    "IE00BP3QZ825": 7,
     "FR0013416716": 5,
-    "LU0290358497": 5
+    "IE00B8FHGS14": 10,
+    "IE00BF4RFH31": 8,
+    "IE00BK5BR626": 15,
+    "IE00BL25JL35": 40,
+    "IE00BP3QZ825": 7,
+    "LU0290358497": 5,
+    "LU1650487413": 10
    }
   },
   "P10": {
    "nome": "Crescita Dinamica",
    "fascia": 3,
-   "ultimo_ribilanciamento": "2026-11-03",
+   "ultimo_ribilanciamento": "2026-11-04",
    "pesi": {
+    "IE00BF4RFH31": 8,
+    "IE00BK5BR626": 12,
     "IE00BL25JL35": 40,
     "IE00BL25JN58": 15,
-    "IE00BK5BR626": 12,
-    "LU1650487413": 10,
-    "IE00BF4RFH31": 8,
+    "IE00BM67HT60": 3,
     "IE00BP3QZ825": 7,
     "LU0290358497": 5,
-    "IE00BM67HT60": 3
+    "LU1650487413": 10
    }
   }
  },
@@ -144,39 +144,39 @@
   "preavviso_var": 0.9
  },
  "nomi": {
-  "LU0290358497": "Xtrackers II EUR Overnight Rate Swap 1C",
   "IT0005735094": "BOT 365 gg 14.10.2026 - 14.10.2027",
+  "LU0290358497": "Xtrackers II EUR Overnight Rate Swap 1C",
   "LU1650487413": "Amundi Euro Government Bond 1-3Y Acc",
   "IE00BK5BQT80": "Vanguard FTSE All-World UCITS ETF (USD) Accumulating",
-  "LU1650491282": "Amundi Euro Govt Inflation-Linked Acc",
   "IT0005388167": "BTPITALIA 0,65% 28.10.2019 - 28.10.2027",
   "IT0005532723": "BTPITALIA 2% 14.3.2023 - 14.3.2028",
-  "IT0005521981": "BTP 3,4% 30.11.2022 - 1.4.2028",
-  "IT0001278511": "BTP 5,25% 1.11.1998 - 1.11.2029",
-  "LU2082999306": "Amundi Smart Overnight Return UCITS ETF Dist",
-  "IT0005733636": "BTP 3,95% 1.10.2026 - 1.2.2032",
-  "IE00B8GKDB10": "Vanguard FTSE All-World High Dividend Yield (Dist)",
-  "LU1650487926": "Amundi Euro Government Bond 1-3Y UCITS ETF Dist",
+  "LU1650491282": "Amundi Euro Govt Inflation-Linked Acc",
   "FR0007056841": "Amundi Dow Jones Industrial Average UCITS ETF Dist",
-  "IE00BL25JL35": "Xtrackers MSCI World Quality 1C",
+  "IE00B8GKDB10": "Vanguard FTSE All-World High Dividend Yield (Dist)",
+  "IT0001278511": "BTP 5,25% 1.11.1998 - 1.11.2029",
+  "IT0005521981": "BTP 3,4% 30.11.2022 - 1.4.2028",
+  "IT0005733636": "BTP 3,95% 1.10.2026 - 1.2.2032",
+  "LU1650487926": "Amundi Euro Government Bond 1-3Y UCITS ETF Dist",
+  "LU2082999306": "Amundi Smart Overnight Return UCITS ETF Dist",
   "IE00B8FHGS14": "iShares Edge MSCI World Minimum Volatility (Acc)",
-  "IT0005024234": "BTP 3,5% 1.3.2014 - 1.3.2030",
   "IE00BJ0KDQ92": "Xtrackers MSCI World UCITS ETF 1C",
-  "IE00BCHWNQ94": "Xtrackers MSCI World ESG Screened",
-  "LU2182388236": "Amundi Euro Aggregate Bond ESG DR (C)",
-  "IT0005542359": "BTPGREEN 4% 13.4.2023 - 30.10.2031",
-  "IE00BG370F43": "Xtrackers MSCI Emerging Markets ESG 1C",
+  "IE00BL25JL35": "Xtrackers MSCI World Quality 1C",
+  "IT0005024234": "BTP 3,5% 1.3.2014 - 1.3.2030",
   "IE000LAUZQT6": "Xtrackers MSCI World Value ESG UCITS ETF 1C",
+  "IE00BCHWNQ94": "Xtrackers MSCI World ESG Screened",
+  "IE00BG370F43": "Xtrackers MSCI Emerging Markets ESG 1C",
+  "IT0005542359": "BTPGREEN 4% 13.4.2023 - 30.10.2031",
+  "LU2182388236": "Amundi Euro Aggregate Bond ESG DR (C)",
   "IE00BK5BR626": "Vanguard FTSE All-World High Dividend Yield UCITS ETF (USD) Accumulating",
-  "IE00BP3QZ825": "iShares Edge MSCI World Momentum Factor (Acc)",
   "IE00BL25JN58": "Xtrackers MSCI World Minimum Volatility UCITS ETF 1C",
+  "IE00BP3QZ825": "iShares Edge MSCI World Momentum Factor (Acc)",
   "FR0010315770": "Amundi MSCI World II UCITS ETF Dist",
-  "LU0832436512": "Amundi Global Equity Quality Income UCITS ETF Dist",
   "IT0005542797": "BTP 3,7% 17.4.2023 - 15.6.2030",
+  "LU0832436512": "Amundi Global Equity Quality Income UCITS ETF Dist",
   "LU1435356149": "Amundi USD High Yield Corporate Bond ESG UCITS ETF Dist",
   "IT0005508590": "BTPGREEN 4% 30.4.2022 - 30.4.2035",
-  "IE00BF4RFH31": "iShares MSCI World Small Cap (Acc)",
   "FR0013416716": "Amundi Physical Gold ETC (C)",
+  "IE00BF4RFH31": "iShares MSCI World Small Cap (Acc)",
   "IE00BM67HT60": "Xtrackers MSCI World Information Technology 1C"
  },
  "titoli": {
@@ -186,8 +186,8 @@
    "serie": "BOT",
    "tasso": 0,
    "scadenza": "2027-10-14",
-   "duration": 0.92,
-   "vol_stimata": 0.92
+   "duration": 0.91,
+   "vol_stimata": 0.91
   },
   "IT0005388167": {
    "nome": "BTPITALIA 0,65% 28.10.2019 - 28.10.2027",
@@ -195,8 +195,8 @@
    "serie": "BTP Italia",
    "tasso": 0.65,
    "scadenza": "2027-10-28",
-   "duration": 0.97,
-   "vol_stimata": 0.97
+   "duration": 0.96,
+   "vol_stimata": 0.96
   },
   "IT0005532723": {
    "nome": "BTPITALIA 2% 14.3.2023 - 14.3.2028",
@@ -207,15 +207,6 @@
    "duration": 1.32,
    "vol_stimata": 1.32
   },
-  "IT0005521981": {
-   "nome": "BTP 3,4% 30.11.2022 - 1.4.2028",
-   "tipo": "BTP",
-   "serie": "BTP",
-   "tasso": 3.4,
-   "scadenza": "2028-04-01",
-   "duration": 1.36,
-   "vol_stimata": 1.36
-  },
   "IT0001278511": {
    "nome": "BTP 5,25% 1.11.1998 - 1.11.2029",
    "tipo": "BTP",
@@ -224,6 +215,15 @@
    "scadenza": "2029-11-01",
    "duration": 2.77,
    "vol_stimata": 2.77
+  },
+  "IT0005521981": {
+   "nome": "BTP 3,4% 30.11.2022 - 1.4.2028",
+   "tipo": "BTP",
+   "serie": "BTP",
+   "tasso": 3.4,
+   "scadenza": "2028-04-01",
+   "duration": 1.36,
+   "vol_stimata": 1.36
   },
   "IT0005733636": {
    "nome": "BTP 3,95% 1.10.2026 - 1.2.2032",
