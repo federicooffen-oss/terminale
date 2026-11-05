@@ -97,14 +97,14 @@
   "P8": {
    "nome": "ESG Crescita",
    "fascia": 2,
-   "ultimo_ribilanciamento": "2026-11-04",
+   "ultimo_ribilanciamento": "2026-11-05",
    "pesi": {
     "IE000LAUZQT6": 13,
-    "IE00BCHWNQ94": 45,
+    "IE00BCHWNQ94": 40,
     "IE00BG370F43": 7,
     "IT0005508590": 10,
     "LU0290358497": 5,
-    "LU1650487413": 10,
+    "LU1650487413": 15,
     "LU2182388236": 10
    }
   },
@@ -267,8 +267,8 @@
    "serie": "BTP Green",
    "tasso": 4,
    "scadenza": "2035-04-30",
-   "duration": 7.22,
-   "vol_stimata": 7.22
+   "duration": 7.21,
+   "vol_stimata": 7.21
   }
  }
 }
