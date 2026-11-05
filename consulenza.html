@@ -893,7 +893,9 @@ function przStrumenti(){
   (BE.eseAll||[]).forEach(e=>{if(/^[A-Z0-9]{12}$/.test(e.isin||'')&&!m.has(e.isin))m.set(e.isin,{isin:e.isin,nome:e.nome||e.isin,bond:isBondE(e.isin,e.nome)})});
   return [...m.values()].sort((a,b)=>(a.bond-b.bond)||a.nome.localeCompare(b.nome))}
 const applyPrz=()=>INS.forEach(i=>{if(i.bond)return;const p=przLast(i.isin);if(p)i.price=p[1]});
-const przNum=t=>{const x=+String(t).trim().replace(/\s/g,'').replace(/\.(?=\d{3}(\D|$))/g,'').replace(',','.');return isFinite(x)&&x>0?x:null};
+const przNum=t=>{let s=String(t).trim().replace(/[^\d.,\-]/g,'');if(!s)return null;
+  if(s.includes(','))s=s.replace(/\./g,'').replace(',','.');else if((s.match(/\./g)||[]).length>1)s=s.replace(/\./g,'');
+  const x=+s;return isFinite(x)&&x>0?x:null};
 function bePrezzi(){
   const L=przStrumenti(),oggi=dLoc(new Date()),ult=przData(),pend=BE.przPend||{date:oggi,vals:{}},dt=pend.date||oggi;
   const manca=L.filter(x=>{const p=przLast(x.isin);return !p||p[0]<oggi});
@@ -909,16 +911,22 @@ function bePrezzi(){
 function csvRows(t){t=String(t).replace(/^\uFEFF/,'');const first=t.split(/\r?\n/)[0]||'',cnt=c=>(first.split(c).length-1),dl=cnt(';')>=Math.max(cnt('\t'),cnt(','))&&cnt(';')>0?';':cnt('\t')>cnt(',')?'\t':',';
   const rows=[];let r=[],c='',q=false;for(let i=0;i<t.length;i++){const ch=t[i];if(q){if(ch==='"'){if(t[i+1]==='"'){c+='"';i++}else q=false}else c+=ch}else if(ch==='"')q=true;else if(ch===dl){r.push(c);c=''}else if(ch==='\n'||ch==='\r'){if(ch==='\r'&&t[i+1]==='\n')i++;r.push(c);rows.push(r);r=[];c=''}else c+=ch}
   if(c!==''||r.length){r.push(c);rows.push(r)}return rows}
-function przDaFile(t){const rows=csvRows(t),H=(rows[0]||[]).map(x=>String(x).toLowerCase()),ix=H.findIndex(h=>/chiusura|nuovo/.test(h)),righe=[],sc=[];
-  rows.forEach((r,n)=>{const ii=r.findIndex(x=>/^[A-Z0-9]{12}$/.test(String(x).trim().toUpperCase()));if(ii<0){if(n>0&&r.some(x=>String(x).trim()))sc.push(r.join(' ').slice(0,40));return}
-    const isin=String(r[ii]).trim().toUpperCase();let p=null;if(ix>=0)p=przNum(r[ix]||'');else{for(let j=r.length-1;j>ii&&p==null;j--)if(String(r[j]).trim())p=przNum(r[j])}
-    if(p)righe.push({isin,prezzo:p})});return{righe,sc}}
-function przScarica(){const L=przStrumenti(),oggi=dLoc(new Date()),H=['ISIN','Strumento','Tipo','Ultimo prezzo','Data ultimo prezzo','Prezzo di chiusura'];
-  const rows=L.map(x=>{const p=przLast(x.isin);return [x.isin,x.nome,x.bond?'Titolo di Stato (prezzo per 100)':'ETF',p?String(p[1]).replace('.',','):'',p?dIt(p[0]):'',''].map(csvC).join(';')});
+function przDaFile(t){const rows=csvRows(t),H=(rows[0]||[]).map(x=>String(x).toLowerCase());let ix=H.findIndex(h=>/chiusura|nuovo/.test(h));
+  const isinRows=rows.filter(r=>r.some(x=>/^[A-Z0-9]{12}$/.test(String(x).trim().toUpperCase())));
+  const run=ix=>{const righe=[];isinRows.forEach(r=>{const ii=r.findIndex(x=>/^[A-Z0-9]{12}$/.test(String(x).trim().toUpperCase())),isin=String(r[ii]).trim().toUpperCase();let p=null;
+    if(ix>=0)p=przNum(r[ix]||'');else{for(let j=r.length-1;j>ii&&p==null;j--)if(String(r[j]).trim())p=przNum(r[j])}
+    if(p)righe.push({isin,prezzo:p})});return righe};
+  let righe=run(ix),usato=ix>=0?'colonna «'+(rows[0][ix]||'').trim()+'»':'ultima colonna con un numero';
+  if(!righe.length&&isinRows.length&&ix>=0){righe=run(-1);usato='ultima colonna con un numero'}
+  const sc=rows.slice(1).filter(r=>r.some(x=>String(x).trim())&&!isinRows.includes(r)).map(r=>r.join(' ').slice(0,40));
+  return{righe,sc,info:`Nel file ho letto ${rows.length} righe: ${isinRows.length} con un ISIN e ${righe.length} con un prezzo valido (${usato}).`}}
+function przScarica(){const L=przStrumenti(),oggi=dLoc(new Date()),H=['ISIN','Strumento','Tipo','Prezzo di chiusura','Data del prezzo','Esito','Ultimo prezzo salvato (data)'];
+  const rows=L.map(x=>{const p=przLast(x.isin);return [x.isin,x.nome,x.bond?'Titolo di Stato (prezzo per 100)':'ETF','','','',p?String(p[1]).replace('.',',')+' ('+dIt(p[0])+')':''].map(csvC).join(';')});
   const blob=new Blob(['\uFEFF'+[H.join(';'),...rows].join('\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='prezzi_'+oggi+'.csv';document.body.appendChild(a);a.click();a.remove()}
 document.addEventListener('change',async e=>{const t=e.target;if(!t||t.id!=='prz-file'||!t.files||!t.files[0])return;
-  const txt=await t.files[0].text(),{righe,sc}=przDaFile(txt),ok=new Set(przStrumenti().map(x=>x.isin)),ign=righe.filter(r=>!ok.has(r.isin)).map(r=>r.isin);
-  await bePrzSalva(righe.filter(r=>ok.has(r.isin)),beV('prz-d'));if((sc.length||ign.length)&&BE.msg)BE.msg.t+=' Righe non lette o ISIN non presenti nei portafogli: '+[...sc,...ign].slice(0,5).join(', ')+'.';render()});
+  const txt=await t.files[0].text(),{righe,sc,info}=przDaFile(txt),ok=new Set(przStrumenti().map(x=>x.isin)),ign=righe.filter(r=>!ok.has(r.isin)).map(r=>r.isin);
+  const dentro=righe.filter(r=>ok.has(r.isin));if(!dentro.length){beMsg('Nessun prezzo da salvare. '+info+(righe.length?' Gli ISIN del file non sono nei portafogli del software.':' Controlla che il file sia il CSV della scheda «Prezzi» con la colonna «Prezzo di chiusura» compilata.'),1);t.value='';render();return}
+  await bePrzSalva(dentro,beV('prz-d'));t.value='';if((sc.length||ign.length)&&BE.msg)BE.msg.t+=' Righe non lette o ISIN non presenti nei portafogli: '+[...sc,...ign].slice(0,5).join(', ')+'.';render()});
 async function bePrzSalva(righe,date){
   const d=date||beV('prz-d');if(!/^\d{4}-\d{2}-\d{2}$/.test(d)){beMsg('Scegli la data dei prezzi.',1);return}
   if(!righe.length){beMsg('Nessun prezzo da salvare.',1);return}
