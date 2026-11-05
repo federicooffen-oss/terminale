@@ -32,6 +32,7 @@ a{color:var(--brand);text-underline-offset:3px}
 .vs{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
 .seg{display:inline-flex;background:var(--chip);border-radius:99px;padding:4px;gap:2px;max-width:100%;overflow-x:auto}
 .seg button{border:0;background:transparent;padding:7px 16px;border-radius:99px;font-weight:600;color:var(--muted);white-space:nowrap}
+.btn[aria-pressed="true"],.btn.sm[aria-pressed="true"]{background:var(--brand)!important;color:#fff!important;border-color:var(--brand)!important}
 .seg button[aria-pressed="true"]{background:var(--brand);color:var(--brand-fg)}
 .proto{background:var(--warn-bg);border-radius:12px;padding:10px 16px;font-size:13px;color:var(--accent-t)}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:28px;display:flex;flex-direction:column;gap:16px;min-width:0}
@@ -511,9 +512,42 @@ function prevView(){
 document.addEventListener('change',e=>{const t=e.target,k=t.dataset&&t.dataset.pv;if(!k)return;
   if(k==='fondo'){PV.fondo=t.value==='__altro'?'':t.value;PV.perc=null}else if(k==='ral'||k==='anni'||k==='rend'||k==='perc')PV[k]=t.value===''?null:+t.value;else PV[k]=t.value;pvSave();render()});
 /* ======================= REPORT TRIMESTRALE e INDICATORI OCF ======================= */
-/* Adattatore prezzi: oggi usa l'ultimo prezzo noto; quando avrai il fornitore API basta sostituire questi due metodi.
-   last(riga) → prezzo di oggi; at(isin,'AAAA-MM-GG') → prezzo storico (null = non disponibile: rendimenti e utili restano «—»). */
-const PRICE_API={last:l=>l.price,at:(isin,date)=>null};
+/* ---------- PREZZI di chiusura inseriti a mano dal consulente (tabella «prezzi») ---------- */
+let PRZ={};            // isin -> [[aaaa-mm-gg, prezzo], ...] in ordine di data
+const przSet=rows=>{const m={};(rows||[]).forEach(r=>{(m[r.isin]=m[r.isin]||[]).push([String(r.data).slice(0,10),+r.prezzo])});Object.values(m).forEach(a=>a.sort((x,y)=>x[0]<y[0]?-1:x[0]>y[0]?1:0));PRZ=m};
+const przLast=isin=>{const a=PRZ[isin];return a&&a.length?a[a.length-1]:null};            // [data, prezzo] o null
+const przAt=(isin,d)=>{const a=PRZ[isin];if(!a)return null;let r=null;for(const x of a){if(x[0]<=d)r=x[1];else break}return r};
+const przData=()=>Object.values(PRZ).reduce((m,a)=>a.length&&a[a.length-1][0]>m?a[a.length-1][0]:m,'');
+const isBondE=(isin,nome)=>{const i=(typeof INS!=='undefined')&&INS.find(k=>k.isin===isin);return !!(i&&i.bond)||/\b(btp|bot|ctz|cct|buono|buoni)\b/i.test(nome||'')};
+const fattE=(isin,nome)=>isBondE(isin,nome)?0.01:1;     // titoli di Stato: prezzo per 100 di nominale
+/* last(riga) → prezzo di oggi (il tuo ultimo inserito, altrimenti quello del catalogo); at(isin,'AAAA-MM-GG') → prezzo di quel giorno (null se non c'è) */
+const PRICE_API={last:l=>{const p=przLast(l.isin);return p?p[1]:l.price},at:(isin,date)=>przAt(isin,date)};
+const dLoc=x=>new Date(x).toLocaleDateString('sv-SE');
+/* serie giornaliera del valore dei titoli del cliente, dai suoi acquisti/vendite e dai prezzi inseriti */
+function serieCli(E){
+  const ev=(E||[]).map(e=>({d:dLoc(e.eseguita_il),isin:e.isin,nome:e.nome,q:(e.tipo==='vendita'?-1:1)*(+e.quantita),px:+e.prezzo||0,f:fattE(e.isin,e.nome),id:e.id})).filter(e=>e.q)
+    .sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:a.id-b.id);
+  if(!ev.length)return [];
+  const d0=ev[0].d,ds=new Set(ev.map(e=>e.d));Object.values(PRZ).forEach(a=>a.forEach(([d])=>{if(d>=d0)ds.add(d)}));
+  const days=[...ds].sort(),pos={},lastpx={},out=[];let i=0,cum=0;
+  days.forEach(d=>{let flow=0;
+    while(i<ev.length&&ev[i].d<=d){const e=ev[i++];pos[e.isin]=Math.max(0,(pos[e.isin]||0)+e.q);if(e.px)lastpx[e.isin]=e.px;flow+=e.q*(e.px||przAt(e.isin,d)||0)*e.f}
+    cum+=flow;let v=0;
+    Object.keys(pos).forEach(k=>{if(pos[k]>0){const nm=(ev.find(e=>e.isin===k)||{}).nome;v+=pos[k]*(przAt(k,d)||lastpx[k]||0)*fattE(k,nm)}});
+    out.push({d,v,flow,cum})});
+  return out}
+const RNG_L=[['1G','1G'],['1S','1S'],['1M','1M'],['YTD','Da inizio anno'],['1A','1A'],['MAX','Da inizio']];
+function rngStart(ser,k){const n=ser.length,end=ser[n-1].d,dt=new Date(end+'T12:00:00');let tgt;
+  if(k==='1G')return Math.max(0,n-2);
+  if(k==='MAX')return 0;
+  if(k==='1S')dt.setDate(dt.getDate()-7);else if(k==='1M')dt.setMonth(dt.getMonth()-1);else if(k==='1A')dt.setFullYear(dt.getFullYear()-1);
+  if(k==='YTD')tgt=(dt.getFullYear()-1)+'-12-31';else tgt=dLoc(dt);
+  let r=0;ser.forEach((p,j)=>{if(p.d<=tgt)r=j});return r}
+function twr(ser,i0,i1){let t=1;for(let j=i0+1;j<=i1;j++){const a=ser[j-1].v;if(a>0)t*=(ser[j].v-ser[j].flow)/a}return t-1}
+function lineSvg(ser,h=210){
+  const W=640,P=44,vals=ser.map(p=>p.v),mx=Math.max(...vals),mn=Math.min(...vals),X=i=>P+i*(W-P-10)/((ser.length-1)||1),Y=v=>h-26-(v-mn)/((mx-mn)||1)*(h-44);
+  return `<svg class="chart" viewBox="0 0 ${W} ${h}" width="100%" role="img" aria-label="Andamento del valore del portafoglio"><polyline fill="none" stroke="var(--brand)" stroke-width="2" points="${ser.map((p,i)=>X(i)+','+Y(p.v)).join(' ')}"/>${ser.length<=40?ser.map((p,i)=>`<circle cx="${X(i)}" cy="${Y(p.v)}" r="2.5" fill="var(--brand)"/>`).join(''):''}<text x="${P}" y="${h-6}">${dIt(ser[0].d)}</text><text x="${W-10}" y="${h-6}" text-anchor="end">${dIt(ser[ser.length-1].d)}</text><text x="2" y="${Y(mx)+4}">${f0(mx)}</text><text x="2" y="${Y(mn)+4}">${f0(mn)}</text></svg>`}
+let RNG='MAX';
 const MACRO=['Azionario','Obbligazionario','Monetario','Oro'];
 const MACRO_L={Azionario:'Azionario',Obbligazionario:'Obbligazionario',Monetario:'Monetario',Oro:'Materie prime'};
 function sottoclasse(nome,cls){const t=(nome||'').toLowerCase();
@@ -550,11 +584,11 @@ function repData(c,self){
   const d=c.dati||{},pl=planCli(c,self);if(!pl)return null;
   const righe=pl.lines.map(l=>({...l,val:l.amt,macro:l.cls,sub:sottoclasse(l.name,l.cls),emit:emittente(l.name,l.isin)}));
   const E=BE.on?(self?BE.ese:(BE.eseAll||[]).filter(e=>e.cliente_id===c.id)):[],P=posOf(E);let utili=null,costoTot=0,spent=0;
-  righe.forEach(l=>{const p=P[l.isin];if(p&&p.q>0&&!l.sing&&p.c>0){const last=PRICE_API.last(l);l.qty=p.q;l.carico=p.c;l.val=p.q*last;l.costo=p.q*p.c;l.utile=l.val-l.costo;l.rend=last/p.c-1;utili=(utili||0)+l.utile;costoTot+=l.costo;spent+=l.costo}else spent+=l.amt});
+  righe.forEach(l=>{const p=P[l.isin];if(p&&p.q>0&&p.c>0){const pz=przLast(l.isin),last=pz?pz[1]:(l.sing?p.c:l.price),f=l.sing?0.01:1;l.qty=l.sing?p.q/1000:p.q;l.carico=p.c;l.val=p.q*last*f;l.costo=p.q*p.c*f;l.utile=l.val-l.costo;l.rend=last/p.c-1;if(pz){utili=(utili||0)+l.utile;costoTot+=l.costo}else{l.utile=null;l.rend=null}spent+=l.costo}else spent+=l.amt});
   const tit=righe.reduce((a,l)=>a+l.val,0),liq=Math.max(0,(pl.capital||0)-(pl.monthly?0:spent)),tot=tit+liq;
   const prof=c.profilo,E_=E,hor=(typeof HOR!=='undefined'&&HOR.o&&d.A&&d.A.hor!=null)?HOR.o[d.A.hor]:'—';
   const inizio=c.attivo_dal?new Date(c.attivo_dal):new Date(),fine=c.uscito_il&&c.stato==='uscito'?new Date(c.uscito_il):new Date();
-  return{nome:self?st.user.nome:(typeof beNome==='function'?beNome(c.id):''),inizio,fine,prof:prof?BANDS[prof.band]:'—',hor,righe,tit,liq,tot,utili,costoTot,ops:opsCli(c,pl,self),imp:d.spese||[]}}
+  return{nome:self?st.user.nome:(typeof beNome==='function'?beNome(c.id):''),inizio,fine,prof:prof?BANDS[prof.band]:'—',hor,righe,tit,liq,tot,utili,costoTot,ops:opsCli(c,pl,self),imp:d.spese||[],ser:serieCli(E),ultimo:przData()}}
 const bars=(rows)=>rows.map(([l,v])=>`<div><div class="row sb small"><span>${esc(l)}</span><b class="num">${f2(v)}%</b></div><div class="bar"><i style="width:${Math.min(100,v)}%"></i></div></div>`).join('');
 function reportHtml(r){
   const pct=v=>r.tot?v/r.tot*100:0,perM={};r.righe.forEach(l=>perM[l.macro]=(perM[l.macro]||0)+l.val);perM.Liquidità=r.liq;
@@ -562,16 +596,16 @@ function reportHtml(r){
   const sub=(m)=>{const o={};r.righe.filter(l=>l.macro===m).forEach(l=>o[l.sub]=(o[l.sub]||0)+l.val);const t=Object.values(o).reduce((a,b)=>a+b,0)||1;return Object.entries(o).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[k,v/t*100])};
   const periodo=dIt(r.inizio)+' – '+dIt(r.fine);
   const mesi=[];{const s=new Date(Math.max(r.inizio,new Date(r.fine.getFullYear(),0,1))),e=r.fine;for(let d=new Date(s.getFullYear(),s.getMonth(),1);d<=e;d.setMonth(d.getMonth()+1))mesi.push(MESI_IT[d.getMonth()].slice(0,3)+' '+d.getFullYear())}
-  const nota='<p class="small muted">I valori di rendimento e utili si compilano automaticamente quando saranno collegati i prezzi storici del fornitore dati: fino ad allora compaiono come «—». Composizione, quantità e controvalori sono calcolati sul portafoglio raccomandato.</p>';
+  const nota=r.ultimo?`<p class="small muted">Rendimenti e utili sono calcolati sul prezzo di carico delle tue operazioni e sui prezzi di chiusura aggiornati al ${dIt(r.ultimo)}. Composizione e controvalori dei titoli non ancora eseguiti sono calcolati sul portafoglio raccomandato.</p>`:'<p class="small muted">Rendimenti e utili compaiono quando sono disponibili i prezzi di chiusura aggiornati: fino ad allora sono «—». Composizione, quantità e controvalori sono calcolati sul portafoglio raccomandato.</p>';
   return `<div class="rep"><div><span class="eyebrow">Binario F · Consulenza finanziaria indipendente</span><h1>Report di portafoglio</h1></div><div class="kv"><span>Cliente</span><span>${esc(r.nome)}</span><span>Periodo</span><span>${periodo}</span></div></div>
   <div class="rep"><h2>Sintesi</h2><div class="grid2"><div><h3>Dati di sintesi</h3><div class="kv"><span>Cliente</span><span>${esc(r.nome)}</span><span>Data inizio rapporto</span><span>${dIt(r.inizio)}</span><span>Profilo di rischio</span><span>${esc(r.prof)}</span><span>Orizzonte temporale</span><span>${esc(r.hor)}</span></div>
    <h3 style="margin-top:14px">Situazione portafoglio</h3><div class="kv"><span>Periodo valutazione</span><span>${periodo}</span><span>Utili totali (EUR)</span><span>${r.utili==null?'—':f2(r.utili)}</span><span>Rendimento (MWR)</span><span>${r.utili==null||!r.costoTot?'—':f2(r.utili/r.costoTot*100)+'%'}</span></div>
    <h3 style="margin-top:14px">Portafoglio</h3><div class="kv"><span>Controvalore titoli</span><span>${f2(r.tit)}</span><span>Liquidità</span><span>${f2(r.liq)}</span><span>Controvalore portafoglio</span><span>${f2(r.tot)}</span></div></div>
-   <div><h3>Performance portafoglio (TWR)</h3><div class="box"><span class="small">Il grafico dell'andamento si genera con le serie storiche dei prezzi (fornitore dati in arrivo).</span></div><h3 style="margin-top:14px">Asset allocation</h3>${bars(macroRows)}</div></div>
+   <div><h3>Performance portafoglio (TWR)</h3>${r.ser&&r.ser.length>1?`${lineSvg(r.ser)}<p class="small muted">Rendimento del periodo (TWR): <b>${f2(twr(r.ser,0,r.ser.length-1)*100)}%</b> · valore dei titoli, dalle quantità eseguite e dai prezzi di chiusura aggiornati al ${dIt(r.ultimo)}.</p>`:'<div class="box"><span class="small">Il grafico dell\'andamento si compone man mano che i prezzi vengono aggiornati.</span></div>'}<h3 style="margin-top:14px">Asset allocation</h3>${bars(macroRows)}</div></div>
    <div class="grid2"><div><h3>Azionario · composizione</h3>${bars(sub('Azionario'))||'<span class="small muted">—</span>'}</div><div><h3>Obbligazionario · composizione</h3>${bars(sub('Obbligazionario'))||'<span class="small muted">—</span>'}</div></div>
    <div><h3>Valute</h3>${bars([['EUR',100]])}</div>${nota}</div>
   <div class="rep"><h2>Analisi di rendimento</h2><p class="small muted">${periodo}</p><div class="tablewrap"><table class="tl"><thead><tr><th>Macro</th><th>Utili maturati</th><th>% media investita</th><th>Performance</th><th>Perf. attribution</th></tr></thead><tbody>${['Azionario','Alternativo','Materie prime','Bilanciato','Obbligazionario','Polizze','Monetario','Altro'].map(m=>{const k=m==='Materie prime'?'Oro':m;const v=perM[k]!=null?pct(perM[k]+(k==='Monetario'?r.liq:0)):null,L=r.righe.filter(l=>l.macro===k&&l.utile!=null),u=L.length?L.reduce((a,l)=>a+l.utile,0):null,cs=L.reduce((a,l)=>a+l.costo,0);return `<tr><td>${m}</td><td class="num">${u==null?'—':f0(u)}</td><td class="num">${v!=null?f2(v)+'%':'—'}</td><td class="num">${u==null||!cs?'—':f2(u/cs*100)+'%'}</td><td class="num">${u==null||!r.costoTot?'—':f2(u/r.costoTot*100)+'%'}</td></tr>`}).join('')}</tbody><tfoot><tr><td>Totali</td><td class="num">${r.utili==null?'—':f0(r.utili)}</td><td></td><td></td><td class="num">${r.utili==null||!r.costoTot?'—':f2(r.utili/r.costoTot*100)+'%'}</td></tr></tfoot></table></div>${nota}</div>
-  <div class="rep"><h2>Dettaglio portafoglio</h2><p class="small muted">${periodo}</p><div class="tablewrap"><table class="tl"><thead><tr><th>Tipologia</th><th>Classificazione</th><th>Descrizione</th><th>ISIN</th><th>Valuta</th><th>Nominale</th><th>Prezzo</th><th class="num">Controvalore</th><th>Peso %</th><th>Rend. %</th><th>Utili totali</th></tr></thead><tbody>${r.righe.map(l=>`<tr><td>${MACRO_L[l.macro]}</td><td>${esc(l.sub)}</td><td>${esc(l.name)}</td><td>${esc(l.isin)}</td><td>EUR</td><td class="num">${l.sing?f0(l.qty*1000):(l.qty==null?'—':f0(l.qty))}</td><td class="num">${l.sing?'—':f2(l.carico!=null?l.carico:PRICE_API.last(l))}</td><td class="num">${f0(l.val)}</td><td class="num">${f2(pct(l.val))}</td><td class="num">${l.rend==null?'—':f2(l.rend*100)}</td><td class="num">${l.utile==null?'—':f0(l.utile)}</td></tr>`).join('')}<tr><td>Monetario</td><td>Euro</td><td>Euro</td><td></td><td>EUR</td><td class="num">${f0(r.liq)}</td><td class="num">1,00</td><td class="num">${f0(r.liq)}</td><td class="num">${f2(pct(r.liq))}</td><td class="num">—</td><td class="num">—</td></tr></tbody><tfoot><tr><td colspan="7">Totali</td><td class="num">${f0(r.tot)}</td><td class="num">100,00</td><td class="num">${r.utili==null||!r.costoTot?'—':f2(r.utili/r.costoTot*100)}</td><td class="num">${r.utili==null?'—':f0(r.utili)}</td></tr></tfoot></table></div></div>
+  <div class="rep"><h2>Dettaglio portafoglio</h2><p class="small muted">${periodo}</p><div class="tablewrap"><table class="tl"><thead><tr><th>Tipologia</th><th>Classificazione</th><th>Descrizione</th><th>ISIN</th><th>Valuta</th><th>Nominale</th><th>Prezzo</th><th class="num">Controvalore</th><th>Peso %</th><th>Rend. %</th><th>Utili totali</th></tr></thead><tbody>${r.righe.map(l=>`<tr><td>${MACRO_L[l.macro]}</td><td>${esc(l.sub)}</td><td>${esc(l.name)}</td><td>${esc(l.isin)}</td><td>EUR</td><td class="num">${l.sing?f0(l.qty*1000):(l.qty==null?'—':f0(l.qty))}</td><td class="num">${l.sing&&l.carico==null?'—':f2(l.carico!=null?l.carico:PRICE_API.last(l))}</td><td class="num">${f0(l.val)}</td><td class="num">${f2(pct(l.val))}</td><td class="num">${l.rend==null?'—':f2(l.rend*100)}</td><td class="num">${l.utile==null?'—':f0(l.utile)}</td></tr>`).join('')}<tr><td>Monetario</td><td>Euro</td><td>Euro</td><td></td><td>EUR</td><td class="num">${f0(r.liq)}</td><td class="num">1,00</td><td class="num">${f0(r.liq)}</td><td class="num">${f2(pct(r.liq))}</td><td class="num">—</td><td class="num">—</td></tr></tbody><tfoot><tr><td colspan="7">Totali</td><td class="num">${f0(r.tot)}</td><td class="num">100,00</td><td class="num">${r.utili==null||!r.costoTot?'—':f2(r.utili/r.costoTot*100)}</td><td class="num">${r.utili==null?'—':f0(r.utili)}</td></tr></tfoot></table></div></div>
   <div class="rep"><h2>Report cedole e dividendi ${r.fine.getFullYear()}</h2><div class="tablewrap"><table class="tl"><thead><tr><th>Descrizione strumento</th>${mesi.map(m=>`<th>${m}</th>`).join('')}</tr></thead><tbody><tr><td><b>Totale per mese</b></td>${mesi.map(()=>'<td class="num">—</td>').join('')}</tr></tbody></table></div><p class="small muted">I valori indicati nel report sono espressi in EUR e sono al lordo della tassazione. Cedole e dividendi si compilano con i dati del fornitore.</p></div>
   <div class="rep"><h2>Ultime 20 operazioni eseguite</h2>${r.ops.length?`<div class="tablewrap"><table class="tl"><thead><tr><th>Codice ISIN</th><th>Descrizione strumento</th><th>Data</th><th>Tipo operazione</th><th>Quantità</th><th>Prezzo</th><th>Cambio</th><th class="num">Controvalore</th><th>Valuta</th></tr></thead><tbody>${r.ops.map(o=>`<tr><td>${esc(o.isin)}</td><td>${esc(o.nome)}</td><td>${dIt(o.data)}</td><td>${o.tipo}</td><td class="num">${o.qty==null?'—':f0(o.qty)}</td><td class="num">${o.prezzo==null?'—':f2(o.prezzo)}</td><td class="num">1,00</td><td class="num">${f0(o.cv)}</td><td>EUR</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted small">Nessuna operazione eseguita nel periodo.</p>'}</div>
   <p class="small muted">Report indicativo basato sul portafoglio raccomandato. Le operazioni effettive vengono eseguite dal cliente sul proprio conto titoli. I rendimenti passati non sono indicativi di quelli futuri.</p>`}
@@ -675,7 +709,7 @@ async function beLoad(user){
     if(error)throw error;
     BE.me={id:user.id,email:user.email,nome:pr.nome,ruolo:pr.ruolo};
     st=fresh();st.role=BE.me.ruolo==='consulente'?'consulente':'cliente';st.user={nome:pr.nome,email:user.email};
-    await beLoadImp();await beLoadPF();
+    await beLoadImp();await beLoadPF();await beLoadPrezzi();
     if(BE.me.ruolo==='consulente'){await beLoadAdmin();loadCat()}else await beLoadClient();
     BE.view='app';beMsg(null)
   }catch(e){BE.view='landing';beMsg('Errore di caricamento: '+beErr(e),1)}
@@ -743,6 +777,8 @@ async function beLoadAdmin(){
   BE.raccAll=c.data;BE.reg=d.data;
   try{const {data:es}=await BE.sb.from('esecuzioni').select('*').order('id').limit(5000);BE.eseAll=es||[]}catch(e){BE.eseAll=[]}
 }
+async function beLoadPrezzi(){
+  try{const all=[];for(let from=0;;from+=1000){const {data,error}=await BE.sb.from('prezzi').select('isin,data,prezzo').order('data').range(from,from+999);if(error)throw error;all.push(...(data||[]));if(!data||data.length<1000)break}przSet(all)}catch(e){przSet([])}}
 async function beRefresh(){
   if(!BE.me||!BE.sb||BE.loading)return;
   try{
@@ -750,6 +786,7 @@ async function beRefresh(){
     else if(BE.cli&&!SEARLY.includes(BE.cli.stato)||BE.cli&&BE.cli.stato==='documenti'){
       const {data}=await BE.sb.from('clienti').select('stato').eq('id',BE.me.id).single();
       const nr=BE.cli.stato==='attivo'?(await BE.sb.from('raccomandazioni').select('id',{count:'exact',head:true}).eq('cliente_id',BE.me.id)).count:0;
+      try{const {data:u}=await BE.sb.from('prezzi').select('data').order('data',{ascending:false}).limit(1);if(u&&u[0]&&String(u[0].data).slice(0,10)!==przData()){const f=document.activeElement;if(!(f&&/INPUT|TEXTAREA|SELECT/.test(f.tagName))){await beLoadPrezzi();render()}}}catch(e){}
       if(data&&(data.stato!==BE.cli.stato||(BE.cli.stato==='attivo'&&nr!==BE.racc.length))){const f=document.activeElement;if(f&&/INPUT|TEXTAREA|SELECT/.test(f.tagName))return;await beLoadImp();await beLoadClient();render()}}
   }catch(e){}
 }
@@ -845,10 +882,36 @@ function landing(M){
 const beNome=id=>{const p=BE.profili[id]||{};return p.nome||p.email||'(senza nome)'};
 function amlFlagsOf(aml){const f=AML.filter(q=>q.flag&&(aml||{})[q.id]===1).map(q=>({pep:'PEP',car:'cariche politiche',soc:'cariche in società/trust',tit:'titolare effettivo',del:'delegato'}[q.id]));return f.length?`<b class="ko">${f.join(', ')}</b>`:'nessun elemento'}
 function beAdmin(){
-  const T=[['clienti','Clienti'],['portafogli','Portafogli'],['ocf','Indicatori OCF'],['registro','Registro']];
+  const T=[['clienti','Clienti'],['portafogli','Portafogli'],['prezzi','Prezzi'],['ocf','Indicatori OCF'],['registro','Registro']];
   return `<div class="row"><div class="seg" role="group">${T.map(([k,l])=>`<button data-act="be-tab" data-v="${k}" aria-pressed="${BE.tab===k}">${l}${k==='clienti'&&BE.clienti.filter(c=>c.stato==='questionario'||c.stato==='documenti').length?'<span class="badge">'+BE.clienti.filter(c=>c.stato==='questionario'||c.stato==='documenti').length+'</span>':''}</button>`).join('')}</div></div>`+
-   (BE.tab==='clienti'?(BE.rep?beRepView(BE.rep):BE.sel?beCliente(BE.sel):beElenco()):BE.tab==='portafogli'?(BE.pubs.length?monitorCard()+admPortf():beSeedCard()):BE.tab==='ocf'?beOcf():beRegistro());
+   (BE.tab==='clienti'?(BE.rep?beRepView(BE.rep):BE.sel?beCliente(BE.sel):beElenco()):BE.tab==='portafogli'?(BE.pubs.length?monitorCard()+admPortf():beSeedCard()):BE.tab==='prezzi'?bePrezzi():BE.tab==='ocf'?beOcf():beRegistro());
 }
+/* ---------- PREZZI: inserimento giornaliero ---------- */
+function przStrumenti(){
+  const m=new Map();
+  Object.values(PF()).forEach(p=>Object.keys(p.w||{}).forEach(k=>{const i=BY[k];if(i&&/^[A-Z0-9]{12}$/.test(i.isin||''))m.set(i.isin,{isin:i.isin,nome:i.name,bond:!!i.bond||isBondE(i.isin,i.name)})}));
+  (BE.eseAll||[]).forEach(e=>{if(/^[A-Z0-9]{12}$/.test(e.isin||'')&&!m.has(e.isin))m.set(e.isin,{isin:e.isin,nome:e.nome||e.isin,bond:isBondE(e.isin,e.nome)})});
+  return [...m.values()].sort((a,b)=>(a.bond-b.bond)||a.nome.localeCompare(b.nome))}
+const przNum=t=>{const x=+String(t).trim().replace(/\s/g,'').replace(/\.(?=\d{3}(\D|$))/g,'').replace(',','.');return isFinite(x)&&x>0?x:null};
+function bePrezzi(){
+  const L=przStrumenti(),oggi=dLoc(new Date()),ult=przData(),pend=BE.przPend||{date:oggi,vals:{}},dt=pend.date||oggi;
+  const manca=L.filter(x=>{const p=przLast(x.isin);return !p||p[0]<oggi});
+  return `<div class="card"><h2>Prezzi di chiusura</h2>
+  <p class="small muted">${ult?`Ultimo aggiornamento: <b>${dIt(ult)}</b>. `:'Nessun prezzo inserito ancora. '}${L.length-manca.length===L.length&&L.length?'Tutti gli strumenti sono aggiornati a oggi.':`Per oggi mancano ${manca.length} strumenti su ${L.length}.`} I prezzi alimentano la dashboard, il rendimento e il report dei clienti.</p>
+  <div class="row"><label class="f" style="max-width:220px">Data dei prezzi<input type="date" id="prz-d" value="${esc(dt)}" max="${oggi}"></label></div>
+  <div class="tablewrap admin-w"><table><thead><tr><th>Strumento</th><th>Ultimo prezzo</th><th>Nuovo prezzo</th></tr></thead><tbody>${L.map(x=>{const p=przLast(x.isin);return `<tr><td>${esc(x.nome)}<div class="small muted">${x.isin}${x.bond?' · per 100 di nominale':''}</div></td><td class="num">${p?f2(p[1],p[1]<10?4:2)+'<div class="small muted">'+dIt(p[0])+'</div>':'—'}</td><td><input type="text" inputmode="decimal" data-prz="${x.isin}" value="${esc(pend.vals[x.isin]||'')}" placeholder="${p?String(p[1]).replace('.',','):''}" style="width:120px"></td></tr>`}).join('')}</tbody></table></div>
+  <div class="row"><button class="btn pri" data-act="be-prz">${BE.przForce?'Salva comunque':'Salva i prezzi'}</button><span class="small muted">I campi vuoti non cambiano nulla. Puoi correggere un giorno già inserito scegliendo la stessa data.</span></div></div>
+  <div class="card"><h3>Oppure incolla un elenco</h3><p class="small muted">Una riga per strumento: ISIN e prezzo, separati da punto e virgola, tabulazione o spazio (es. <code>IE00B4L5Y983;87,52</code>). Viene salvato con la data scelta sopra.</p>
+  <label class="f"><textarea id="prz-csv" rows="5" placeholder="IE00B4L5Y983;87,52"></textarea></label><div class="row"><button class="btn" data-act="be-prz-csv">${BE.przForce?'Salva comunque':"Salva l'elenco"}</button></div></div>`}
+async function bePrzSalva(righe,date){
+  const d=date||beV('prz-d');if(!/^\d{4}-\d{2}-\d{2}$/.test(d)){beMsg('Scegli la data dei prezzi.',1);return}
+  if(!righe.length){beMsg('Nessun prezzo da salvare.',1);return}
+  const an=righe.filter(r=>{const p=przLast(r.isin);return p&&p[0]<d&&Math.abs(r.prezzo/p[1]-1)>0.15});
+  if(an.length&&!BE.przForce){BE.przForce=true;beMsg('Controlla: '+an.map(r=>{const x=przStrumenti().find(k=>k.isin===r.isin);return (x?x.nome:r.isin)+' '+f2(przLast(r.isin)[1])+' → '+f2(r.prezzo)}).join('; ')+'. Variazione oltre il 15% rispetto all\'ultimo prezzo: se è giusto, premi «Salva comunque».',1);return}
+  BE.przForce=false;
+  const {data,error}=await BE.sb.rpc('salva_prezzi',{p_data:d,p_righe:righe});
+  if(error){beMsg(beErr(error),1);return}
+  BE.przPend=null;await beLoadPrezzi();beMsg('Salvati '+data+' prezzi del '+dIt(d)+'.')}
 function beSeedCard(){return `<div class="card"><h2>Portafogli modello</h2><p>Nel database non ci sono ancora portafogli. Carico i 10 portafogli attuali dal repository (<code>modelli.json</code>): da quel momento il database è la fonte, e ogni variazione pubblicata da qui parte verso i clienti.</p>
   <div class="row"><button class="btn pri" data-act="be-seed" ${BE.mod&&!BE.busy?'':'disabled'}>Carica i portafogli</button>${BE.mod?'':'<span class="muted small">Sto leggendo modelli.json…</span>'}</div></div>`}
 function beElenco(){
@@ -900,7 +963,7 @@ document.addEventListener('click',async e=>{
     }catch(err){beMsg(beErr(err),1);render()}
     return}
   if(a==='be-logout'){await BE.sb.auth.signOut();return}
-  if(a==='be-tab'){BE.tab=v;BE.sel=null;BE.rep=null;beMsg(null);if(v==='portafogli')loadCat()}
+  if(a==='be-tab'){BE.tab=v;BE.przForce=false;BE.przPend=null;BE.sel=null;BE.rep=null;beMsg(null);if(v==='portafogli')loadCat()}
   else if(a==='be-filtro')BE.filtro=v;
   else if(a==='be-cli'){BE.sel=v||null;beMsg(null)}
   else if(a==='be-stato'){const [cid,s]=v.split(':');await beCambiaStato(cid,s);return}
@@ -910,6 +973,11 @@ document.addEventListener('click',async e=>{
   else if(a==='be-seed'){await beSeed();return}
   else if(a==='be-ocf'){BE.ocf=BE.ocf||trimPrec();const f=(document.getElementById('ocf-from')||{}).value,to=(document.getElementById('ocf-to')||{}).value;if(!f||!to||f>to){beMsg('Controlla le date: la data iniziale deve precedere quella finale.',1);render();return}BE.ocf.from=f;BE.ocf.to=to;beMsg(null);BE.ocf.res=ocfCalc(f,to)}
   else if(a==='be-ocfcsv'){if(BE.ocf&&BE.ocf.res)ocfCsv(BE.ocf.res);return}
+  else if(a==='be-prz'){const vals={},righe=[];document.querySelectorAll('[data-prz]').forEach(i=>{if(i.value.trim()){vals[i.dataset.prz]=i.value.trim();const p=przNum(i.value);if(p)righe.push({isin:i.dataset.prz,prezzo:p})}});
+    const bad=Object.keys(vals).filter(k=>!przNum(vals[k]));BE.przPend={date:beV('prz-d'),vals};
+    if(bad.length){BE.przForce=false;beMsg('Controlla i numeri inseriti (usa cifre, con la virgola per i decimali).',1)}else{await bePrzSalva(righe)}}
+  else if(a==='be-prz-csv'){const righe=[],sc=[];beV('prz-csv').split(/\n+/).forEach(r=>{const t=r.trim();if(!t)return;const m=t.split(/[;\t ]+/);const isin=(m[0]||'').toUpperCase(),p=przNum(m[1]||'');if(/^[A-Z0-9]{12}$/.test(isin)&&p)righe.push({isin,prezzo:p});else sc.push(t)});
+    const ok=new Set(przStrumenti().map(x=>x.isin)),ign=righe.filter(r=>!ok.has(r.isin)).map(r=>r.isin);await bePrzSalva(righe,beV('prz-d'));if((sc.length||ign.length)&&BE.msg)BE.msg.t+=' Righe non lette: '+[...sc,...ign].slice(0,5).join(', ')+'.'}
   else if(a==='be-rep'){BE.rep=v||null}
   render();
 });
@@ -1112,11 +1180,25 @@ function fullW(id){ // portafoglio completo del cliente: modello sul capitale re
   Object.entries(w).forEach(([k,p])=>o[k]=p*f);
   imps.forEach(x=>partsOf(x).forEach(p=>{const c=impResolve(x,p);let k=x.mesi<=12?'MON':'GOVS';if(c&&c.etf)k=c.k;else if(c)k=addBond({isin:c.isin,nome:c.nome,tipo:c.tipo,serie:c.serie,tasso:c.tasso,scad:c.scad});o[k]=(o[k]||0)+(p.amt||0)/st.capital*100}));
   return{w:o,extra:out}}
+function andView(){
+  const E=BE.on&&BE.ese?BE.ese:[];if(!E.length)return '';
+  const P=posOf(E),ser=serieCli(E),ult=przData(),rows=Object.entries(P).filter(([,p])=>p.q>0).map(([isin,p])=>{const pz=przLast(isin),f=fattE(isin,p.nome),bond=f<1;return{isin,nome:p.nome,q:p.q,c:p.c,bond,px:pz?pz[1]:null,costo:p.q*p.c*f,val:pz?p.q*pz[1]*f:null}});
+  const ok=rows.filter(r=>r.val!=null),val=ok.reduce((a,r)=>a+r.val,0),cos=ok.reduce((a,r)=>a+r.costo,0),ut=val-cos,inv=rows.reduce((a,r)=>a+r.costo,0);
+  const sg=n=>(n>0?'+':'')+f2(n),cl=n=>n>0?'ok':n<0?'ko':'';
+  let ch='';
+  if(ser.length>1){const i0=rngStart(ser,RNG),sl=ser.slice(i0),t=twr(ser,i0,ser.length-1);
+    ch=`<div class="row" style="gap:6px;flex-wrap:wrap">${RNG_L.map(([k,l])=>`<button class="btn sm" data-act="rng" data-v="${k}" aria-pressed="${RNG===k}">${l}</button>`).join('')}</div>${lineSvg(sl)}<p class="small muted">Dal ${dIt(sl[0].d)} al ${dIt(sl[sl.length-1].d)}: rendimento del periodo <b class="${cl(t)}">${sg(t*100)}%</b> (al netto dei versamenti e delle vendite). Il grafico mostra il valore dei titoli in euro.</p>`}
+  else ch='<p class="small muted">Il grafico dell\'andamento compare dopo il secondo giorno di prezzi aggiornati.</p>';
+  return `<h3>Il tuo andamento</h3>${ult?`<p class="small muted">Prezzi di chiusura aggiornati al <b>${dIt(ult)}</b>.</p>`:'<p class="small muted">Valore e rendimento compaiono appena vengono aggiornati i prezzi di chiusura.</p>'}
+  <div class="stats"><div><small>Valore dei titoli</small><b>${ok.length?eur(val):'—'}</b></div><div><small>Investito (carico)</small><b>${eur(inv)}</b></div><div><small>Utile / perdita</small><b class="${cl(ut)}">${ok.length?sg(ut)+' €':'—'}</b></div><div><small>Rendimento sul carico</small><b class="${cl(ut)}">${ok.length&&cos?sg(ut/cos*100)+'%':'—'}</b></div></div>
+  ${ch}
+  <div class="tablewrap"><table class="tl"><thead><tr><th>Strumento</th><th>Quantità</th><th>Prezzo di carico</th><th>Prezzo</th><th>Valore</th><th>Rend.</th></tr></thead><tbody>${rows.map(r=>`<tr><td><b>${esc(r.nome||r.isin)}</b><div class="small muted">${r.isin}</div></td><td class="num">${f0(r.q)}${r.bond?' nom.':''}</td><td class="num">${f2(r.c)}</td><td class="num">${r.px==null?'—':f2(r.px)}</td><td class="num">${r.val==null?'—':eur(r.val)}</td><td class="num ${r.px==null?'':cl(r.px-r.c)}">${r.px==null?'—':sg((r.px/r.c-1)*100)+'%'}</td></tr>`).join('')}</tbody></table></div>
+  <p class="small muted">Valori calcolati sulle quantità e sui prezzi che hai indicato nelle tue operazioni. I rendimenti passati non sono indicativi di quelli futuri.</p><hr>`}
 function dashView(){
   const id=st.chosen,fw=fullW(id),wm=(st.held&&st.held.id===id&&st.held.w)?st.held.w:PF()[id].w,s=stats(wm);
   const agg=w=>{const by={};Object.entries(w).forEach(([k,p])=>by[BY[k].cls]=(by[BY[k].cls]||0)+p);const t=Object.values(by).reduce((a,b)=>a+b,0)||1;return Object.entries(by).map(([k,v])=>({k,v:v/t*100}))};
   const al=parts=>`<div class="row">${donut(parts)}<div class="lg" style="flex-direction:column">${parts.map(p=>`<span><i style="background:var(${CLS[p.k]})"></i>${p.k} ${n1(p.v)}%</span>`).join('')}</div></div>`;
-  return `<div class="grid2"><div><h3>Asset allocation del portafoglio modello</h3>${al(agg(wm))}</div>
+  return andView()+`<div class="grid2"><div><h3>Asset allocation del portafoglio modello</h3>${al(agg(wm))}</div>
   <div><h3>Statistiche storiche simulate del modello</h3><div class="stats"><div><small>Rendimento annuo</small><b>${pc0(s.cagr)}</b></div><div><small>Volatilità</small><b>${pc0(s.vol)}</b></div><div><small>Perdita massima</small><b>${pc0(s.mdd)}</b></div><div><small>Peggior anno</small><b>${pc0(s.w12)}</b></div><div><small>VaR annuo 99%</small><b>${n1(s.va)}%</b></div><div><small>Fascia</small><b>${BANDS[pfBand(wm)]}</b></div></div></div></div>
   <h3>Andamento di 1 € investito nel modello (simulato)</h3>${growth(s.vals)}
   ${fw.extra?`<h3>Asset allocation totale</h3><p class="small muted">Tiene conto di tutto il tuo capitale: ${eur(st.capital-fw.extra)} nel portafoglio modello e ${eur(fw.extra)} in titoli di Stato a scadenza per le spese previste.</p>${al(agg(fw.w))}`:''}`}
@@ -1223,7 +1305,8 @@ function diffOps(o,n){const ops=[];const ks=new Set([...Object.keys(o),...Object
   ks.forEach(k=>{const d=(n[k]||0)-(o[k]||0);if(d)ops.push(`<b>${d>0?'Acquista':'Vendi'}</b> ${BY[k].name}: ${(o[k]||0)}% → ${(n[k]||0)}% (${eur(Math.abs(d)/100*modelCap(st.capital,impAct()))} su ${eur(modelCap(st.capital,impAct()))})`)});return ops}
 document.addEventListener('click',e=>{
   const t=e.target.closest('[data-act]');if(!t||t.tagName==='INPUT'&&t.type!=='radio')return;const a=t.dataset.act,v=t.dataset.v,q=t.dataset.q;
-  if(a==='role'){st.role=v;if(v==='consulente')loadCat()}
+  if(a==='rng'){RNG=v}
+  else if(a==='role'){st.role=v;if(v==='consulente')loadCat()}
   else if(a==='add'){const c=elencoRicerca().find(x=>x.isin===v);if(c){const k=addIns(c);if(BY[k].ext&&!(st.xins||[]).some(x=>x.isin===v)){st.xins=(st.xins||[]).concat([c.bond?{isin:v,nome:c.nome,bond:true,tipo:c.tipo,serie:c.serie,tasso:c.tasso,scad:c.scad,k}:{isin:v,nome:c.nome,prezzo:c.prezzo,sd:c.sd,k}])}
       st.okpub=false;st.edit=st.edit||JSON.parse(JSON.stringify(PF()[st.aid].w));st.edit[k]=st.edit[k]||5;st.q=''}}
   else if(a==='ghsave'){st.ghmsg={e:0,t:'Salvataggio in corso…'};render();ghSalva(v==='1').then(()=>{save();render()});return}
