@@ -877,7 +877,9 @@ function beCliente(cid){
   <div class="card"><div class="row sb"><h2>Raccomandazioni ricevute (${R.length})</h2><button class="btn sm" data-act="be-csv" data-v="${cid}">Esporta in CSV</button></div>
   ${R.length?`<div class="tablewrap"><table><thead><tr><th>Data</th><th>Tipo</th><th>Portafoglio</th><th>Motivazione e operazioni</th><th>Eseguita</th></tr></thead><tbody>${R.map(r=>`<tr><td>${beDT(r.creato_il)}</td><td>${{iniziale:'Iniziale',variazione:'Variazione',spesa_prevista:'Spesa prevista',altro:'Altro'}[r.tipo]}</td><td>${esc(r.portafoglio)} v${r.versione||''}</td>
    <td>${esc(r.motivo||'')}<ul class="why">${(r.operazioni||[]).map(o=>'<li>'+opHtml(o,r.capitale,r.eseguita?null:posOf(BE.eseAll.filter(e=>e.cliente_id===cid)))+'</li>').join('')}</ul></td><td>${r.eseguita?'<span class="ok">sì</span><div class="small muted">'+beDT(r.eseguita_il)+'</div>':'<span class="ko">no</span>'}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Nessuna raccomandazione ancora: la prima parte quando attivi il servizio.</p>'}
-  <p class="small muted">Lo storico è permanente: nessuno, nemmeno tu, può modificarlo o cancellarlo da qui.</p></div>`}
+  <p class="small muted">Lo storico è permanente: nessuno, nemmeno tu, può modificarlo o cancellarlo da qui.</p></div>
+  <div class="card" style="border-color:var(--bad)"><h3 style="color:var(--bad)">Elimina cliente dal database</h3><p class="small">Cancella in modo definitivo l'account di <b>${esc(p.email||'')}</b> con questionario, raccomandazioni ed esecuzioni. Usalo solo per utenti di prova: per un cliente reale che recede usa «Chiudi il rapporto», perché lo storico delle raccomandazioni va conservato.</p>
+  <label class="f">Per confermare scrivi l'email del cliente<input type="text" id="be-delc" autocomplete="off" placeholder="${esc(p.email||'')}"></label><div class="row"><button class="btn sm" style="border-color:var(--bad);color:var(--bad)" data-act="be-del" data-v="${cid}">Elimina cliente dal database</button></div></div>`}
 function beRegistro(){return `<div class="card"><h2>Registro delle operazioni</h2>${BE.reg.length?`<div class="tablewrap"><table><thead><tr><th>Quando</th><th>Chi</th><th>Azione</th><th>Dettagli</th></tr></thead><tbody>${BE.reg.map(r=>`<tr><td>${beDT(r.quando)}</td><td>${esc(r.utente?beNome(r.utente):'')}</td><td>${esc(r.azione)}</td><td class="small">${esc(JSON.stringify(r.dettagli||{}).slice(0,220))}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Nessuna operazione.</p>'}</div>`}
 /* ---------- azioni ---------- */
 const beV=id=>((document.getElementById(id)||{}).value||'').trim();
@@ -902,6 +904,7 @@ document.addEventListener('click',async e=>{
   else if(a==='be-filtro')BE.filtro=v;
   else if(a==='be-cli'){BE.sel=v||null;beMsg(null)}
   else if(a==='be-stato'){const [cid,s]=v.split(':');await beCambiaStato(cid,s);return}
+  else if(a==='be-del'){const {error}=await BE.sb.rpc('elimina_cliente',{p_id:v,p_conferma:beV('be-delc')});if(error){beMsg(/Conferma/.test(error.message||'')?'L\'email scritta non corrisponde: il cliente non è stato eliminato.':beErr(error),1)}else{BE.sel=null;beMsg('Cliente eliminato dal database.')}await beLoadAdmin();render();return}
   else if(a==='be-nota'){await beNota(v,beV('be-nota'));return}
   else if(a==='be-csv'){await beCsv(v||null);return}
   else if(a==='be-seed'){await beSeed();return}
