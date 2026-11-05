@@ -4,123 +4,132 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Newsreader:wght@500;600&display=swap">
 <style>
-/* Layout: colonna unica centrata, un passo per schermata per il cliente; vista consulente a due colonne. Palette Binario F (verde, ambra). */
+/* Layout in linea con il sito: tema chiaro, verde #2D4A3A e ambra #D18A1C, titoli Newsreader, pulsanti a pillola. */
 :root{
-  --bg:#F2F6F3; --surface:#FFFFFF; --fg:#1B2A23; --muted:#5B6C63; --line:#D3DFD8;
-  --brand:#2D4A3A; --brand-fg:#FFFFFF; --accent:#B8720F; --chip:#E4ECE7; --good:#2A9D5C; --bad:#D1493E; --warn-bg:#FBEBD0;
-  --k1:#2D4A3A; --k2:#6C8EAD; --k3:#B8B07A; --k4:#C47F14;
-  --f-body:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif; --f-display:'Newsreader',Georgia,serif;
+  --bg:#F3F7F4; --surface:#FFFFFF; --fg:#1B2A23; --muted:#5B6C63; --line:#DCE6E0;
+  --brand:#2D4A3A; --brand2:#3E6650; --brand-fg:#FFFFFF; --accent:#D18A1C; --accent-t:#8A5A0C; --chip:#E4EEE8; --good:#2A8A55; --bad:#C63D32; --warn-bg:#FBF0DC;
+  --k1:#2D4A3A; --k2:#6C8EAD; --k3:#B8B07A; --k4:#D18A1C;
+  --f-body:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif; --f-display:'Newsreader',Georgia,serif; color-scheme:light;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#111915; --surface:#19231E; --fg:#E5EEE9; --muted:#93A69C; --line:#293731;
-  --brand:#86BF9F; --brand-fg:#10201A; --accent:#E0A04A; --chip:#22302A; --good:#3DB873; --bad:#E0675C; --warn-bg:#3A2D14;
-  --k1:#86BF9F; --k2:#7FA3C4; --k3:#C9C189; --k4:#E0A04A; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#111915; --surface:#19231E; --fg:#E5EEE9; --muted:#93A69C; --line:#293731;
-  --brand:#86BF9F; --brand-fg:#10201A; --accent:#E0A04A; --chip:#22302A; --good:#3DB873; --bad:#E0675C; --warn-bg:#3A2D14;
-  --k1:#86BF9F; --k2:#7FA3C4; --k3:#C9C189; --k4:#E0A04A; color-scheme:dark}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.45;
-  padding:0}
-.wrap{max-width:880px;margin:0 auto;padding-block:14px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
-.wrap.wide{max-width:1180px}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;padding:0}
+.wrap{max-width:900px;margin:0 auto;padding-block:28px 64px;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:20px}
+.wrap.wide{max-width:1200px}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .num{font-variant-numeric:tabular-nums}
-#band{background:#2D4A3A;border-bottom:4px solid #D18A1C;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-#band .in{max-width:880px;margin:0 auto;padding-block:14px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between}
-#band[data-r=consulente] .in{max-width:1180px}
-.brand{display:flex;align-items:center;gap:12px;min-width:0}
-.brand img{width:46px;height:46px;display:block;flex:none}
-.brand b{display:block;font-family:var(--f-display);font-size:25px;font-weight:600;color:#fff;line-height:1.05}
-.brand span{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.13em;color:#F0C47C;font-weight:600;margin-top:3px}
-#band .seg{background:rgba(255,255,255,.14)}
-#band .seg button{color:#DCE8E0}
-#band .seg button[aria-pressed="true"]{background:#D18A1C;color:#fff}
-#band .btn{background:transparent;color:#fff;border-color:rgba(255,255,255,.4)}
-.foot{border-top:1px solid var(--line);padding-top:14px;font-size:12px;color:var(--muted)}
-.vs{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
-.iban{font-family:ui-monospace,Menlo,Consolas,monospace;background:var(--bg);border:1px dashed var(--line);border-radius:6px;padding:8px 10px;overflow-wrap:anywhere}
-.seg{display:inline-flex;background:var(--chip);border-radius:8px;padding:3px;gap:2px;max-width:100%;overflow-x:auto}
-.seg button{border:0;background:transparent;padding:6px 12px;border-radius:6px;font-weight:600;color:var(--muted);white-space:nowrap}
+a{color:var(--brand);text-underline-offset:3px}
+#band{background:rgba(255,255,255,.97);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+#band .in{max-width:900px;margin:0 auto;min-height:72px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between}
+#band[data-r=consulente] .in{max-width:1200px}
+.brand{display:flex;align-items:center;gap:11px;min-width:0;color:var(--brand)}
+.brand img{width:40px;height:40px;display:block;flex:none}
+.brand b{display:block;font-family:var(--f-display);font-size:25px;font-weight:600;color:var(--brand);line-height:1}
+.brand span{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.14em;color:var(--accent);font-weight:700;margin-top:4px}
+.foot{border-top:1px solid var(--line);padding-top:18px;font-size:12.5px;color:var(--muted);line-height:1.6}
+.vs{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.seg{display:inline-flex;background:var(--chip);border-radius:99px;padding:4px;gap:2px;max-width:100%;overflow-x:auto}
+.seg button{border:0;background:transparent;padding:7px 16px;border-radius:99px;font-weight:600;color:var(--muted);white-space:nowrap}
 .seg button[aria-pressed="true"]{background:var(--brand);color:var(--brand-fg)}
-.proto{background:var(--warn-bg);border:1px solid var(--accent);border-radius:6px;padding:8px 12px;font-size:13px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.proto{background:var(--warn-bg);border-radius:12px;padding:10px 16px;font-size:13px;color:var(--accent-t)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:28px;display:flex;flex-direction:column;gap:16px;min-width:0}
 h1,h2,h3{font-family:var(--f-display);color:var(--brand);margin:0;font-weight:600;line-height:1.15;text-wrap:balance}
-h1{font-size:30px}h2{font-size:22px}h3{font-size:17px}
+h1{font-size:clamp(30px,5vw,42px);letter-spacing:-.01em}h2{font-size:clamp(24px,3.4vw,30px)}h3{font-size:20px}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);display:block}
 p{margin:0}
-.muted{color:var(--muted)}.small{font-size:13px}
+.muted{color:var(--muted)}.small{font-size:14px}
 .steps{display:flex;gap:6px;flex-wrap:wrap}
 .steps i{flex:1 1 40px;height:5px;border-radius:3px;background:var(--line);min-width:30px}
 .steps i.on{background:var(--accent)}
-label.f{display:flex;flex-direction:column;gap:5px;font-weight:600;font-size:14px}
-input[type=text],input[type=email],input[type=password],input[type=number],input[type=search],select,textarea{padding:9px 11px;border:1px solid var(--line);border-radius:7px;background:var(--bg);width:100%;font-weight:400}
-.q{border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:8px}
+label.f{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:14px}
+input[type=text],input[type=email],input[type=password],input[type=number],input[type=search],input[type=date],select,textarea{padding:11px 14px;border:1.5px solid var(--line);border-radius:12px;background:#fff;width:100%;font-weight:400}
+input:focus,select:focus,textarea:focus{border-color:var(--brand);outline:0}
+.q{border-top:1px solid var(--line);padding-top:18px;display:flex;flex-direction:column;gap:10px}
 .q:first-of-type{border-top:0;padding-top:0}
 .q .t{font-weight:600}
-.opt{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line);border-radius:8px;cursor:pointer}
+.opt{display:flex;gap:12px;align-items:flex-start;padding:11px 14px;border:1.5px solid var(--line);border-radius:12px;cursor:pointer;background:#fff}
+.opt:hover{background:var(--bg)}
 .opt:has(input:checked){border-color:var(--brand);background:var(--chip)}
 .opt input{margin-top:3px;accent-color:var(--brand)}
-.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:10px 16px;font-weight:600}
-.btn.pri{background:var(--brand);color:var(--brand-fg);border-color:var(--brand)}
-.btn.sm{padding:6px 10px;font-size:13px}
-.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1.5px solid var(--brand);background:#fff;color:var(--brand);border-radius:99px;padding:11px 22px;font-weight:600;text-decoration:none;transition:.15s}
+.btn:hover{background:var(--bg)}
+.btn.pri{background:var(--brand);color:var(--brand-fg)}
+.btn.pri:hover{background:var(--brand2)}
+.btn.sm{padding:7px 15px;font-size:14px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
 .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .row.sb{justify-content:space-between}
-.err{color:var(--bad);font-weight:600;font-size:14px}
+.err{color:var(--bad);font-weight:600;font-size:14px;background:#FCEBE9;border-radius:12px;padding:10px 14px}
 .gauge{display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
 .gauge i{height:12px;border-radius:3px;background:var(--line)}
 .gauge i.on{background:var(--brand)}
 .big{font-family:var(--f-display);font-size:54px;line-height:1;color:var(--accent)}
-.why{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px}
-.choices{display:flex;flex-direction:column;gap:10px}
-.ch{border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:10px;cursor:pointer;background:var(--surface)}
-.ch[aria-pressed="true"]{border:2px solid var(--brand);padding:11px;box-shadow:inset 0 4px 0 var(--accent)}
+.why{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.choices{display:flex;flex-direction:column;gap:12px}
+.ch{border:1.5px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;cursor:pointer;background:var(--surface);transition:.15s}
+.ch:hover{border-color:var(--brand2)}
+.ch[aria-pressed="true"]{border:2px solid var(--brand);padding:15px;box-shadow:0 10px 28px rgba(45,74,58,.12)}
 .ch header{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
-.stats div{background:var(--bg);border-radius:6px;padding:7px 9px}
-.stats small{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
-.stats b{font-size:16px}
-.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+.stats div{background:var(--bg);border-radius:12px;padding:10px 12px}
+.stats small{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700}
+.stats b{font-family:var(--f-display);font-size:22px;color:var(--brand);font-weight:600}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:#fff}
 table{border-collapse:collapse;width:100%;min-width:600px}
-th,td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th,td{padding:11px 14px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
 th:first-child,td:first-child{text-align:left;white-space:normal;min-width:180px}
-th{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);background:var(--chip)}
-tfoot td{font-weight:700;background:var(--chip)}
-.lock{position:relative;border:1px dashed var(--line);border-radius:10px;padding:14px;overflow:hidden}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--brand);background:var(--bg);font-weight:700}
+table.tl th,table.tl td{text-align:left}table.tl td.num,table.tl th.num{text-align:right}table.tl td:first-child{min-width:0}
+tfoot td{font-weight:700;background:var(--bg)}
+.lock{position:relative;border:1.5px dashed var(--line);border-radius:16px;padding:16px;overflow:hidden}
 .lock .blur{filter:blur(6px);opacity:.7;pointer-events:none;user-select:none;display:flex;flex-direction:column;gap:8px}
-.lock .blur div{display:flex;justify-content:space-between;background:var(--chip);padding:8px 10px;border-radius:6px}
+.lock .blur div{display:flex;justify-content:space-between;background:var(--chip);padding:8px 10px;border-radius:8px}
 .lock .over{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;background:color-mix(in srgb,var(--surface) 55%,transparent);padding:10px}
-.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);overflow-x:auto}
-.tabs button{border:0;background:none;padding:10px 14px;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{border:0;background:none;padding:11px 16px;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-1px;white-space:nowrap}
 .tabs button[aria-selected="true"]{color:var(--brand);border-bottom-color:var(--accent)}
 .badge{display:inline-block;background:var(--accent);color:#fff;border-radius:99px;font-size:11px;padding:1px 7px;margin-left:5px}
-.alert{background:var(--warn-bg);border:1px solid var(--accent);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.alert{background:var(--warn-bg);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:8px;border-left:4px solid var(--accent)}
+.alert.info{background:var(--chip);border-left-color:var(--brand)}
 .ok{color:var(--good);font-weight:700}.ko{color:var(--bad);font-weight:700}
-.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;align-items:start}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;align-items:start}
 .lg{display:flex;flex-wrap:wrap;gap:12px;font-size:13px}
 .lg i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
 .chart text{fill:var(--muted);font-size:11px;font-family:var(--f-body)}
-.art{border:1px solid var(--line);border-radius:8px}
-.art summary{padding:12px 14px;font-weight:600;cursor:pointer}
-.art div{padding:0 14px 14px;color:var(--muted)}
+.art{border:1.5px solid var(--line);border-radius:14px;background:#fff}
+.art summary{padding:14px 18px;font-weight:600;cursor:pointer;color:var(--brand)}
+.art>div{padding:0 18px 18px;color:var(--fg);display:flex;flex-direction:column;gap:10px}
+.art ol,.art ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
 .admin-w input{width:84px;text-align:right}
 .stp{display:flex;flex-wrap:wrap;gap:6px}
-.stp span{background:var(--chip);color:var(--muted);border-radius:99px;padding:4px 11px;font-size:13px;font-weight:600}
+.stp span{background:var(--chip);color:var(--muted);border-radius:99px;padding:5px 13px;font-size:13px;font-weight:600}
 .stp span.on{background:var(--brand);color:var(--brand-fg)}
 .stp span.done{color:var(--good)}
-.imp{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px;align-items:end;margin:6px 0}@media(max-width:640px){.imp{grid-template-columns:1fr}}
+.imp{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:12px;align-items:end;margin:6px 0}@media(max-width:640px){.imp{grid-template-columns:1fr}}
 .imp select{width:100%}
-.imp2{display:grid;grid-template-columns:2fr 1fr auto;gap:10px;align-items:end;margin:6px 0}@media(max-width:640px){.imp2{grid-template-columns:1fr}}
-.sub{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.imp2{display:grid;grid-template-columns:2fr 1fr auto;gap:12px;align-items:end;margin:6px 0}@media(max-width:640px){.imp2{grid-template-columns:1fr}}
+.sub{margin-top:16px;padding-top:16px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:12px}
 .sub select{width:100%}
-.srch{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
-.srch li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:8px}
-.rem td{background:var(--bg2,rgba(209,138,28,.10))}.rem td:first-child{text-decoration:line-through}.rem td:first-child b,.rem td:first-child div{text-decoration:none;display:inline-block}
+.srch{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.srch li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid var(--line);border-radius:12px}
+.rem td{background:rgba(209,138,28,.10)}.rem td:first-child{text-decoration:line-through}.rem td:first-child b,.rem td:first-child div{text-decoration:none;display:inline-block}
 .srch li>div{min-width:0;overflow-wrap:anywhere}
 .card.inner{margin-top:10px;background:var(--bg)}
 #export{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px}
+.fee{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.fee b{font-family:var(--f-display);font-size:30px;color:var(--brand);font-weight:600}
+.box{background:var(--chip);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:6px}
+.box.amb{background:var(--warn-bg)}
+.pc{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:640px){.pc{grid-template-columns:1fr}}
+.pc>div{border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;background:#fff}
+.pc h4{margin:0;font-size:15px;color:var(--brand)}
+.rep{background:#fff;border:1px solid var(--line);border-radius:12px;padding:32px;display:flex;flex-direction:column;gap:22px}
+.rep h2{border-bottom:2px solid var(--accent);padding-bottom:8px}
+.kv{display:grid;grid-template-columns:1fr auto;gap:2px 20px;font-size:14px}.kv span:nth-child(odd){color:var(--muted)}.kv span:nth-child(even){text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.bar{height:10px;border-radius:5px;background:var(--chip);overflow:hidden}.bar i{display:block;height:100%;background:var(--brand)}
+@media print{#band,.noprint,.proto,.foot,.tabs{display:none!important}body{background:#fff}.wrap{padding:0;max-width:none}.rep{border:0;padding:0;page-break-after:always}}
 </style>
 
 <div id="band"></div>
@@ -314,7 +323,14 @@ const QE=[
 const EXP_MAX=QE.reduce((a,q)=>a+Math.max(...q.pt),0),EXP_LIV=[8,16,23]; // soglie solo descrittive (principiante, intermedio, esperto…): non entrano nel profilo
 /* spese previste: quanto e quando serve una parte del capitale */
 const IMP_MOTIVI=['Casa (acquisto o ristrutturazione)','Auto','Viaggi','Studi o formazione','Spese familiari o sanitarie','Altro'];
-const IMP_MESI=[[6,'Entro 6 mesi'],[12,'Entro 12 mesi'],[24,'Entro 2 anni'],[36,'Entro 3 anni'],[60,'Oltre 3 anni']];
+const MESI_IT=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+const impEnd=k=>{const n=new Date(),d=new Date(n.getFullYear(),n.getMonth()+k+1,0),p=x=>String(x).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())}; // ultimo giorno del mese scelto
+const IMP_MESI=(()=>{const o=[],n=new Date();for(let k=1;k<=36;k++){const d=new Date(n.getFullYear(),n.getMonth()+k,1);o.push([k,MESI_IT[d.getMonth()][0].toUpperCase()+MESI_IT[d.getMonth()].slice(1)+' '+d.getFullYear()])}o.push([60,'Oltre 3 anni (resta nel portafoglio modello)']);return o})();
+/* parcelle: stesse fasce del sito (ricalcolate in automatico sul capitale indicato dal cliente) */
+const FEE_SC=[[50000,.005],[150000,.0035],[500000,.0025],[Infinity,.0015]],FEE_MIN=100;
+const UNA_SC=[[10000,60],[25000,90],[50000,140],[100000,200],[250000,300],[Infinity,400]];
+function feeCont(c){let f=0,p=0;for(const [m,r] of FEE_SC){if(c>p)f+=(Math.min(c,m)-p)*r;p=m}return Math.max(FEE_MIN,Math.round(f))}
+const feeUna=c=>UNA_SC.find(x=>c<=x[0])[1];
 const IMP_MAX=36; // fino a 36 mesi: BOT/BTP a scadenza fuori dal portafoglio modello; oltre, resta nel modello
 const impsOf=imps=>(imps||[]).filter(x=>x.amt>0&&x.mesi<=IMP_MAX);
 const modelCap=(capital,imps)=>Math.max(0,capital-impsOf(imps).reduce((a,x)=>a+x.amt,0));
@@ -405,13 +421,205 @@ function buildPlan(pf,capital,opt){
   return{tier,lines,cash:capital-spent,cashM:(monthly?capital:mc)-spentM,spentM,merged,spent,monthly,capital,imps,mc,mfac:(monthly||mc<=0)?1:capital/mc};
 }
 const viewW=(pf,variant)=>applyVariant(pf.w,variant);
+/* ======================= APPROFONDIMENTI (educazione finanziaria) e PREVIDENZA ======================= */
+const MAILC='federico.offen@binariof.it';
+const ASK=`<div class="box amb"><b>Hai un dubbio o ti serve un chiarimento?</b><span class="small">Scrivi al consulente a <a href="mailto:${MAILC}">${MAILC}</a>: rispondiamo volentieri, anche su questi temi. Gli approfondimenti hanno scopo educativo e non sostituiscono la consulenza personalizzata né il parere del commercialista.</span></div>`;
+const EDU=[
+ {g:'Operare dal tuo conto titoli',a:[
+  ['Come comprare e vendere dall\'home banking',`<p>Il consulente ti dice <b>cosa</b> comprare; l'ordine lo invii tu dal tuo conto titoli. I passaggi sono quasi uguali in tutte le banche e i broker:</p><ol>
+   <li><b>Apri il conto titoli</b> (o il «dossier titoli») se non ce l'hai ancora: è un conto separato dal conto corrente, dove restano depositati ETF e titoli di Stato. Chiedi se ha canone, imposta di bollo e commissioni di acquisto.</li>
+   <li><b>Accedi alla sezione «Trading» o «Mercati»</b> e scegli «Compra» (o «Vendi»).</li>
+   <li><b>Incolla il codice ISIN</b> dello strumento che trovi nella tabella del tuo portafoglio (12 caratteri, es. IE00B4L5Y983). Cerca sempre per ISIN, mai per nome: ETF diversi hanno nomi quasi uguali.</li>
+   <li><b>Controlla la borsa e la valuta</b>: per i nostri portafogli di norma Borsa Italiana (ETF MTA) in euro. Se lo stesso ETF è quotato su più borse, scegli quella indicata.</li>
+   <li><b>Inserisci la quantità</b> (numero di quote) oppure il <b>controvalore</b> in euro, se la tua piattaforma lo consente. Nel portafoglio trovi la quantità già calcolata.</li>
+   <li><b>Scegli il tipo di ordine</b>: «a limite» (consigliato) con prezzo massimo che accetti di pagare. Vedi la scheda dedicata.</li>
+   <li><b>Conferma e verifica l'esecuzione</b> nella lista ordini; poi torna qui e premi «Ho eseguito le operazioni».</li></ol>
+   <p class="small muted">Per BOT e BTP si inserisce il valore nominale (multipli di 1.000 €): il costo effettivo dipende dal prezzo del giorno e dal rateo di interessi.</p>`],
+  ['Ordine a mercato o a limite?',`<p>L'ordine <b>a mercato</b> si esegue subito al miglior prezzo disponibile, che può essere diverso da quello che vedi (soprattutto in apertura, in chiusura o con mercati agitati). L'ordine <b>a limite</b> indica il prezzo massimo (acquisto) o minimo (vendita) che accetti: se il mercato non lo raggiunge, l'ordine non parte.</p><ul><li>Per gli ETF usa di norma l'ordine a limite, vicino al prezzo «lettera» (acquisto) o «denaro» (vendita).</li><li>Evita i primi e gli ultimi minuti della seduta, quando gli spread sono più larghi.</li><li>Per orario e validità scegli «valido per la giornata»: se non si esegue, rinnovi il giorno dopo.</li></ul>`],
+  ['Quanto costa operare: commissioni, spread, TER',`<ul><li><b>Commissioni di negoziazione</b>: le applica il broker per ogni ordine. Alcune banche le azzerano su un elenco di ETF (nella versione «Fineco» dei portafogli sono scelti proprio per questo).</li><li><b>Spread</b>: differenza tra prezzo di acquisto e di vendita; sugli ETF molto scambiati è minima.</li><li><b>TER</b>: costo annuo dell'ETF, già incluso nel prezzo (non lo paghi a parte).</li><li><b>Imposta di bollo</b>: 0,2% annuo sul valore del dossier titoli, applicata dal broker (per le persone fisiche).</li></ul>`]]},
+ {g:'Tasse',a:[
+  ['Regime amministrato e regime dichiarativo: quale ha il tuo broker?',`<p>È la prima cosa da controllare quando apri un conto titoli.</p><div class="pc"><div><h4>Regime amministrato</h4><span class="small">Il broker (italiano) fa da <b>sostituto d'imposta</b>: calcola e trattiene le imposte a ogni vendita o incasso, e gestisce lui le minusvalenze. Tu non devi inserire nulla in dichiarazione per quegli strumenti.</span></div><div><h4>Regime dichiarativo</h4><span class="small">Il broker non trattiene nulla: <b>sei tu</b> a dichiarare redditi e plusvalenze nel modello Redditi e a pagare le imposte. È tipico dei broker esteri o di chi non aderisce all'amministrato.</span></div></div><ul><li><b>Come lo scopri</b>: nel contratto del conto titoli, nell'area fiscale del sito del broker o chiedendo all'assistenza («applicate il regime amministrato sul dossier titoli?»).</li><li>Con l'amministrato la gestione è più semplice. Con il dichiarativo devi conservare i dati e non dimenticare la dichiarazione, o rischi sanzioni.</li><li>Alcuni broker esteri richiedono anche l'IVAFE (0,2%) e dati extra in dichiarazione: chiedi al commercialista prima di aprire.</li></ul>`],
+  ['Aliquote: ETF e titoli di Stato',`<ul><li><b>ETF e fondi</b>: 26% sulle plusvalenze (cioè sul guadagno realizzato quando vendi) e sui proventi distribuiti.</li><li><b>BOT, BTP e titoli di Stato italiani ed europei</b>: 12,5% su cedole e guadagni.</li><li>Negli ETF «ad accumulazione» non ricevi dividendi: la tassa si paga quando vendi, sul guadagno.</li></ul><p class="small muted">Le regole fiscali cambiano nel tempo e hanno eccezioni: verifica sempre con il commercialista.</p>`],
+  ['Compensazione delle minusvalenze («zainetto fiscale»)',`<p>Se vendi in perdita (<b>minusvalenza</b>) puoi usarla per ridurre le tasse sui guadagni (<b>plusvalenze</b>) realizzati in seguito.</p><ol><li><b>Quando</b>: la minusvalenza si può compensare con plusvalenze realizzate nello stesso anno e fino al <b>quarto anno successivo</b>. Se non la usi, scade.</li><li><b>Amministrato</b>: il broker compensa da solo e ti mostra il saldo («zainetto») nell'area fiscale.</li><li><b>Dichiarativo</b>: devi indicare le minusvalenze in dichiarazione (quadro RT) nell'anno in cui le realizzi, altrimenti le perdi.</li><li><b>Attenzione</b>: non tutte le plusvalenze e minusvalenze sono compensabili tra loro (le regole su ETF, proventi e titoli di Stato hanno differenze e ponderazioni). Prima di vendere in perdita per «fare fiscalità» chiedi al consulente o al commercialista.</li></ol>`],
+  ['Imposta di bollo e conto corrente',`<p>L'imposta di bollo sul conto titoli è <b>0,2% annuo</b> del valore. Sul conto corrente sono dovuti 34,20 € l'anno se la giacenza media supera i 5.000 €. Tenere sul conto corrente solo la liquidità che ti serve evita bolli inutili: gli investimenti stanno nel conto titoli.</p>`]]},
+ {g:'Concetti base',a:[
+  ['Che cos\'è un ETF e che cos\'è l\'ISIN',`<p>Un <b>ETF</b> è un fondo quotato in borsa che replica un indice (per esempio le azioni mondiali) con costi bassi: comprando una quota hai migliaia di titoli in un solo strumento. L'<b>ISIN</b> è il suo codice identificativo di 12 caratteri, uguale in tutto il mondo.</p><ul><li><b>Accumulazione (Acc)</b>: i dividendi restano nel fondo e fanno crescere il prezzo.</li><li><b>Distribuzione (Dist)</b>: i dividendi ti vengono pagati sul conto.</li></ul>`],
+  ['Perché ribilanciare',`<p>Nel tempo le percentuali del portafoglio si spostano: se le azioni salgono, pesano più del previsto e il rischio aumenta. Riportarle ai valori del modello mantiene il rischio nella tua fascia. Il consulente ti avvisa quando serve: tu esegui dal tuo conto.</p>`],
+  ['Cos\'è il VaR',`<p>È una stima della perdita annua massima che, con il 99% di probabilità, non dovrebbe essere superata in condizioni di mercato normali. Non è una garanzia: nelle crisi le perdite possono essere maggiori.</p>`],
+  ['BOT e BTP: scadenza, rateo, prezzo',`<p>I titoli di Stato restituiscono il capitale a scadenza. Il <b>BOT</b> non paga cedole (guadagni dalla differenza tra prezzo e 100); il <b>BTP</b> paga cedole due volte l'anno. Quando li compri tra una cedola e l'altra paghi anche il <b>rateo</b>, cioè gli interessi maturati: li recuperi alla prossima cedola. Per le tue spese previste il sistema sceglie in automatico il titolo che scade a ridosso della data che hai indicato.</p>`],
+  ['Come comportarsi quando i mercati scendono',`<p>Le fasi di ribasso fanno parte degli investimenti. Il portafoglio è costruito per la tua fascia di rischio e per il tuo orizzonte: vendere nel panico trasforma una perdita temporanea in definitiva. Prima di agire scrivici: se la tua situazione è cambiata (spese impreviste, nuovo lavoro) possiamo rivedere il profilo.</p>`]]}
+];
+function artView(){return `<div class="alert info"><b>Educazione finanziaria</b><span class="small">Schede pratiche per muoverti con sicurezza: operare dal conto titoli, tasse, concetti di base.</span></div>`+EDU.map(g=>`<h3>${g.g}</h3>${g.a.map(a=>`<details class="art"><summary>${a[0]}</summary><div>${a[1]}</div></details>`).join('')}`).join('')+ASK}
+
+/* ---------- previdenza ---------- */
+/* Fonti: COVIP (Relazione annuale, comparatore ISC), dati riportati da SFAdvisor, Fondo Telemaco, Cometa, Fondo Perseo Sirio, Ciao Elsa; aggiornati a ottobre 2026. Da riverificare ogni anno.
+   lav/dat = contributo minimo del lavoratore / del datore (% retribuzione di riferimento); null = da leggere nel proprio CCNL o nella scheda del fondo. isc = ISC a 35 anni (min-max tra i comparti, %). */
+const PREV_NEG=[
+ ['Cometa','Metalmeccanici',1.2,2.0,.06,.63],['Fonchim','Chimici e farmaceutici',null,null,.13,.57],['Laborfonds','Trentino-Alto Adige (territoriale)',null,null,.16,.52],['Eurofer','Ferrovie e trasporto su rotaia',1,3,.17,.54],
+ ['Priamo','Trasporto pubblico',null,null,.18,.55],['Gomma Plastica','Gomma, cavi e materie plastiche',null,null,.18,.71],['Prevedi','Edilizia',null,null,.19,.23],['Fondemain','Valle d\'Aosta (territoriale)',null,null,.19,.55],
+ ['Perseo Sirio','Dipendenti pubblici (Funzioni locali, Sanità, Funzioni centrali)',1,1,.20,.53],['Previdenza Cooperativa','Cooperative e settori affini',null,null,.20,.60],['Espero','Scuola',null,null,.22,.37],['Fondenergia','Energia',null,null,.22,.56],
+ ['Fondapi','PMI Confapi',null,null,.22,.57],['Solidarietà Veneto','Intercategoriale Veneto',null,null,.22,.60],['Fondoposte','Poste Italiane',null,null,.23,.38],['Byblos','Carta, grafica ed editoria',null,null,.23,.64],
+ ['Foncer','Ceramica',null,null,.23,.77],['Fon.Te','Commercio, turismo e servizi',.55,1.55,.24,.64],['ARCO','Legno, arredamento e laterizi',null,null,.28,.35],['Alifond','Alimentare',null,null,.28,.59],
+ ['Previmoda','Moda e tessile',null,null,.29,.66],['Pegaso','Utility locali',null,null,.31,.71],['Telemaco','Telecomunicazioni',null,null,.33,.39],['Previambiente','Igiene ambientale',null,null,.34,.64],
+ ['FondoSanità','Professioni sanitarie',null,null,.34,.38],['Fopen','Gruppo Enel',null,null,.51,.67]];
+const PREV_MEDIE={neg:{y10:.49,y35:.36,n:'Fondi negoziali'},apt:{y10:1.35,y35:1.23,n:'Fondi aperti'},pip:{y10:2.17,y35:1.82,n:'PIP (polizze)'}};
+const PV_TFR=[['azienda','In azienda'],['fondo','Già in un fondo pensione'],['inps','Al Fondo Tesoreria INPS (azienda con più di 50 dipendenti)'],['non','Non so / non ho il TFR (autonomo)']];
+const PV0={fondo:'Metalmeccanici',ral:30000,perc:null,tfr:'azienda',anni:25,rend:4};
+const PVK='bf-pv';
+let PV=Object.assign({},PV0);try{PV=Object.assign(PV,JSON.parse(localStorage.getItem(PVK)||'{}'))}catch(e){}
+const pvSave=()=>{try{localStorage.setItem(PVK,JSON.stringify(PV))}catch(e){}};
+const pvFondo=()=>PREV_NEG.find(f=>f[1]===PV.fondo)||null;
+const irpefMarg=r=>r<=28000?.23:r<=50000?.33:.43; // aliquote IRPEF 2026 (stima, senza addizionali)
+const pvFV=(c,g,n)=>{let v=0;for(let i=0;i<n;i++)v=(v+c)*(1+g);return v};
+function prevView(){
+  const f=pvFondo(),ral=Math.max(0,+PV.ral||0),pl=f&&f[2]!=null?f[2]:(PV.perc!=null?+PV.perc:1),dl=f&&f[3]!=null?f[3]:null,
+    pp=PV.perc!=null&&PV.perc!=='' ? +PV.perc : pl,vers=ral*pp/100,dat=(dl!=null&&pp>=pl)?ral*dl/100:0,deduc=Math.min(vers+dat,5164.57),risp=deduc*irpefMarg(ral);
+  const n=Math.max(1,+PV.anni||25),g=(+PV.rend||4)/100,C=Math.max(1,(vers+dat)||ral*.03);
+  const fv=m=>pvFV(C,g-m/100,n);
+  const opts=PREV_NEG.map(x=>`<option ${x[1]===PV.fondo?'selected':''}>${esc(x[1])}</option>`).join('')+`<option ${!f?'selected':''} value="__altro">Altro / non nell'elenco (autonomo, libero professionista, altro settore)</option>`;
+  const ord=PREV_NEG.slice().sort((a,b)=>a[4]-b[4]);
+  const comp=n>20?['Azionario o bilanciato prudente verso azionario','Hai tempo: la parte azionaria può oscillare e recuperare.']:n>10?['Bilanciato','Un mix di azioni e obbligazioni.']:n>5?['Obbligazionario misto o bilanciato prudente','Ti avvicini alla pensione: riduci le oscillazioni.']:['Garantito o obbligazionario','Con pochi anni davanti conta proteggere quanto accumulato.'];
+  return `<div class="alert info"><b>Consulenza previdenziale</b><span class="small">Compresa nella parcella della consulenza. Rispondi a poche domande: ti mostriamo se hai un fondo pensione di categoria, quanto potresti ricevere dal datore di lavoro, i fondi più economici e le differenze tra lasciare il TFR in azienda o versarlo a un fondo.</span></div>
+  <div class="card inner"><h3>1 · La tua situazione</h3><div class="grid2">
+   <label class="f">Il tuo settore (contratto collettivo)<select data-pv="fondo">${opts}</select></label>
+   <label class="f">Dove si trova il tuo TFR<select data-pv="tfr">${PV_TFR.map(([k,l])=>`<option value="${k}" ${PV.tfr===k?'selected':''}>${l}</option>`).join('')}</select></label>
+   <label class="f">Retribuzione lorda annua (€)<input type="number" min="0" step="1000" data-pv="ral" value="${ral}"></label>
+   <label class="f">Quanto versi tu al fondo (% della retribuzione)<input type="number" min="0" max="30" step="0.1" data-pv="perc" value="${PV.perc!=null&&PV.perc!==''?PV.perc:pl}"></label>
+   <label class="f">Anni alla pensione<input type="number" min="1" max="45" data-pv="anni" value="${n}"></label>
+   <label class="f">Rendimento lordo annuo ipotizzato (%) <span class="small muted">solo per il confronto costi</span><input type="number" min="0" max="10" step="0.5" data-pv="rend" value="${PV.rend}"></label></div></div>
+  <div class="card inner"><h3>2 · Hai diritto a un fondo di categoria?</h3>${f?`<div class="box"><b class="ok">Sì: ${esc(f[0])}</b><span class="small">Fondo pensione negoziale del settore «${esc(f[1])}». Costo (ISC a 35 anni): da ${String(f[4]).replace('.',',')}% a ${String(f[5]).replace('.',',')}% a seconda del comparto.</span></div>
+   ${dl!=null?`<div class="grid2"><div class="stats"><div><small>Versi tu (${String(pp).replace('.',',')}%)</small><b>${eur(vers)}/anno</b></div><div><small>Aggiunge il datore (${String(dl).replace('.',',')}%)</small><b>${eur(dat)}/anno</b></div></div>
+   <div class="stats"><div><small>Risparmio IRPEF stimato</small><b>${eur(risp)}/anno</b></div><div><small>Totale che entra nel fondo</small><b>${eur(vers+dat)}/anno</b></div></div></div>
+   <p class="small">${pp>=pl?`Versando almeno il <b>${String(pl).replace('.',',')}%</b> (${eur(ral*pl/100)} l'anno) ottieni il contributo del datore di lavoro: è denaro che non avresti altrimenti. In più i versamenti sono <b>deducibili</b> fino a 5.164,57 € l'anno.`:`<b class="ko">Attenzione:</b> sotto il ${String(pl).replace('.',',')}% di versamento personale potresti perdere il contributo del datore di lavoro.`}</p>
+   <p class="small muted">Stima su retribuzione lorda: la base di calcolo reale può essere diversa (per esempio i minimi tabellari del contratto). Leggi la scheda del fondo o chiedi al consulente.</p>`
+   :`<p class="small">Per questo fondo non abbiamo in archivio le percentuali di contributo: le trovi nel tuo CCNL e nella «Scheda dei destinatari e dei contributi» del fondo (di norma il datore versa tra l'1% e il 2% della retribuzione se anche tu versi la tua quota). Scrivi al consulente e le verifichiamo insieme.</p>`}`
+   :`<div class="box"><b>Non risulta un fondo di categoria in elenco</b><span class="small">Se sei autonomo o il tuo settore non compare, puoi aderire a un fondo pensione aperto o a un PIP, oppure a un fondo negoziale territoriale. In questi casi non c'è il contributo del datore, ma restano la deducibilità fino a 5.164,57 € e la tassazione agevolata. Confronta i costi qui sotto.</span></div>`}
+   <p class="small muted">La normativa è in evoluzione (adesione automatica dal 1° luglio 2026, portabilità del contributo del datore verso altri fondi): chiedi al consulente prima di decidere.</p></div>
+  <div class="card inner"><h3>3 · TFR in azienda o in un fondo pensione?</h3>${PV.tfr==='fondo'?'<div class="box"><b>Il tuo TFR è già in un fondo pensione.</b><span class="small">Verifica il costo del tuo comparto con la tabella seguente e la coerenza del comparto con gli anni alla pensione.</span></div>':''}
+   <div class="pc"><div><h4>TFR lasciato in azienda</h4><span class="small ok">Pro</span><ul class="why small"><li>Rivalutazione garantita: 1,5% fisso più il 75% dell'inflazione</li><li>Nessun rischio di mercato</li><li>Sempre disponibile (anticipazioni per casa e spese sanitarie)</li></ul><span class="small ko">Contro</span><ul class="why small"><li>Nessun contributo del datore di lavoro</li><li>Rendimento reale spesso inferiore su orizzonti lunghi</li><li>Tassazione sulla liquidazione più alta (aliquota media di tassazione separata)</li><li>Nessuna deduzione fiscale</li></ul></div>
+   <div><h4>TFR (e contributi) in un fondo pensione</h4><span class="small ok">Pro</span><ul class="why small"><li>Contributo del datore di lavoro (se previsto dal contratto)</li><li>Versamenti deducibili fino a 5.164,57 €/anno</li><li>Tassazione agevolata sulle prestazioni: dal 15% fino al 9% con gli anni di adesione</li><li>Rendimento atteso più alto sul lungo periodo, patrimonio separato</li></ul><span class="small ko">Contro</span><ul class="why small"><li>Rischio di mercato: il valore può anche scendere</li><li>Soldi meno liberi: anticipazioni e riscatti solo a certe condizioni</li><li>Costi annui (ISC) da controllare</li><li>Alla pensione una parte va in rendita (di norma fino al 50% in capitale)</li></ul></div></div>
+   <div class="box"><b>In sintesi</b><span class="small">${PV.tfr==='non'?'Per gli autonomi il fondo pensione resta utile soprattutto per deducibilità e tassazione agevolata.':'Se il tuo contratto prevede il contributo del datore, conferire almeno la quota minima conviene quasi sempre. Il comparto va scelto in base agli anni alla pensione.'}</span></div></div>
+  <div class="card inner"><h3>4 · Il comparto adatto a te</h3><div class="box"><b>Con ${n} anni alla pensione: ${comp[0]}</b><span class="small">${comp[1]} Indicazione generale, da coordinare con il tuo profilo di rischio e con il portafoglio che già segui.</span></div>
+   <div class="tablewrap"><table class="tl"><thead><tr><th>Comparto</th><th>Per chi</th><th>Rischio</th></tr></thead><tbody><tr><td>Garantito</td><td>Pochi anni alla pensione, prudenza</td><td>Molto basso</td></tr><tr><td>Obbligazionario</td><td>Tra 5 e 10 anni</td><td>Basso-medio</td></tr><tr><td>Bilanciato</td><td>Tra 10 e 20 anni</td><td>Medio</td></tr><tr><td>Azionario</td><td>Oltre 20 anni</td><td>Medio-alto</td></tr></tbody></table></div></div>
+  <div class="card inner"><h3>5 · Quanto contano i costi</h3><p class="small">ISC = indicatore sintetico dei costi, fornito dalla COVIP: stima quanto i costi riducono ogni anno il rendimento. Con ${eur(C)} versati ogni anno per ${n} anni e un rendimento lordo del ${String(PV.rend).replace('.',',')}% (ipotesi, non previsione):</p>
+   <div class="stats"><div><small>Fondo negoziale (ISC ${PREV_MEDIE.neg.y35}%)</small><b>${eur(fv(PREV_MEDIE.neg.y35))}</b></div><div><small>Fondo aperto (ISC ${PREV_MEDIE.apt.y35}%)</small><b>${eur(fv(PREV_MEDIE.apt.y35))}</b></div><div><small>PIP (ISC ${PREV_MEDIE.pip.y35}%)</small><b>${eur(fv(PREV_MEDIE.pip.y35))}</b></div></div>
+   <p class="small muted">Medie COVIP: ISC a 10 anni ${PREV_MEDIE.neg.y10}% negoziali, ${PREV_MEDIE.apt.y10}% aperti, ${PREV_MEDIE.pip.y10}% PIP; a 35 anni ${PREV_MEDIE.neg.y35}%, ${PREV_MEDIE.apt.y35}%, ${PREV_MEDIE.pip.y35}%.</p></div>
+  <div class="card inner"><h3>6 · I fondi negoziali più economici</h3><p class="small">Ordinati per costo del comparto più economico (ISC a 35 anni). Il tuo settore è evidenziato.</p>
+   <div class="tablewrap"><table class="tl"><thead><tr><th>Fondo</th><th>Settore</th><th>ISC min</th><th>ISC max</th><th>Contributo datore</th></tr></thead><tbody>${ord.map(x=>`<tr style="${x[1]===PV.fondo?'background:var(--chip)':''}"><td><b>${esc(x[0])}</b></td><td>${esc(x[1])}</td><td class="num">${String(x[4]).replace('.',',')}%</td><td class="num">${String(x[5]).replace('.',',')}%</td><td class="num">${x[3]!=null?String(x[3]).replace('.',',')+'%':'da verificare'}</td></tr>`).join('')}</tbody></table></div>
+   <p class="small muted">I fondi negoziali sono riservati ai lavoratori del settore di riferimento. Per i <b>fondi pensione aperti</b> e i <b>PIP</b> il confronto fondo per fondo si fa con il comparatore dei costi della COVIP (covip.it → Per il cittadino → Educazione previdenziale → Confronta i fondi pensione): i fondi aperti costano in media circa il triplo e i PIP quasi cinque volte i negoziali.</p>
+   <p class="small muted">Fonti: COVIP (Relazione annuale e comparatore ISC), con dati ripresi da SFAdvisor, Fondo Telemaco, Cometa, Fondo Perseo Sirio, Ciao Elsa; aggiornamento ottobre 2026. I contributi dipendono dal CCNL vigente.</p></div>${ASK}`}
+document.addEventListener('change',e=>{const t=e.target,k=t.dataset&&t.dataset.pv;if(!k)return;
+  if(k==='fondo'){PV.fondo=t.value==='__altro'?'':t.value;PV.perc=null}else if(k==='ral'||k==='anni'||k==='rend'||k==='perc')PV[k]=t.value===''?null:+t.value;else PV[k]=t.value;pvSave();render()});
+/* ======================= REPORT TRIMESTRALE e INDICATORI OCF ======================= */
+/* Adattatore prezzi: oggi usa l'ultimo prezzo noto; quando avrai il fornitore API basta sostituire questi due metodi.
+   last(riga) → prezzo di oggi; at(isin,'AAAA-MM-GG') → prezzo storico (null = non disponibile: rendimenti e utili restano «—»). */
+const PRICE_API={last:l=>l.price,at:(isin,date)=>null};
+const MACRO=['Azionario','Obbligazionario','Monetario','Oro'];
+const MACRO_L={Azionario:'Azionario',Obbligazionario:'Obbligazionario',Monetario:'Monetario',Oro:'Materie prime'};
+function sottoclasse(nome,cls){const t=(nome||'').toLowerCase();
+  if(cls==='Azionario'){if(/information tech|technology|health|energy|financ|utilit|semicond|quantum|rare earth|robot|cyber|clean|infrastruct|real estate|biotech|metals|mining/.test(t))return 'Tematico - Settoriale';if(/emerging|\bem\b|india|china/.test(t))return 'Emergenti';if(/europe|stoxx/.test(t))return 'Europa';if(/s&p|usa|nasdaq|north america/.test(t))return 'Nord America';if(/japan|pacific/.test(t))return 'Pacifico';return 'Globale'}
+  if(cls==='Obbligazionario'){if(/inflation|linked/.test(t))return 'Inflation Linked';if(/high yield|rolling target/.test(t))return 'High Yield';if(/corporate|ibonds|credit/.test(t))return 'Corporate';return 'Governativo - Div.'}
+  if(cls==='Monetario')return 'Liquidità';return 'Materie prime'}
+function emittente(nome,isin){const t=(nome||'').toLowerCase();
+  if(/^IT|^FR|^DE|^ES/.test(isin||'')&&/btp|bot|ctz|cct|oat|bund/.test(t))return {IT:'Repubblica Italiana',FR:'Repubblica Francese',DE:'Repubblica Federale Tedesca',ES:'Regno di Spagna'}[isin.slice(0,2)];
+  if(/xtrackers/.test(t))return 'DWS Funds Sicav';if(/ishares/.test(t))return 'BlackRock';if(/vanguard/.test(t))return 'Vanguard Funds PLC';if(/vaneck/.test(t))return 'VanEck';
+  if(/etf securities|physical gold|gold bullion/.test(t))return 'ETF Securities Ltd';if(/amundi/.test(t))return 'Amundi';if(/wisdomtree/.test(t))return 'WisdomTree';if(/spdr/.test(t))return 'State Street';if(/lyxor/.test(t))return 'Lyxor';if(/invesco/.test(t))return 'Invesco';if(/ubs/.test(t))return 'UBS';if(/franklin/.test(t))return 'Franklin Templeton';
+  return (nome||'Altro').split(' ')[0]}
+/* piano del cliente (titoli, quantità, prezzi) dal suo capitale e dal portafoglio scelto */
+function withCli(c,fn){const d=c.dati||{},sv={A:st.A,capital:st.capital,monthly:st.monthly,variant:st.variant,bonds:st.bonds,imp:st.imp,chosen:st.chosen,held:st.held};
+  try{Object.assign(st,{A:d.A||{},capital:d.capitale!=null?d.capitale:0,monthly:d.monthly||250,variant:d.variant||'classic',bonds:d.bonds||'etf',imp:d.spese||[],chosen:c.portafoglio,held:null});return fn()}finally{Object.assign(st,sv)}}
+function planCli(c,self){
+  const id=c.portafoglio;if(!id||!PF()[id])return null;const w=PF()[id].w;if(!w||w.__pub||!Object.keys(w).length)return null;
+  try{return self?planOf(id,st.held&&st.held.id===id&&st.held.w?st.held.w:null):withCli(c,()=>planOf(id))}catch(e){return null}}
+const selfRow=()=>({id:BE.on&&BE.me?BE.me.id:'demo',dati:{A:st.A,capitale:st.capital,monthly:st.monthly,variant:st.variant,bonds:st.bonds,spese:st.imp},portafoglio:st.chosen,profilo:st.profile,
+  attivo_dal:BE.on&&BE.cli?BE.cli.attivo_dal:(st.attivoDal?new Date(st.attivoDal).toISOString():null),uscito_il:BE.on&&BE.cli?BE.cli.uscito_il:null,stato:st.status==='attivo'?'attivo':st.status});
+const dIt=d=>new Date(d).toLocaleDateString('it-IT');
+const f2=(n,d=2)=>n==null?'—':n.toLocaleString('it-IT',{minimumFractionDigits:d,maximumFractionDigits:d});
+const f0=n=>n==null?'—':Math.round(n).toLocaleString('it-IT');
+function opsCli(c,pl,self){ // ultime 20 operazioni eseguite (acquisti iniziali dal piano + variazioni eseguite)
+  const R=(self?(BE.on?BE.racc:[]):BE.raccAll.filter(r=>r.cliente_id===c.id)).filter(r=>r.eseguita),out=[];
+  const byIsin=i=>{const x=INS.find(k=>k.isin===i);return x?x.price:null};
+  R.forEach(r=>{const dt=r.eseguita_il||r.creato_il;
+    if(r.tipo==='iniziale'){if(pl)pl.lines.forEach(l=>out.push({isin:l.isin,nome:l.name,data:dt,tipo:'Acquisto',qty:l.sing?l.qty*1000:l.qty,prezzo:l.sing?null:l.price,cv:l.amt}))}
+    else(r.operazioni||[]).forEach(o=>{const pr=byIsin(o.isin),cv=Math.abs((o.a||0)-(o.da||0))/100*(r.capitale||0);out.push({isin:o.isin,nome:o.nome,data:dt,tipo:(o.azione==='vendi'||o.azione==='riduci')?'Vendita':'Acquisto',qty:pr?Math.floor(cv/pr):null,prezzo:pr,cv})})});
+  if(!BE.on&&pl&&st.attivoDal)pl.lines.forEach(l=>out.push({isin:l.isin,nome:l.name,data:new Date(st.attivoDal).toISOString(),tipo:'Acquisto',qty:l.sing?l.qty*1000:l.qty,prezzo:l.sing?null:l.price,cv:l.amt}));
+  return out.sort((a,b)=>new Date(b.data)-new Date(a.data)).slice(0,20)}
+function repData(c,self){
+  const d=c.dati||{},pl=planCli(c,self);if(!pl)return null;
+  const righe=pl.lines.map(l=>({...l,val:l.amt,macro:l.cls,sub:sottoclasse(l.name,l.cls),emit:emittente(l.name,l.isin)})),tit=righe.reduce((a,l)=>a+l.val,0),liq=Math.max(0,(pl.capital||0)-(pl.monthly?0:pl.spent||tit)),tot=tit+liq;
+  const prof=c.profilo,hor=(typeof HOR!=='undefined'&&HOR.o&&d.A&&d.A.hor!=null)?HOR.o[d.A.hor]:'—';
+  const inizio=c.attivo_dal?new Date(c.attivo_dal):new Date(),fine=c.uscito_il&&c.stato==='uscito'?new Date(c.uscito_il):new Date();
+  return{nome:self?st.user.nome:(typeof beNome==='function'?beNome(c.id):''),inizio,fine,prof:prof?BANDS[prof.band]:'—',hor,righe,tit,liq,tot,ops:opsCli(c,pl,self),imp:d.spese||[]}}
+const bars=(rows)=>rows.map(([l,v])=>`<div><div class="row sb small"><span>${esc(l)}</span><b class="num">${f2(v)}%</b></div><div class="bar"><i style="width:${Math.min(100,v)}%"></i></div></div>`).join('');
+function reportHtml(r){
+  const pct=v=>r.tot?v/r.tot*100:0,perM={};r.righe.forEach(l=>perM[l.macro]=(perM[l.macro]||0)+l.val);perM.Liquidità=r.liq;
+  const macroRows=MACRO.filter(m=>perM[m]).map(m=>[MACRO_L[m],pct(perM[m]+(m==='Monetario'?r.liq:0))]);
+  const sub=(m)=>{const o={};r.righe.filter(l=>l.macro===m).forEach(l=>o[l.sub]=(o[l.sub]||0)+l.val);const t=Object.values(o).reduce((a,b)=>a+b,0)||1;return Object.entries(o).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[k,v/t*100])};
+  const periodo=dIt(r.inizio)+' – '+dIt(r.fine);
+  const mesi=[];{const s=new Date(Math.max(r.inizio,new Date(r.fine.getFullYear(),0,1))),e=r.fine;for(let d=new Date(s.getFullYear(),s.getMonth(),1);d<=e;d.setMonth(d.getMonth()+1))mesi.push(MESI_IT[d.getMonth()].slice(0,3)+' '+d.getFullYear())}
+  const nota='<p class="small muted">I valori di rendimento e utili si compilano automaticamente quando saranno collegati i prezzi storici del fornitore dati: fino ad allora compaiono come «—». Composizione, quantità e controvalori sono calcolati sul portafoglio raccomandato.</p>';
+  return `<div class="rep"><div><span class="eyebrow">Binario F · Consulenza finanziaria indipendente</span><h1>Report di portafoglio</h1></div><div class="kv"><span>Cliente</span><span>${esc(r.nome)}</span><span>Periodo</span><span>${periodo}</span></div></div>
+  <div class="rep"><h2>Sintesi</h2><div class="grid2"><div><h3>Dati di sintesi</h3><div class="kv"><span>Cliente</span><span>${esc(r.nome)}</span><span>Data inizio rapporto</span><span>${dIt(r.inizio)}</span><span>Profilo di rischio</span><span>${esc(r.prof)}</span><span>Orizzonte temporale</span><span>${esc(r.hor)}</span></div>
+   <h3 style="margin-top:14px">Situazione portafoglio</h3><div class="kv"><span>Periodo valutazione</span><span>${periodo}</span><span>Utili totali (EUR)</span><span>—</span><span>Rendimento (MWR)</span><span>—</span></div>
+   <h3 style="margin-top:14px">Portafoglio</h3><div class="kv"><span>Controvalore titoli</span><span>${f2(r.tit)}</span><span>Liquidità</span><span>${f2(r.liq)}</span><span>Controvalore portafoglio</span><span>${f2(r.tot)}</span></div></div>
+   <div><h3>Performance portafoglio (TWR)</h3><div class="box"><span class="small">Il grafico dell'andamento si genera con le serie storiche dei prezzi (fornitore dati in arrivo).</span></div><h3 style="margin-top:14px">Asset allocation</h3>${bars(macroRows)}</div></div>
+   <div class="grid2"><div><h3>Azionario · composizione</h3>${bars(sub('Azionario'))||'<span class="small muted">—</span>'}</div><div><h3>Obbligazionario · composizione</h3>${bars(sub('Obbligazionario'))||'<span class="small muted">—</span>'}</div></div>
+   <div><h3>Valute</h3>${bars([['EUR',100]])}</div>${nota}</div>
+  <div class="rep"><h2>Analisi di rendimento</h2><p class="small muted">${periodo}</p><div class="tablewrap"><table class="tl"><thead><tr><th>Macro</th><th>Utili maturati</th><th>% media investita</th><th>Performance</th><th>Perf. attribution</th></tr></thead><tbody>${['Azionario','Alternativo','Materie prime','Bilanciato','Obbligazionario','Polizze','Monetario','Altro'].map(m=>{const k=m==='Materie prime'?'Oro':m;const v=perM[k]!=null?pct(perM[k]+(k==='Monetario'?r.liq:0)):null;return `<tr><td>${m}</td><td class="num">—</td><td class="num">${v!=null?f2(v)+'%':'—'}</td><td class="num">—</td><td class="num">—</td></tr>`}).join('')}</tbody><tfoot><tr><td>Totali</td><td class="num">—</td><td></td><td></td><td class="num">—</td></tr></tfoot></table></div>${nota}</div>
+  <div class="rep"><h2>Dettaglio portafoglio</h2><p class="small muted">${periodo}</p><div class="tablewrap"><table class="tl"><thead><tr><th>Tipologia</th><th>Classificazione</th><th>Descrizione</th><th>ISIN</th><th>Valuta</th><th>Nominale</th><th>Prezzo</th><th class="num">Controvalore</th><th>Peso %</th><th>Rend. %</th><th>Utili totali</th></tr></thead><tbody>${r.righe.map(l=>`<tr><td>${MACRO_L[l.macro]}</td><td>${esc(l.sub)}</td><td>${esc(l.name)}</td><td>${esc(l.isin)}</td><td>EUR</td><td class="num">${l.sing?f0(l.qty*1000):(l.qty==null?'—':f0(l.qty))}</td><td class="num">${l.sing?'—':f2(PRICE_API.last(l))}</td><td class="num">${f0(l.val)}</td><td class="num">${f2(pct(l.val))}</td><td class="num">—</td><td class="num">—</td></tr>`).join('')}<tr><td>Monetario</td><td>Euro</td><td>Euro</td><td></td><td>EUR</td><td class="num">${f0(r.liq)}</td><td class="num">1,00</td><td class="num">${f0(r.liq)}</td><td class="num">${f2(pct(r.liq))}</td><td class="num">—</td><td class="num">—</td></tr></tbody><tfoot><tr><td colspan="7">Totali</td><td class="num">${f0(r.tot)}</td><td class="num">100,00</td><td class="num">—</td><td class="num">—</td></tr></tfoot></table></div></div>
+  <div class="rep"><h2>Report cedole e dividendi ${r.fine.getFullYear()}</h2><div class="tablewrap"><table class="tl"><thead><tr><th>Descrizione strumento</th>${mesi.map(m=>`<th>${m}</th>`).join('')}</tr></thead><tbody><tr><td><b>Totale per mese</b></td>${mesi.map(()=>'<td class="num">—</td>').join('')}</tr></tbody></table></div><p class="small muted">I valori indicati nel report sono espressi in EUR e sono al lordo della tassazione. Cedole e dividendi si compilano con i dati del fornitore.</p></div>
+  <div class="rep"><h2>Ultime 20 operazioni eseguite</h2>${r.ops.length?`<div class="tablewrap"><table class="tl"><thead><tr><th>Codice ISIN</th><th>Descrizione strumento</th><th>Data</th><th>Tipo operazione</th><th>Quantità</th><th>Prezzo</th><th>Cambio</th><th class="num">Controvalore</th><th>Valuta</th></tr></thead><tbody>${r.ops.map(o=>`<tr><td>${esc(o.isin)}</td><td>${esc(o.nome)}</td><td>${dIt(o.data)}</td><td>${o.tipo}</td><td class="num">${o.qty==null?'—':f0(o.qty)}</td><td class="num">${o.prezzo==null?'—':f2(o.prezzo)}</td><td class="num">1,00</td><td class="num">${f0(o.cv)}</td><td>EUR</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted small">Nessuna operazione eseguita nel periodo.</p>'}</div>
+  <p class="small muted">Report indicativo basato sul portafoglio raccomandato. Le operazioni effettive vengono eseguite dal cliente sul proprio conto titoli. I rendimenti passati non sono indicativi di quelli futuri.</p>`}
+function repClient(){const c=selfRow(),r=repData(c,true);
+  if(!r)return '<p class="muted">Il report sarà disponibile appena il portafoglio è attivo.</p>';
+  return `<div class="row sb noprint"><p class="small muted">Il report si aggiorna ogni trimestre: periodo dall'avvio del rapporto (${dIt(r.inizio)}) a oggi.</p><button class="btn sm" data-act="rep-print">Stampa o salva in PDF</button></div>${reportHtml(r)}`}
+document.addEventListener('click',e=>{const t=e.target.closest('[data-act="rep-print"]');if(t)window.print()});
+/* ---------- indicatori OCF trimestrali ---------- */
+const trimPrec=()=>{const n=new Date(),q=Math.floor(n.getMonth()/3),y=q===0?n.getFullYear()-1:n.getFullYear(),q0=(q+3)%4,p=x=>String(x).padStart(2,'0'),m0=q0*3,e=new Date(y,m0+3,0);
+  return{from:y+'-'+p(m0+1)+'-01',to:y+'-'+p(m0+3)+'-'+p(e.getDate())}};
+function ocfCalc(from,to){
+  const f=new Date(from+'T00:00:00'),t=new Date(to+'T23:59:59'),inP=x=>x&&new Date(x)>=f&&new Date(x)<=t;
+  // attivi nel trimestre: attivi oggi (e già attivi a fine periodo) + chiusi nel trimestre o dopo (nel trimestre di chiusura contano, dal successivo no)
+  const cl=BE.clienti.filter(c=>c.attivo_dal&&new Date(c.attivo_dal)<=t&&(c.stato==='attivo'||(c.stato==='uscito'&&c.uscito_il&&new Date(c.uscito_il)>=f)));
+  const ids=new Set(cl.map(c=>c.id)),em={},det=[];let cv=0,buy=0,sell=0,eb=0,es=0,alto=0;
+  cl.forEach(c=>{const pl=planCli(c,false),cap=(c.dati||{}).capitale||0,val=pl?pl.lines.reduce((a,l)=>a+l.amt,0)+Math.max(0,cap-pl.spent):cap;cv+=val;if(c.profilo&&c.profilo.band===3)alto++;
+    if(pl)pl.lines.forEach(l=>{const k=emittente(l.name,l.isin);em[k]=(em[k]||0)+l.amt});
+    let b=0,s=0,xb=0,xs=0;
+    BE.raccAll.filter(r=>r.cliente_id===c.id).forEach(r=>{
+      if(r.tipo==='iniziale'){const n=pl?pl.lines.length:0;if(inP(r.creato_il))b+=n;if(r.eseguita&&inP(r.eseguita_il))xb+=n}
+      else(r.operazioni||[]).forEach(o=>{const isB=o.azione==='acquista'||o.azione==='aumenta';if(inP(r.creato_il)){isB?b++:s++}if(r.eseguita&&inP(r.eseguita_il)){isB?xb++:xs++}})});
+    buy+=b;sell+=s;eb+=xb;es+=xs;det.push({nome:beNome(c.id),attivo:c.attivo_dal,chiuso:c.stato==='uscito'?c.uscito_il:'',profilo:c.profilo?BANDS[c.profilo.band]:'',portafoglio:c.portafoglio||'',valore:val,rb:b,rv:s,eb:xb,ev:xs})});
+  const top=Object.entries(em).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  return{from,to,n:cl.length,cv,buy,sell,eb,es,alto,top,det}}
+function ocfCsv(r){
+  const C=v=>{v=v==null?'':String(v);return /[";\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v},L=[];
+  L.push(['Indicatori OCF',r.from,r.to].map(C).join(';'));
+  [['Controvalore complessivo ptf sotto consulenza',f2(r.cv)],['Numero raccomandazioni di acquisto',r.buy],['Numero eseguiti di acquisto',r.eb],['Numero raccomandazioni di vendita',r.sell],['Numero eseguiti di vendita',r.es],['Numero complessivo di clienti attivi',r.n],['Numero di clienti con profilo alto',r.alto]].forEach(x=>L.push(x.map(C).join(';')));
+  L.push('');L.push('Prime 5 posizioni per emittente');r.top.forEach((x,i)=>L.push([i+1,x[0],f2(x[1])].map(C).join(';')));
+  L.push('');L.push('Dettaglio calcolo');L.push(['cliente','attivo dal','chiuso il','profilo','portafoglio','controvalore','racc. acquisto','racc. vendita','eseguiti acquisto','eseguiti vendita'].join(';'));
+  r.det.forEach(d=>L.push([d.nome,d.attivo?dIt(d.attivo):'',d.chiuso?dIt(d.chiuso):'',d.profilo,d.portafoglio,f2(d.valore),d.rb,d.rv,d.eb,d.ev].map(C).join(';')));
+  const blob=new Blob(['﻿'+L.join('\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='indicatori_OCF_'+r.from+'_'+r.to+'.csv';document.body.appendChild(a);a.click();a.remove()}
+function beOcf(){
+  const o=BE.ocf=BE.ocf||Object.assign({},trimPrec()),r=o.res;
+  const row=(l,v)=>`<tr><td>${l}</td><td class="num">${v}</td></tr>`;
+  return `<div class="card"><span class="eyebrow">Adempimenti OCF</span><h2>Indicatori OCF trimestrali</h2><p class="muted small">Scegli data iniziale e finale del trimestre: il sistema elabora gli indicatori sui clienti attivi. Un cliente chiuso conta nel trimestre in cui il contratto si chiude, non da quello successivo.</p>
+   <div class="row" style="align-items:end"><label class="f">Data iniziale<input type="date" id="ocf-from" value="${o.from}"></label><label class="f">Data finale<input type="date" id="ocf-to" value="${o.to}"></label><button class="btn pri" data-act="be-ocf">Elabora</button>${r?'<button class="btn" data-act="be-ocfcsv">Scarica in Excel (CSV)</button>':''}</div></div>
+  ${r?`<div class="card"><h3>Indicatori OCF · ${dIt(r.from)} – ${dIt(r.to)}</h3><div class="tablewrap"><table class="tl" style="min-width:0"><thead><tr><th>Indicatore</th><th class="num">Valore</th></tr></thead><tbody>
+   ${row('Controvalore complessivo ptf sotto consulenza',f2(r.cv))}${row('Numero raccomandazioni di acquisto',r.buy||'-')}${row('Numero eseguiti di acquisto',r.eb||'-')}${row('Numero raccomandazioni di vendita',r.sell||'-')}${row('Numero eseguiti di vendita',r.es||'-')}
+   ${row('Numero raccomandazioni di prodotti a complessità molto elevata','-')}${row('Numero eseguiti di acquisto di prodotti a complessità molto elevata','-')}${row('Numero di raccomandazioni di acquisto su unit linked','-')}${row('Numero di raccomandazioni di vendita su unit linked','-')}${row('Numero di raccomandazioni di acquisto su index linked','-')}${row('Numero di raccomandazioni di vendita su index linked','-')}
+   ${row('Numero complessivo di clienti attivi',r.n||'-')}${row('Numero di clienti con il profilo alto',r.alto||'-')}${row('Numero complessivo delle riprofilature che innalzano il livello di rischio','-')}</tbody></table></div>
+   <h3>Prime 5 posizioni per emittente</h3>${r.top.length?`<div class="tablewrap"><table class="tl" style="min-width:0"><thead><tr><th>Pos.</th><th>Emittente</th><th class="num">Controvalore</th></tr></thead><tbody>${r.top.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x[0])}</td><td class="num">${f2(x[1])}</td></tr>`).join('')}</tbody></table></div>`:'<p class="small muted">Nessun cliente attivo nel periodo.</p>'}
+   <details class="art"><summary>Dettaglio calcolo (${r.det.length} clienti)</summary><div><div class="tablewrap"><table class="tl"><thead><tr><th>Cliente</th><th>Attivo dal</th><th>Chiuso il</th><th>Portafoglio</th><th class="num">Controvalore</th><th>Racc. acq.</th><th>Racc. vend.</th></tr></thead><tbody>${r.det.map(d=>`<tr><td>${esc(d.nome)}</td><td>${d.attivo?dIt(d.attivo):''}</td><td>${d.chiuso?dIt(d.chiuso):''}</td><td>${esc(d.portafoglio)}</td><td class="num">${f2(d.valore)}</td><td class="num">${d.rb}</td><td class="num">${d.rv}</td></tr>`).join('')}</tbody></table></div></div></details>
+   <p class="small muted">Il controvalore è calcolato sul capitale e sul portafoglio raccomandato (prezzi di riferimento); si aggiornerà con i prezzi del fornitore dati. I clienti con servizio scaduto per rinnovo non pagato non sono conteggiati.</p></div>`:''}`}
+function beRepView(cid){const c=BE.clienti.find(x=>x.id===cid),r=c&&repData(c,false);
+  return `<div class="row sb noprint"><button class="btn sm" data-act="be-rep" data-v="">← Torna al cliente</button><button class="btn sm pri" data-act="rep-print">Stampa o salva in PDF</button></div>${r?reportHtml(r):'<div class="card"><p class="muted">Il report si genera quando il cliente ha un portafoglio con composizione disponibile.</p></div>'}`}
 /* ======================= BACKEND (Supabase): accesso, clienti, raccomandazioni ======================= */
 const BCFG=window.BF_CONFIG||{};
 const BE={on:!!(BCFG.url&&BCFG.key&&window.supabase),sb:null,view:'landing',me:null,ready:false,loading:false,msg:null,f:{},
   cli:null,racc:[],imp:{},mod:null,pubs:[],
-  clienti:[],profili:{},raccAll:[],reg:[],sel:null,tab:'clienti',filtro:'tutti',saveT:0,saveErr:null,seeding:false};
+  clienti:[],profili:{},raccAll:[],reg:[],sel:null,tab:'clienti',rep:null,ocf:null,filtro:'tutti',saveT:0,saveErr:null,seeding:false};
 const SLOCAL={registrato:'none',questionario:'none',documenti:'attesa',firma:'firma',pagamento:'pagamento',attivo:'attivo',scaduto:'scaduto',uscito:'uscito'};
-const SNOME={registrato:'Registrato',questionario:'Questionario completato',documenti:'Documenti inviati',firma:'Contratto da firmare',pagamento:'In attesa del bonifico',attivo:'Attivo',scaduto:'Scaduto',uscito:'Uscito'};
+const SNOME={registrato:'Registrato',questionario:'Questionario completato',documenti:'Documenti inviati',firma:'Contratto da firmare',pagamento:'In attesa del bonifico',attivo:'Attivo',scaduto:'Scaduto',uscito:'Chiuso'};
 const SEARLY=['registrato','questionario'];
 const SSEGUI=['questionario','documenti','firma','pagamento'];
 const beMsg=(t,e)=>{BE.msg=t?{t,e:!!e}:null};
@@ -465,7 +673,7 @@ async function beLoad(user){
   BE.ready=true;BE.loading=false;render();
 }
 async function beLoadImp(){const {data}=await BE.sb.from('impostazioni').select('*');(data||[]).forEach(r=>{BE.imp[r.chiave]=r.valore});
-  if(BE.imp.parcelle)st.fees=Object.assign({},st.fees,BE.imp.parcelle);if(BE.imp.banca)st.bank=Object.assign({},st.bank,BE.imp.banca)}
+  }
 async function beLoadPF(){
   const {data,error}=await BE.sb.from('portafogli_pub').select('*').order('ordine');if(error)throw error;
   BE.pubs=data||[];st.PF={};
@@ -483,7 +691,7 @@ async function beLoadClient(){
   const {data:c,error}=await BE.sb.from('clienti').select('*').eq('id',BE.me.id).single();if(error)throw error;
   BE.cli=c;const d=c.dati||{};
   Object.assign(st,{A:d.A||{},aml:d.aml||{},capital:d.capitale!=null?d.capitale:20000,monthly:d.monthly!=null?d.monthly:250,variant:d.variant||'classic',bonds:d.bonds||'etf',contract:d.contract||'cont',imp:d.spese||[],
-    profile:c.profilo||null,chosen:c.portafoglio||null,tab:d.tab||'portafoglio',status:SLOCAL[c.stato]||'none'});
+    profile:c.profilo||null,chosen:c.portafoglio||null,tab:d.tab||'portafoglio',status:SLOCAL[c.stato]||'none',chiusoDal:c.uscito_il?new Date(c.uscito_il).getTime():null});
   if(SEARLY.includes(c.stato)){st.step=(d.step&&STEPS.includes(d.step)&&d.step!=='auth')?d.step:'quest';if(st.step==='profilo'&&!st.profile)st.step='quest'}
   else st.step='stato';
   if(c.stato==='attivo'||c.stato==='scaduto'){await beLoadRacc();
@@ -499,7 +707,7 @@ function beSaveSoon(){if(!BE.cli||!BE.me||BE.me.ruolo==='consulente'||!SEARLY.in
 async function beSave(){
   if(!BE.cli||!SEARLY.includes(BE.cli.stato))return;
   const stato=st.status==='attesa'?'documenti':(st.profile?'questionario':'registrato');
-  const dati={A:st.A,aml:st.aml,capitale:st.capital,monthly:st.monthly,variant:st.variant,bonds:st.bonds,contract:st.contract,spese:st.imp||[],step:st.step,tab:st.tab};
+  const dati={A:st.A,aml:st.aml,capitale:st.capital,monthly:st.monthly,variant:st.variant,bonds:st.bonds,contract:st.contract,spese:st.imp||[],parcella:Object.assign(feesNow(),{scelta:st.contract}),step:st.step,tab:st.tab};
   const {error}=await BE.sb.from('clienti').update({dati,profilo:st.profile||null,portafoglio:st.chosen||null,stato}).eq('id',BE.me.id);
   if(error){BE.saveErr=beErr(error);const b=$('#besave');if(b)b.textContent='Salvataggio non riuscito: '+BE.saveErr}
   else{BE.saveErr=null;BE.cli.stato=stato;const b=$('#besave');if(b)b.textContent=''}
@@ -534,7 +742,7 @@ async function beCambiaStato(cid,stato){
   const c=BE.clienti.find(x=>x.id===cid);if(!c)return;
   if(stato==='attivo'&&!c.portafoglio){beMsg('Il cliente non ha ancora scelto un portafoglio.',1);return}
   if(stato==='attivo'&&!confirm('Attivare il servizio per '+(BE.profili[cid].nome||BE.profili[cid].email)+'? Da questo momento riceverà la composizione del portafoglio e tutte le variazioni future.'))return;
-  if(stato==='uscito'&&!confirm('Segnare il cliente come uscito? Lo storico delle raccomandazioni resta conservato.'))return;
+  if(stato==='uscito'&&!confirm('Chiudere il rapporto con questo cliente (recesso)? Dal trimestre successivo non sarà più conteggiato negli indicatori OCF; lo storico resta conservato.'))return;
   const {error}=await BE.sb.from('clienti').update({stato}).eq('id',cid);
   if(error){beMsg(beErr(error),1)}else{beMsg('Stato aggiornato: '+SNOME[stato]+'.')}
   await beLoadAdmin();render();
@@ -580,7 +788,7 @@ async function beCsv(cid){
 /* ======================= VISTE ======================= */
 const PROTO_BE=`<div class="proto"><b>Versione di test.</b> Prezzi, rendimenti e statistiche sono simulati e il servizio non è ancora attivo: usala solo se sei stato invitato dal consulente.</div>`;
 function beHead(){const m=BE.me;return`<div class="in"><a href="home.html" title="Torna al sito" style="text-decoration:none;color:inherit"><div class="brand"><img alt="" src="${SYM}"><div><b>Binario F</b><span>Consulenza Finanziaria Indipendente</span></div></div></a>
-<div class="row">${m?`<span class="small" style="color:#DCE8E0">${esc(m.nome||m.email)}${m.ruolo==='consulente'?' · consulente':''}</span><button class="btn sm" data-act="be-logout">Esci</button>`:`<button class="btn sm" data-act="be-go" data-v="login">Accedi</button><button class="btn sm" data-act="be-go" data-v="register">Registrati</button>`}</div></div>`}
+<div class="row">${m?`<span class="small muted">${esc(m.nome||m.email)}${m.ruolo==='consulente'?' · consulente':''}</span><button class="btn sm" data-act="be-logout">Esci</button>`:`<button class="btn sm" data-act="be-go" data-v="login">Accedi</button><button class="btn sm" data-act="be-go" data-v="register">Registrati</button>`}</div></div>`}
 function beRender(){
   ['email','nome'].forEach(k=>{const x=document.getElementById('be-'+k);if(x)BE.f[k]=x.value});{const x=document.getElementById('be-priv');if(x)BE.f.priv=x.checked;const p=document.getElementById('be-pw');if(p)BE.f.pw=p.value;const a=document.activeElement;BE.f.focus=a&&a.id&&a.id.indexOf('be-')===0?a.id:''}
   const bd=$('#band');bd.innerHTML=beHead();const adm=BE.me&&BE.me.ruolo==='consulente'&&BE.view==='app';bd.dataset.r=adm?'consulente':'cliente';app.className='wrap'+(adm?' wide':'');
@@ -622,15 +830,15 @@ function landing(M){
 const beNome=id=>{const p=BE.profili[id]||{};return p.nome||p.email||'(senza nome)'};
 function amlFlagsOf(aml){const f=AML.filter(q=>q.flag&&(aml||{})[q.id]===1).map(q=>({pep:'PEP',car:'cariche politiche',soc:'cariche in società/trust',tit:'titolare effettivo',del:'delegato'}[q.id]));return f.length?`<b class="ko">${f.join(', ')}</b>`:'nessun elemento'}
 function beAdmin(){
-  const T=[['clienti','Clienti'],['portafogli','Portafogli'],['impostazioni','Parcelle e IBAN'],['registro','Registro']];
+  const T=[['clienti','Clienti'],['portafogli','Portafogli'],['ocf','Indicatori OCF'],['registro','Registro']];
   return `<div class="row"><div class="seg" role="group">${T.map(([k,l])=>`<button data-act="be-tab" data-v="${k}" aria-pressed="${BE.tab===k}">${l}${k==='clienti'&&BE.clienti.filter(c=>c.stato==='questionario'||c.stato==='documenti').length?'<span class="badge">'+BE.clienti.filter(c=>c.stato==='questionario'||c.stato==='documenti').length+'</span>':''}</button>`).join('')}</div></div>`+
-   (BE.tab==='clienti'?(BE.sel?beCliente(BE.sel):beElenco()):BE.tab==='portafogli'?(BE.pubs.length?monitorCard()+admPortf():beSeedCard()):BE.tab==='impostazioni'?beImpostazioni():beRegistro());
+   (BE.tab==='clienti'?(BE.rep?beRepView(BE.rep):BE.sel?beCliente(BE.sel):beElenco()):BE.tab==='portafogli'?(BE.pubs.length?monitorCard()+admPortf():beSeedCard()):BE.tab==='ocf'?beOcf():beRegistro());
 }
 function beSeedCard(){return `<div class="card"><h2>Portafogli modello</h2><p>Nel database non ci sono ancora portafogli. Carico i 10 portafogli attuali dal repository (<code>modelli.json</code>): da quel momento il database è la fonte, e ogni variazione pubblicata da qui parte verso i clienti.</p>
   <div class="row"><button class="btn pri" data-act="be-seed" ${BE.mod&&!BE.busy?'':'disabled'}>Carica i portafogli</button>${BE.mod?'':'<span class="muted small">Sto leggendo modelli.json…</span>'}</div></div>`}
 function beElenco(){
   const C=BE.clienti,F=BE.filtro,conta=f=>C.filter(f).length;
-  const filtri=[['tutti','Tutti',()=>true],['seguire','Da seguire',c=>SSEGUI.includes(c.stato)],['attivi','Attivi',c=>c.stato==='attivo'],['altri','Registrati, scaduti, usciti',c=>['registrato','scaduto','uscito'].includes(c.stato)]];
+  const filtri=[['tutti','Tutti',()=>true],['seguire','Da seguire',c=>SSEGUI.includes(c.stato)],['attivi','Attivi',c=>c.stato==='attivo'],['altri','Registrati, scaduti',c=>['registrato','scaduto'].includes(c.stato)],['chiusi','Chiusi',c=>c.stato==='uscito']];
   const fx=(filtri.find(x=>x[0]===F)||filtri[0])[2],L=C.filter(fx);
   return `<div class="card"><div class="row sb"><h2>Clienti</h2><button class="btn sm" data-act="be-csv" data-v="">Esporta tutto lo storico (CSV)</button></div>
   <div class="row">${filtri.map(([k,l,f])=>`<button class="btn sm ${F===k?'pri':''}" data-act="be-filtro" data-v="${k}">${l} (${conta(f)})</button>`).join('')}</div>
@@ -640,25 +848,21 @@ function beElenco(){
 function beCliente(cid){
   const c=BE.clienti.find(x=>x.id===cid);if(!c){BE.sel=null;return beElenco()}
   const p=BE.profili[cid]||{},d=c.dati||{},pr=c.profilo,pf=c.portafoglio&&PF()[c.portafoglio],R=BE.raccAll.filter(r=>r.cliente_id===cid).sort((a,b)=>b.id-a.id);
-  const qz=d.A?quizResult(d.A):{pass:false},spese=(d.spese||[]).length?`<ul class="why">${d.spese.map(x=>`<li>${eur(x.amt)} · ${esc(x.motivo||'')} · entro ${x.mesi} mesi</li>`).join('')}</ul>`:'nessuna';
+  const qz=d.A?quizResult(d.A):{pass:false},spese=(d.spese||[]).length?`<ul class="why">${d.spese.map(x=>`<li>${eur(x.amt)} · ${esc(x.motivo||'')} · entro ${x.data?mmYYYY(x.data):x.mesi+' mesi'}</li>`).join('')}</ul>`:'nessuna';
   const bt=(k,l)=>`<button class="btn sm" data-act="be-stato" data-v="${cid}:${k}" ${c.stato===k?'disabled':''}>${l}</button>`;
   return `<div class="card"><div class="row sb"><h2>${esc(beNome(cid))}</h2><button class="btn sm" data-act="be-cli" data-v="">← Tutti i clienti</button></div>
   <div class="grid2"><div><div class="small muted">Email</div>${esc(p.email||'')}<div class="small muted" style="margin-top:8px">Registrato il</div>${beDate(p.creato_il)} · consenso privacy ${p.consenso_privacy?beDate(p.consenso_privacy):'<b class="ko">non registrato</b>'}</div>
-  <div><div class="small muted">Stato</div><b>${SNOME[c.stato]}</b>${c.attivo_dal?'<div class="small muted">Attivo dal '+beDate(c.attivo_dal)+'</div>':''}${c.uscito_il?'<div class="small muted">Uscito il '+beDate(c.uscito_il)+'</div>':''}</div></div>
+  <div><div class="small muted">Stato</div><b>${SNOME[c.stato]}</b>${c.attivo_dal?'<div class="small muted">Attivo dal '+beDate(c.attivo_dal)+'</div>':''}${c.uscito_il?'<div class="small muted">Chiuso il '+beDate(c.uscito_il)+'</div>':''}</div></div>
   <h3>Profilo</h3><div class="grid2"><div>Profilo di rischio: <b>${pr?BANDS[pr.band]:'—'}</b><div class="small muted">${pr?pr.reasons.map(esc).join('<br>'):'Questionario non ancora completato.'}</div></div>
-  <div>Verifica di conoscenza: ${qz.pass?'<span class="ok">superata</span>':'—'}<br>Antiriciclaggio: ${d.aml&&Object.keys(d.aml).length?amlFlagsOf(d.aml):'—'}<br>Portafoglio scelto: <b>${pf?esc(c.portafoglio+' · '+pf.nome):'—'}</b> (${d.variant==='fineco'?'Fineco':'Classica'})<br>Capitale: ${d.capitale?eur(d.capitale):'—'}${d.capitale?` · sul modello ${eur(Math.max(0,d.capitale-((c.portafoglio&&pnum(c.portafoglio)>=SLEEVE_DA)?(d.spese||[]).filter(x=>x.mesi<=IMP_MAX).reduce((a,x)=>a+(x.amt||0),0):0)))}`:''}<br>Spese previste: ${spese}<br>Contratto: ${d.contract==='una'?'Una tantum':'Continuativa'}</div></div>
-  <h3>Avanza lo stato</h3><div class="row">${bt('firma','Contratto inviato per la firma')}${bt('pagamento','Contratto firmato')}${bt('attivo','Pagamento ricevuto: attiva')}${bt('scaduto','Rinnovo non pagato')}${bt('uscito','Segna come uscito')}</div>
-  <p class="small muted">Alla attivazione il cliente riceve in automatico la composizione iniziale del portafoglio, con data e ora. Da lì in poi riceve ogni variazione che pubblichi per quel portafoglio.</p>
+  <div>Verifica di conoscenza: ${qz.pass?'<span class="ok">superata</span>':'—'}<br>Antiriciclaggio: ${d.aml&&Object.keys(d.aml).length?amlFlagsOf(d.aml):'—'}<br>Portafoglio scelto: <b>${pf?esc(c.portafoglio+' · '+pf.nome):'—'}</b> (${d.variant==='fineco'?'Fineco':'Classica'})<br>Capitale: ${d.capitale?eur(d.capitale):'—'}${d.capitale?` · sul modello ${eur(Math.max(0,d.capitale-((c.portafoglio&&pnum(c.portafoglio)>=SLEEVE_DA)?(d.spese||[]).filter(x=>x.mesi<=IMP_MAX).reduce((a,x)=>a+(x.amt||0),0):0)))}`:''}<br>Spese previste: ${spese}<br>Contratto: ${d.contract==='una'?'Una tantum':'Continuativa'}${d.capitale?(()=>{const q=d.parcella||{cont:feeCont(d.capitale),una:feeUna(d.capitale)};return ' · parcella '+eur(d.contract==='una'?q.una:q.cont)+(d.contract==='una'?'':' / anno')+' <span class="muted">(calcolata in automatico)</span>'})():''}</div></div>
+  <h3>Avanza lo stato</h3><div class="row">${bt('firma','Contratto inviato per la firma')}${bt('pagamento','Contratto firmato')}${bt('attivo','Pagamento ricevuto: attiva')}${bt('scaduto','Rinnovo non pagato')}${bt('uscito','Chiudi il rapporto (recesso)')}</div>
+  <p class="small muted">Quando ricevi la comunicazione di recesso (preavviso di un mese a federico.offen@binariof.it) premi «Chiudi il rapporto»: il cliente passa da Attivo a Chiuso e conta negli indicatori OCF del trimestre di chiusura. Alla attivazione il cliente riceve in automatico la composizione iniziale del portafoglio, con data e ora. Da lì in poi riceve ogni variazione che pubblichi per quel portafoglio.</p>
+  ${c.stato==='attivo'||c.stato==='uscito'?`<div class="box"><b>Report trimestrale</b><span class="small">Dal ${beDate(c.attivo_dal)} a ${c.stato==='uscito'?beDate(c.uscito_il):'oggi'}: si genera in automatico. Aprilo e usa «Stampa o salva in PDF» per inviarlo al cliente.</span><div class="row"><button class="btn sm pri" data-act="be-rep" data-v="${cid}">Apri il report</button></div></div>`:''}
   <label class="f">Note interne (visibili solo a te)<textarea id="be-nota" rows="3">${esc(c.note_consulente||'')}</textarea></label><div class="row"><button class="btn sm" data-act="be-nota" data-v="${cid}">Salva la nota</button></div></div>
   <div class="card"><div class="row sb"><h2>Raccomandazioni ricevute (${R.length})</h2><button class="btn sm" data-act="be-csv" data-v="${cid}">Esporta in CSV</button></div>
   ${R.length?`<div class="tablewrap"><table><thead><tr><th>Data</th><th>Tipo</th><th>Portafoglio</th><th>Motivazione e operazioni</th><th>Eseguita</th></tr></thead><tbody>${R.map(r=>`<tr><td>${beDT(r.creato_il)}</td><td>${{iniziale:'Iniziale',variazione:'Variazione',spesa_prevista:'Spesa prevista',altro:'Altro'}[r.tipo]}</td><td>${esc(r.portafoglio)} v${r.versione||''}</td>
    <td>${esc(r.motivo||'')}<ul class="why">${(r.operazioni||[]).map(o=>'<li>'+opHtml(o,r.capitale)+'</li>').join('')}</ul></td><td>${r.eseguita?'<span class="ok">sì</span><div class="small muted">'+beDT(r.eseguita_il)+'</div>':'<span class="ko">no</span>'}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Nessuna raccomandazione ancora: la prima parte quando attivi il servizio.</p>'}
   <p class="small muted">Lo storico è permanente: nessuno, nemmeno tu, può modificarlo o cancellarlo da qui.</p></div>`}
-function beImpostazioni(){const f=BE.imp.parcelle||{cont:360,una:200},b=BE.imp.banca||{intest:'',iban:''};
-  return `<div class="card"><h2>Parcelle e coordinate bancarie</h2><p class="muted small">Sono i valori che i clienti vedono nel contratto e nella schermata del bonifico.</p>
-  <div class="grid2"><label class="f">Parcella continuativa (€ / anno)<input type="number" id="be-fc" value="${f.cont}"></label><label class="f">Parcella una tantum (€)<input type="number" id="be-fu" value="${f.una}"></label>
-  <label class="f">Intestatario del conto<input type="text" id="be-int" value="${esc(b.intest||'')}"></label><label class="f">IBAN<input type="text" id="be-iban" value="${esc(b.iban||'')}"></label></div>
-  <div class="row"><button class="btn pri" data-act="be-impsave">Salva</button></div></div>`}
 function beRegistro(){return `<div class="card"><h2>Registro delle operazioni</h2>${BE.reg.length?`<div class="tablewrap"><table><thead><tr><th>Quando</th><th>Chi</th><th>Azione</th><th>Dettagli</th></tr></thead><tbody>${BE.reg.map(r=>`<tr><td>${beDT(r.quando)}</td><td>${esc(r.utente?beNome(r.utente):'')}</td><td>${esc(r.azione)}</td><td class="small">${esc(JSON.stringify(r.dettagli||{}).slice(0,220))}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Nessuna operazione.</p>'}</div>`}
 /* ---------- azioni ---------- */
 const beV=id=>((document.getElementById(id)||{}).value||'').trim();
@@ -679,14 +883,16 @@ document.addEventListener('click',async e=>{
     }catch(err){beMsg(beErr(err),1);render()}
     return}
   if(a==='be-logout'){await BE.sb.auth.signOut();return}
-  if(a==='be-tab'){BE.tab=v;BE.sel=null;beMsg(null);if(v==='portafogli')loadCat()}
+  if(a==='be-tab'){BE.tab=v;BE.sel=null;BE.rep=null;beMsg(null);if(v==='portafogli')loadCat()}
   else if(a==='be-filtro')BE.filtro=v;
   else if(a==='be-cli'){BE.sel=v||null;beMsg(null)}
   else if(a==='be-stato'){const [cid,s]=v.split(':');await beCambiaStato(cid,s);return}
   else if(a==='be-nota'){await beNota(v,beV('be-nota'));return}
   else if(a==='be-csv'){await beCsv(v||null);return}
   else if(a==='be-seed'){await beSeed();return}
-  else if(a==='be-impsave'){await beImp('parcelle',{cont:+beV('be-fc')||0,una:+beV('be-fu')||0});await beImp('banca',{intest:beV('be-int'),iban:beV('be-iban')});return}
+  else if(a==='be-ocf'){BE.ocf=BE.ocf||trimPrec();const f=(document.getElementById('ocf-from')||{}).value,to=(document.getElementById('ocf-to')||{}).value;if(!f||!to||f>to){beMsg('Controlla le date: la data iniziale deve precedere quella finale.',1);render();return}BE.ocf.from=f;BE.ocf.to=to;beMsg(null);BE.ocf.res=ocfCalc(f,to)}
+  else if(a==='be-ocfcsv'){if(BE.ocf&&BE.ocf.res)ocfCsv(BE.ocf.res);return}
+  else if(a==='be-rep'){BE.rep=v||null}
   render();
 });
 /* ======================= STATO ======================= */
@@ -702,7 +908,7 @@ const AML=[
  {id:'tit',t:'Esiste un titolare effettivo diverso da te (qualcuno nel cui interesse operi)?',o:['No','Sì'],flag:1},
  {id:'del',t:'C\'è un soggetto delegato a operare per tuo conto (tutore, genitore, amministratore di sostegno, altro)?',o:['No','Sì'],flag:1},
 ];
-function fresh(){return{role:'cliente',step:BE.on?'quest':'auth',user:{nome:'',email:''},A:{},aml:{},capital:20000,monthly:250,profile:null,chosen:null,variant:'classic',bonds:'etf',bAmt:0,bYrs:3,imp:[],contract:'cont',status:'none',PF:BE.on?{}:JSON.parse(JSON.stringify(PF0)),ver:{},held:null,notifs:[],fees:{cont:360,una:200},bank:{iban:'IT00 X000 0000 0000 0000 0000 000',intest:'(intestatario del conto)'},tab:'portafoglio',aid:'P4',edit:null,log:[]}}
+function fresh(){return{role:'cliente',step:BE.on?'quest':'auth',user:{nome:'',email:''},A:{},aml:{},capital:20000,monthly:250,profile:null,chosen:null,variant:'classic',bonds:'etf',bAmt:0,bYrs:3,imp:[],contract:'cont',status:'none',PF:BE.on?{}:JSON.parse(JSON.stringify(PF0)),ver:{},held:null,notifs:[],tab:'portafoglio',aid:'P4',edit:null,log:[]}}
 let st=null;if(!BE.on){try{st=JSON.parse(localStorage.getItem(KEY))}catch(e){st=null}}
 if(!st||!st.PF)st=fresh();
 (st.xins||[]).forEach(r=>{try{addIns(r)}catch(e){}});
@@ -728,12 +934,12 @@ const impAct=()=>(!st.chosen||pnum(st.chosen)>=SLEEVE_DA)?impAll():[];
 const partsOf=x=>{if(!x.parti||!x.parti.length)x.parti=[{isin:x.isin,amt:x.amt}];return x.parti};
 function impBlock(){
   const A=st.A;if(A.imp===0&&(st.imp||[]).length)st.imp=[];
-  if(A.imp===1&&!(st.imp||[]).length)st.imp=[{motivo:IMP_MOTIVI[0],amt:0,mesi:36,data:impDate({mesi:36})}];
+  if(A.imp===1&&!(st.imp||[]).length)st.imp=[{motivo:IMP_MOTIVI[0],amt:0,mesi:36,data:impEnd(36)}];
   const L=st.imp||[];
   let h=`<div class="q"><div class="t">Hai spese importanti previste nei prossimi anni (casa, auto, viaggi, studi…) che pagherai con una parte del capitale che investirai?</div>${opt({id:'imp',o:['No','Sì']},A.imp,'ans')}</div>`;
   if(A.imp===1){
-    h+=L.map((x,i)=>`<div class="imp"><label class="f">Motivo<select data-act="impmot" data-v="${i}">${IMP_MOTIVI.map(m=>`<option ${x.motivo===m?'selected':''}>${esc(m)}</option>`).join('')}</select></label><label class="f">Importo (€)<input type="number" min="0" step="1000" data-act="impamt" data-v="${i}" value="${x.amt||''}" placeholder="es. 20000"></label><label class="f">Quando ti serve<select data-act="impmesi" data-v="${i}">${IMP_MESI.map(([m,l])=>`<option value="${m}" ${x.mesi===m?'selected':''}>${l}</option>`).join('')}</select></label>${L.length>1?`<button class="btn sm" data-act="imprm" data-v="${i}">Togli</button>`:''}</div>`).join('');
-    h+=(L.length<3?`<div class="row"><button class="btn sm" data-act="impadd">Aggiungi un'altra spesa</button></div>`:'')+`<p class="small muted">Se scegli un portafoglio dal 4 in poi, le somme che ti servono entro 3 anni non vanno nel portafoglio modello: vengono coperte con titoli di Stato a scadenza (BOT o monetario entro 12 mesi, BTP da 1 a 3 anni). Con i portafogli 1-3, molto prudenti, e per le spese oltre i 3 anni, tutto resta nel portafoglio modello.</p>`;
+    h+=L.map((x,i)=>`<div class="imp"><label class="f">Motivo<select data-act="impmot" data-v="${i}">${IMP_MOTIVI.map(m=>`<option ${x.motivo===m?'selected':''}>${esc(m)}</option>`).join('')}</select></label><label class="f">Importo (€)<input type="number" min="0" step="1000" data-act="impamt" data-v="${i}" value="${x.amt||''}" placeholder="es. 20000"></label><label class="f">Mese e anno in cui ti servono i soldi<select data-act="impmesi" data-v="${i}">${IMP_MESI.map(([m,l])=>`<option value="${m}" ${x.mesi===m?'selected':''}>${l}</option>`).join('')}</select></label>${L.length>1?`<button class="btn sm" data-act="imprm" data-v="${i}">Togli</button>`:''}</div>`).join('');
+    h+=(L.length<3?`<div class="row"><button class="btn sm" data-act="impadd">Aggiungi un'altra spesa</button></div>`:'')+`<p class="small muted">Scegli il mese e l'anno in cui ti servono i soldi: il sistema ti indica in automatico il BOT o il BTP che scade a ridosso di quella data. Se scegli un portafoglio dal 4 in poi, le somme che ti servono entro 3 anni non vanno nel portafoglio modello ma in quel titolo di Stato. Con i portafogli 1-3, molto prudenti, e per le spese oltre i 3 anni, tutto resta nel portafoglio modello.</p>`;
   }
   return h;
 }
@@ -816,41 +1022,43 @@ function impSummary(){
   const L0=impAll();if(L0.length&&st.chosen&&pnum(st.chosen)<SLEEVE_DA)return `<div class="alert"><b>Le tue spese previste</b><span class="small">Il portafoglio scelto è abbastanza prudente: tutto il capitale (${eur(st.capital)}) segue il modello, senza titoli separati per le spese previste.</span></div>`;
   const L=impAct();if(!L.length||st.capital<3000)return '';
   const tot=L.reduce((a,x)=>a+x.amt,0),short=impsOf(L),sOut=short.reduce((a,x)=>a+x.amt,0),mc=st.capital-sOut;
-  return `<div class="alert"><b>Le tue spese previste</b><ul class="why">${L.map(x=>`<li>${eur(x.amt)} · ${esc(x.motivo)} · ${esc(IMP_MESI.find(m=>m[0]===x.mesi)[1].toLowerCase())}: ${x.mesi<=12?'BOT o monetario':x.mesi<=IMP_MAX?'BTP con scadenza vicina alla data':'resta nel portafoglio modello'}</li>`).join('')}</ul>
+  return `<div class="alert"><b>Le tue spese previste</b><ul class="why">${L.map(x=>`<li>${eur(x.amt)} · ${esc(x.motivo)} · ${x.mesi<60?'entro ':''}${esc((IMP_MESI.find(m=>m[0]===x.mesi)||[0,''])[1].toLowerCase())}: ${x.mesi<=12?'BOT o monetario':x.mesi<=IMP_MAX?'BTP con scadenza vicina alla data':'resta nel portafoglio modello'}</li>`).join('')}</ul>
   <span class="small">${tot>st.capital?`<b class="ko">Le spese previste (${eur(tot)}) superano il capitale: correggi l'importo.</b>`:`Del tuo capitale di ${eur(st.capital)}: ${eur(sOut)} in titoli di Stato a scadenza, ${eur(mc)} nel portafoglio modello scelto.`}</span></div>`}
+const feeBase=()=>tierFor(st.capital,impAct()).k==='pac'?Math.max(st.capital||0,(st.monthly||0)*12):(st.capital||0);
+const feesNow=()=>({base:feeBase(),cont:feeCont(feeBase()),una:feeUna(feeBase())});
+const RECESSO=`<div class="box amb"><b>Recesso dal contratto</b><span class="small">Puoi recedere in qualsiasi momento con un preavviso di <b>un mese</b>, da comunicare per email a <b>federico.offen@binariof.it</b>. Ricevuta la comunicazione, il consulente chiude il tuo rapporto e smetti di ricevere variazioni e report.</span></div>`;
 function contrattoView(){
-  const f=st.fees;
-  return `<div class="card">${stepper(5)}<h2>Contratto e documenti</h2><p class="muted">Scegli il tipo di consulenza. Il contratto lo prepara il consulente e te lo invia per la firma elettronica avanzata. Il pagamento è con bonifico.</p>
-  <div class="vs"><div class="ch" role="button" tabindex="0" data-act="contract" data-v="cont" aria-pressed="${st.contract==='cont'}"><h3>Continuativa</h3><b>${eur(f.cont)} / anno</b><span class="small muted">12 mesi con rinnovo automatico: aggiornamenti, ribilanciamenti e notifiche per tutto l'anno.</span></div>
-  <div class="ch" role="button" tabindex="0" data-act="contract" data-v="una" aria-pressed="${st.contract==='una'}"><h3>Una tantum</h3><b>${eur(f.una)}</b><span class="small muted">Portafoglio e indicazioni iniziali, senza aggiornamenti successivi.</span></div></div>
-  <div class="alert"><b>Cosa devi inviare</b><span class="small">Scrivi a federico.offen@binariof.it allegando documento d'identità e codice fiscale in corso di validità. Ti arriverà il contratto da firmare.</span></div>
+  const f=feesNow();
+  return `<div class="card">${stepper(5)}<span class="eyebrow">Ultimo passo</span><h2>Scegli il tipo di consulenza</h2><p class="muted">La parcella è calcolata in automatico sul capitale che hai indicato (<b>${eur(f.base)}</b>). Non ci sono costi nascosti: la consulenza include anche la <b>consulenza previdenziale</b> (TFR e fondi pensione). Il contratto lo prepara il consulente e te lo invia per la firma elettronica avanzata; il pagamento è con bonifico.</p>
+  <div class="vs"><div class="ch" role="button" tabindex="0" data-act="contract" data-v="cont" aria-pressed="${st.contract==='cont'}"><h3>Continuativa</h3><div class="fee"><b>${eur(f.cont)}</b><span class="muted">/ anno</span></div><span class="small muted">12 mesi con rinnovo automatico: aggiornamenti, ribilanciamenti, notifiche e report trimestrale per tutto l'anno.${f.cont===FEE_MIN?' Minimo '+eur(FEE_MIN)+' l\'anno.':''}</span></div>
+  <div class="ch" role="button" tabindex="0" data-act="contract" data-v="una" aria-pressed="${st.contract==='una'}"><h3>Una tantum</h3><div class="fee"><b>${eur(f.una)}</b><span class="muted">una volta</span></div><span class="small muted">Portafoglio e indicazioni iniziali, senza aggiornamenti successivi.</span></div></div>
+  <div class="box"><b>Cosa devi inviare</b><span class="small">Scrivi a federico.offen@binariof.it allegando documento d'identità e codice fiscale in corso di validità. Ti arriverà il contratto da firmare e, insieme, l'IBAN per il bonifico.</span></div>
+  ${RECESSO}
   <div class="row"><button class="btn" data-act="go" data-v="profilo">Indietro</button><button class="btn pri" data-act="sent">Ho inviato i documenti</button></div></div>`}
-const STL={attesa:'Documenti ricevuti',firma:'Contratto inviato per la firma',pagamento:'Contratto firmato: in attesa del bonifico',attivo:'Servizio attivo',scaduto:'Servizio scaduto'};
+const STL={attesa:'Documenti ricevuti',firma:'Contratto inviato per la firma',pagamento:'Contratto firmato: in attesa del bonifico',attivo:'Servizio attivo',scaduto:'Servizio scaduto',uscito:'Rapporto chiuso'};
 const STF=['attesa','firma','pagamento','attivo'];
 function statoView(){
   const s=st.status;if(s==='attivo')return attivoView();
+  if(s==='uscito')return `<div class="card"><h2>Rapporto di consulenza chiuso</h2><p>Il contratto è stato chiuso${st.chiusoDal?' il '+new Date(st.chiusoDal).toLocaleDateString('it-IT'):''}. Non ricevi più variazioni né report. Lo storico delle raccomandazioni ricevute resta conservato, come previsto dalla normativa.</p><p class="small muted">Per riprendere il percorso scrivi a federico.offen@binariof.it.</p></div>`;
   if(s==='scaduto')return `<div class="card"><h2>Servizio scaduto</h2><p>Il rinnovo annuale non risulta pagato: il portafoglio è nascosto finché non viene saldata la parcella.</p>${previewLock()}${bonifico()}</div>`;
   return `<div class="card"><h2>${STL[s]||'In corso'}</h2><div class="stp">${STF.map((k,i)=>`<span class="${STF.indexOf(s)>i?'done':''} ${s===k?'on':''}">${STL[k]}</span>`).join('')}</div>
-  <p class="muted">${{attesa:'Il consulente sta preparando il contratto.',firma:'Controlla la tua email: ti è arrivato il contratto da firmare con firma elettronica avanzata.',pagamento:'Esegui il bonifico indicato qui sotto. Il portafoglio si sblocca quando il pagamento risulta accreditato.'}[s]}</p>${s==='pagamento'?bonifico():''}${previewLock()}
+  <p class="muted">${{attesa:'Il consulente sta preparando il contratto.',firma:'Controlla la tua email: ti è arrivato il contratto da firmare con firma elettronica avanzata.',pagamento:'Esegui il bonifico indicato qui sotto. Il portafoglio si sblocca quando il pagamento risulta accreditato. L\'IBAN ti è stato inviato via email dal consulente.'}[s]}</p>${s==='pagamento'?bonifico():''}${previewLock()}
   <p class="small muted">Nel prototipo gli stati li avanza la vista consulente.</p></div>`}
-function bonifico(){const a=st.contract==='cont'?st.fees.cont:st.fees.una;return `<div class="alert"><b>Bonifico</b><div class="iban">${esc(st.bank.intest)}<br>${esc(st.bank.iban)}</div><span class="small">Importo ${eur(a)} · causale: Consulenza Binario F – ${esc(st.user.nome||'cognome nome')}</span></div>`}
+function bonifico(){const f=feesNow(),a=st.contract==='cont'?f.cont:f.una;return `<div class="alert"><b>Pagamento con bonifico</b><span class="small">Importo <b>${eur(a)}</b> (${st.contract==='cont'?'consulenza continuativa, 12 mesi':'consulenza una tantum'}) · causale: Consulenza Binario F – ${esc(st.user.nome||'cognome nome')}. L'IBAN ti è stato inviato via email dal consulente.</span></div>`}
 function attivoView(){
   const pend=pendingNotif();
   return `<div class="card"><div class="row sb"><h2>Il tuo portafoglio</h2><span class="muted small">${esc(PF()[st.chosen].nome)} · ${BANDS[pfBand(PF()[st.chosen].w)]}</span></div>
-  <div class="tabs" role="tablist">${[['portafoglio','Portafoglio'],['dashboard','Dashboard'],['approfondimenti','Approfondimenti'],['novita','Novità']].map(([k,l])=>`<button role="tab" data-act="tab" data-v="${k}" aria-selected="${st.tab===k}">${l}${k==='novita'&&pend?'<span class="badge">1</span>':''}</button>`).join('')}</div>
-  ${st.tab==='portafoglio'?portView(pend):st.tab==='dashboard'?dashView():st.tab==='approfondimenti'?artView():notifView()}</div>`}
+  <div class="tabs" role="tablist">${[['portafoglio','Portafoglio'],['dashboard','Dashboard'],['report','Report'],['previdenza','Previdenza'],['approfondimenti','Approfondimenti'],['novita','Novità']].map(([k,l])=>`<button role="tab" data-act="tab" data-v="${k}" aria-selected="${st.tab===k}">${l}${k==='novita'&&pend?'<span class="badge">1</span>':''}</button>`).join('')}</div>
+  ${st.tab==='portafoglio'?portView(pend):st.tab==='dashboard'?dashView():st.tab==='report'?repClient():st.tab==='previdenza'?prevView():st.tab==='approfondimenti'?artView():notifView()}</div>
+  <div class="card">${RECESSO}</div>`}
 const notifsCli=()=>st.notifs.filter(x=>x.p===st.chosen&&x.id>(st.attivoDal||0));
 function pendingNotif(){const n=notifsCli().slice(-1)[0];return n&&!n.done?n:null}
 const linesTable=(rows,pl,pctF,tot)=>`<div class="tablewrap"><table><thead><tr><th>Strumento</th><th>%</th><th>${pl.monthly?'€ al mese':'Importo'}</th><th>Prezzo</th><th>${pl.monthly?'':'Quantità'}</th></tr></thead><tbody>${rows.map(l=>`<tr><td><b>${esc(l.name)}</b><div class="small muted">${esc(l.isin)} · ${esc(l.cls)}${l.sing?(l.scad?' · scade '+esc(dataIt(l.scad)):''):l.fin?' · Fineco: commissione di acquisto zero':' · non in lista Fineco'}</div></td><td class="num">${n1(l.pct*pctF)}%</td><td class="num">${l.sing?'≈ ':''}${eur(l.amt)}</td><td class="num">${l.sing?'<span class="muted">prezzo del giorno</span>':eur(l.price,2)}</td><td class="num">${l.qty==null?'—':l.sing?eur(l.qty*1000)+' di valore nominale':l.qty}</td></tr>`).join('')}</tbody>${tot?`<tfoot><tr><td>${tot[0]}</td><td></td><td class="num">${eur(tot[1])}</td><td></td><td class="num">${pl.monthly?'':'Resto '+eur(tot[2])}</td></tr></tfoot>`:''}</table></div>`;
 function impCard(ix,pl){
-  const x=pl.imps[ix],L=impCands(x),rows=pl.lines.filter(l=>l.imp&&l.idx===ix),P=partsOf(st.imp[x._i]),tot=P.reduce((a,p)=>a+(p.amt||0),0),left=x.amt-tot;
-  const idx=x._i;
+  const x=pl.imps[ix],rows=pl.lines.filter(l=>l.imp&&l.idx===ix);
   return `<div class="sub"><h3>Spesa prevista · ${esc(x.motivo)} · ${eur(x.amt)}</h3>
-  <div class="alert"><b>Ti serve entro ${mmYYYY(impDate(x))}</b><span class="small">${x.mesi<=12?'Scegli un BOT che scade a ridosso di quella data, ma non dopo, oppure l\'ETF monetario.':'Scegli un BTP che scade a ridosso di quella data, ma non dopo: il mese di scadenza è quello in cui riavrai il capitale.'} Puoi dividere la somma su più titoli, con scadenze diverse.</span></div>
-  ${L.length?P.map((p,j)=>{const sel=(rows[j]||{}).isin;return `<div class="imp2"><label class="f">Titolo ${P.length>1?(j+1):'da acquistare'}<select data-act="impsel" data-v="${idx}:${j}">${L.map(c=>`<option value="${esc(c.isin)}" ${c.isin===sel?'selected':''}>${esc(c.etf?c.nome:c.nome+' · scade '+mmYYYY(c.scad))}</option>`).join('')}</select></label><label class="f">Importo (€)<input type="number" min="0" step="1000" data-act="impamtp" data-v="${idx}:${j}" value="${p.amt||0}"></label>${P.length>1?`<button class="btn sm" data-act="imprmp" data-v="${idx}:${j}">Togli</button>`:''}</div>`}).join(''):'<p class="small muted">Nessun titolo disponibile per quella scadenza: il consulente ti indicherà quello più adatto.</p>'}
-  ${P.length<4?`<div class="row"><button class="btn sm" data-act="impaddp" data-v="${idx}">Aggiungi un altro titolo</button></div>`:''}
-  ${Math.abs(left)>=1?`<div class="alert"><b>${left>0?'Da assegnare: '+eur(left):'Hai assegnato '+eur(-left)+' in più'}</b><span class="small">La somma dei titoli deve essere ${eur(x.amt)}.</span></div>`:''}
-  ${linesTable(rows,pl,1,null)}</div>`}
+  <div class="alert info"><b>Ti servono entro ${mmYYYY(impDate(x))}</b><span class="small">${x.mesi<=12?'Il sistema ha scelto il BOT che scade a ridosso di quella data, ma non dopo (in alternativa, l\'ETF monetario).':'Il sistema ha scelto il BTP che scade a ridosso di quella data, ma non dopo: il mese di scadenza è quello in cui riavrai il capitale.'} Se cambi mese o anno, il titolo si aggiorna da solo.</span></div>
+  ${rows.length?linesTable(rows,pl,1,null):'<p class="small muted">Nessun titolo disponibile per quella scadenza: il consulente ti indicherà quello più adatto.</p>'}</div>`}
 function portView(pend){
   const id=st.chosen,pl=planOf(id,st.held&&st.held.id===id?st.held.w:null);
   const ml=pl.lines.filter(l=>!l.imp),il=pl.lines.filter(l=>l.imp),has=il.length>0;
@@ -876,14 +1084,11 @@ function dashView(){
   return `<div class="grid2"><div><h3>Asset allocation</h3><div class="row">${donut(parts)}<div class="lg" style="flex-direction:column">${parts.map(p=>`<span><i style="background:var(${CLS[p.k]})"></i>${p.k} ${n1(p.v)}%</span>`).join('')}</div></div></div>
   <div><h3>Statistiche storiche simulate</h3><div class="stats"><div><small>Rendimento annuo</small><b>${pc0(s.cagr)}</b></div><div><small>Volatilità</small><b>${pc0(s.vol)}</b></div><div><small>Perdita massima</small><b>${pc0(s.mdd)}</b></div><div><small>Peggior anno</small><b>${pc0(s.w12)}</b></div><div><small>VaR annuo 99%</small><b>${n1(s.va)}%</b></div><div><small>Fascia</small><b>${BANDS[pfBand(w)]}</b></div></div></div></div>
   ${fw.extra?`<p class="small muted">Il quadro comprende tutto il tuo capitale: ${eur(st.capital-fw.extra)} nel portafoglio modello e ${eur(fw.extra)} in titoli di Stato a scadenza per le spese previste (nelle statistiche entrano con il titolo che hai scelto).</p>`:''}<h3>Andamento di 1 € investito (simulato)</h3>${growth(s.vals)}`}
-const ARTS=[['Come comprare un ETF dal tuo conto titoli','Usa un ordine a limite e indica il codice ISIN. Controlla la borsa di quotazione e la valuta dello strumento.'],['Tasse sugli ETF e sui titoli di Stato','I titoli di Stato italiani ed europei hanno aliquota agevolata al 12,5%, gli ETF azionari e obbligazionari del 26% (con eccezioni). Verifica con il tuo commercialista.'],['Perché ribilanciare','Nel tempo le percentuali si spostano: riportarle ai valori del modello mantiene il rischio nella tua fascia.'],['Cos\'è il VaR','È una stima della perdita annua massima che, con il 99% di probabilità, non dovrebbe essere superata in condizioni di mercato normali. Non è una garanzia.']];
-const artView=()=>ARTS.map(a=>`<details class="art"><summary>${a[0]}</summary><div>${a[1]}</div></details>`).join('');
 function notifView(){const l=notifsCli().slice().reverse();return l.length?l.map(n=>`<div class="alert"><b>${esc(n.date)} · ${esc(n.titolo)}</b><span class="small">${esc(n.motivo)}</span><ul class="why">${n.ops.map(o=>`<li>${o}</li>`).join('')}</ul><span class="small ${n.done?'ok':'ko'}">${n.done?'Eseguita':'Da eseguire'}</span></div>`).join(''):'<p class="muted">Nessuna novità: ti avviseremo quando il portafoglio cambia.</p>'}
 /* ======================= CONSULENTE ======================= */
 function adminView(){if(BE.on)return beAdmin();return monitorCard()+`<div class="card"><h2>Cliente di prova</h2><div class="tablewrap"><table><thead><tr><th>Cliente</th><th>Profilo</th><th>Quiz</th><th>Antiriciclaggio</th><th>Portafoglio</th><th>Stato</th></tr></thead><tbody><tr><td>${esc(st.user.nome||'(senza nome)')}</td><td>${st.profile?BANDS[st.profile.band]:'—'}</td><td>${quizResult(st.A).pass?'<span class="ok">superato</span>':'—'}</td><td>${amlFlags()}</td><td>${st.chosen?esc(PF()[st.chosen].nome)+' · '+(st.variant==='fineco'?'Fineco':'Classica')+' · '+eur(st.capital):'—'}</td><td>${STL[st.status]||'Non ancora inviato'}</td></tr></tbody></table></div>
-  <div class="row"><span class="small muted">Avanza lo stato:</span>${[['attesa','Documenti ricevuti'],['firma','Contratto inviato'],['pagamento','Contratto firmato'],['attivo','Pagamento ricevuto'],['scaduto','Rinnovo non pagato']].map(([k,l])=>`<button class="btn sm" data-act="status" data-v="${k}">${l}</button>`).join('')}</div>
-  <div class="grid2"><label class="f">Parcella continuativa (€)<input type="number" data-act="fee" data-v="cont" value="${st.fees.cont}"></label><label class="f">Parcella una tantum (€)<input type="number" data-act="fee" data-v="una" value="${st.fees.una}"></label>
-  <label class="f">Intestatario del conto<input type="text" data-act="bank" data-v="intest" value="${esc(st.bank.intest)}"></label><label class="f">IBAN<input type="text" data-act="bank" data-v="iban" value="${esc(st.bank.iban)}"></label></div></div>
+  <div class="row"><span class="small muted">Avanza lo stato:</span>${[['attesa','Documenti ricevuti'],['firma','Contratto inviato'],['pagamento','Contratto firmato'],['attivo','Pagamento ricevuto'],['scaduto','Rinnovo non pagato'],['uscito','Chiuso (recesso)']].map(([k,l])=>`<button class="btn sm" data-act="status" data-v="${k}">${l}</button>`).join('')}</div>
+</div>
   `+admPortf()+`<div class="card"><h2>Registro</h2>${st.log.length?'<ul class="why">'+st.log.slice().reverse().map(l=>`<li>${esc(l)}</li>`).join('')+'</ul>':'<p class="muted">Nessuna operazione.</p>'}</div>`}
 function admPortf(){
   const p=PF()[st.aid],w=st.edit||p.w,tot=Object.values(w).reduce((a,b)=>a+b,0),va=varAnnuo(w),b=bandOf(va),b0=fasciaDich(st.aid);
@@ -987,7 +1192,7 @@ document.addEventListener('click',e=>{
       st.okpub=false;st.edit=st.edit||JSON.parse(JSON.stringify(PF()[st.aid].w));st.edit[k]=st.edit[k]||5;st.q=''}}
   else if(a==='ghsave'){st.ghmsg={e:0,t:'Salvataggio in corso…'};render();ghSalva(v==='1').then(()=>{save();render()});return}
   else if(a==='undo'){st.okpub=false;st.edit=st.edit||JSON.parse(JSON.stringify(PF()[st.aid].w));st.edit[v]=PF()[st.aid].w[v]||5}
-  else if(a==='impadd'){st.imp=st.imp||[];if(st.imp.length<3)st.imp.push({motivo:IMP_MOTIVI[0],amt:0,mesi:36,data:impDate({mesi:36})})}
+  else if(a==='impadd'){st.imp=st.imp||[];if(st.imp.length<3)st.imp.push({motivo:IMP_MOTIVI[0],amt:0,mesi:36,data:impEnd(36)})}
   else if(a==='imprm'){st.imp.splice(+v,1)}
   else if(a==='impaddp'){const x=st.imp[+v],P=partsOf(x),L=P.reduce((m,p)=>(p.amt||0)>(m.amt||0)?p:m,P[0]),half=Math.floor((L.amt||0)/2000)*1000;L.amt=(L.amt||0)-half;P.push({isin:undefined,amt:half})}
   else if(a==='imprmp'){const [i,j]=v.split(':').map(Number);partsOf(st.imp[i]).splice(j,1)}
@@ -1006,7 +1211,7 @@ document.addEventListener('click',e=>{
   else if(a==='sent'){st.status='attesa';st.step='stato';if(!st.held)st.held={id:st.chosen,w:null}}
   else if(a==='tab')st.tab=v;
   else if(a==='done'){if(BE.on){beDone(v);return}const n=st.notifs.find(x=>x.id===+v);if(n){n.done=true;st.held={id:n.p,w:JSON.parse(JSON.stringify(PF()[n.p].w))}}}
-  else if(a==='status'){st.status=v;if(v==='attivo'&&!st.attivoDal){st.attivoDal=Date.now();st.held={id:st.chosen,w:null}}if(st.step!=='stato')st.step='stato';st.log.push(`Stato cliente: ${STL[v]}`)}
+  else if(a==='status'){st.status=v;if(v==='uscito'&&!st.chiusoDal)st.chiusoDal=Date.now();if(v==='attivo'&&!st.attivoDal){st.attivoDal=Date.now();st.held={id:st.chosen,w:null}}if(st.step!=='stato')st.step='stato';st.log.push(`Stato cliente: ${STL[v]}`)}
   else if(a==='aid'){st.aid=v;st.edit=null;st.okpub=false}
   else if(a==='discard'){st.edit=null;st.okpub=false}
   else if(a==='publish'){if(BE.on){bePublish();return}const m=($('#motivo')||{}).value||st.motivo||'';st.motivo=m;if(!m.trim()){alert_('Scrivi la motivazione.');return}
@@ -1027,13 +1232,11 @@ document.addEventListener('change',e=>{
   else if(a==='monthly'){st.monthly=Math.max(0,+t.value||0)}
   else if(a==='impmot'){st.imp[+v].motivo=t.value}
   else if(a==='impamt'){const x=st.imp[+v];x.amt=Math.max(0,+t.value||0);delete x.parti}
-  else if(a==='impmesi'){const x=st.imp[+v];x.mesi=+t.value;x.data=impDate({mesi:x.mesi});delete x.isin;delete x.parti}
+  else if(a==='impmesi'){const x=st.imp[+v];x.mesi=+t.value;x.data=x.mesi<60?impEnd(x.mesi):impDate({mesi:x.mesi});delete x.isin;delete x.parti}
   else if(a==='impsel'){const [i,j]=v.split(':').map(Number);partsOf(st.imp[i])[j].isin=t.value}
   else if(a==='impamtp'){const [i,j]=v.split(':').map(Number);partsOf(st.imp[i])[j].amt=Math.max(0,+t.value||0)}
   else if(a==='bAmt'){st.bAmt=Math.max(0,+t.value||0)}
   else if(a==='bYrs'){st.bYrs=Math.min(10,Math.max(1,+t.value||1))}
-  else if(a==='fee'){st.fees[v]=+t.value||0}
-  else if(a==='bank'){st.bank[v]=t.value}
   else if(a==='w'){st.okpub=false;st.edit=st.edit||JSON.parse(JSON.stringify(PF()[st.aid].w));const x=Math.max(0,Math.min(100,+t.value||0));if(x)st.edit[v]=x;else delete st.edit[v]}
   else if(t.id==='ghtok'){try{localStorage.setItem(GHK,t.value.trim())}catch(e){}return}
   else if(t.id==='qc'){st.qc=t.value;const r=$('#risultati');if(r)r.innerHTML=risultatiHtml();return}
