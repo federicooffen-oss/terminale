@@ -639,9 +639,13 @@ const beStub=(pub)=>{const w={};const s=Object.assign({},pub.stats||{});if(s.va=
   Object.defineProperty(w,'__pub',{value:s,enumerable:false});return w};
 function pubSummary(id,w){const s=stats(w),az=Object.entries(w).reduce((a,[k,x])=>a+(BY[k].cls==='Azionario'?x:0),0);
   return{fascia:bandOf(s.va),var_annuo:+s.va.toFixed(2),stats:{cagr:+s.cagr.toFixed(4),vol:+s.vol.toFixed(4),mdd:+s.mdd.toFixed(4),w12:+s.w12.toFixed(4),ter:+s.ter.toFixed(3),va:+s.va.toFixed(2),az,esg:ESG_P.includes(id)}}}
-function opsData(o,n){const ops=[];new Set([...Object.keys(o),...Object.keys(n)]).forEach(k=>{const a=o[k]||0,b=n[k]||0;if(a!==b)ops.push({isin:BY[k].isin,nome:BY[k].name,azione:b>a?(a?'aumenta':'acquista'):(b?'riduci':'vendi'),da:a,a:b})});return ops}
+function opsData(o,n){const ops=[];new Set([...Object.keys(o),...Object.keys(n)]).forEach(k=>{const a=o[k]||0,b=n[k]||0;if(a!==b)ops.push({isin:BY[k].isin,nome:BY[k].name,prezzo:BY[k].bond?100:BY[k].price,azione:b>a?(a?'aumenta':'acquista'):(b?'riduci':'vendi'),da:a,a:b})});return ops}
 const beVerbo={acquista:'Acquista',vendi:'Vendi',aumenta:'Aumenta',riduci:'Riduci'};
-function opHtml(o,cap){const d=Math.abs((o.a||0)-(o.da||0));return `<b>${beVerbo[o.azione]||esc(o.azione)}</b> ${esc(o.nome)} (${esc(o.isin)}): ${o.da||0}% → ${o.a||0}%${cap?` (${eur(d/100*cap)} su ${eur(cap)})`:''}`}
+function opQty(o,cap,pos){ // quantità da acquistare/vendere: sui tuoi titoli già in portafoglio per le vendite, altrimenti dal controvalore e dal prezzo di riferimento
+  const i=INS.find(k=>k.isin===o.isin),b=!!(i&&i.bond),p=o.prezzo||(i?i.price:null),sell=o.azione==='vendi'||o.azione==='riduci',cv=Math.abs((o.a||0)-(o.da||0))/100*(cap||0);
+  if(sell&&pos&&pos[o.isin]&&pos[o.isin].q>0){const h=pos[o.isin].q;return{q:o.a?Math.min(h,Math.round(h*((o.da-o.a)/o.da))):h,p,b,held:true}}
+  if(!p)return{q:null,p,b};return{q:b?Math.floor(cv/1000)*1000:Math.floor(cv/p),p,b}}
+function opHtml(o,cap,pos){const d=Math.abs((o.a||0)-(o.da||0)),Q=opQty(o,cap,pos),qs=Q.q?` · <b>${beVerbo[o.azione]==='Vendi'||o.azione==='riduci'?'Vendi':'Acquista'} ${Q.b?eur(Q.q)+' di valore nominale':Q.q+(Q.q===1?' quota':' quote')}</b>${Q.p?` (prezzo di riferimento ${Q.b?'100':eur(Q.p,2)})`:''}`:'';return `<b>${beVerbo[o.azione]||esc(o.azione)}</b> ${esc(o.nome)} (${esc(o.isin)}): ${o.da||0}% → ${o.a||0}%${cap?` (${eur(d/100*cap)} su ${eur(cap)})`:''}${qs}`}
 const beErr=e=>{const m=(e&&e.message)||String(e);
   if(/Invalid login/i.test(m))return 'Email o password non corrette.';
   if(/Email not confirmed/i.test(m))return 'Devi prima confermare l\'email: controlla la posta (anche lo spam).';
@@ -704,10 +708,10 @@ async function beLoadClient(){
       if(c.posizione&&Object.keys(c.posizione).length){const pr=(pv||[])[0]||{};st.held={id:c.portafoglio,w:beChiavi(c.posizione,pr.nomi,pr.titoli)}}else st.held={id:c.portafoglio,w:null}}}
 }
 async function beLoadRacc(){
-  const {data}=await BE.sb.from('raccomandazioni').select('*').eq('cliente_id',BE.me.id).order('id');BE.racc=data||[];
-  st.notifs=BE.racc.map(r=>({id:r.id,p:r.portafoglio,tipo:r.tipo,date:beDate(r.creato_il),titolo:r.tipo==='iniziale'?'Composizione iniziale':'Variazione del portafoglio',motivo:r.motivo||'',
-    ops:r.tipo==='iniziale'?[]:(r.operazioni||[]).map(o=>opHtml(o,r.capitale)),done:r.eseguita,rec:r}));
   try{const {data:es}=await BE.sb.from('esecuzioni').select('*').eq('cliente_id',BE.me.id).order('id');BE.ese=es||[]}catch(e){BE.ese=[]}
+  const {data}=await BE.sb.from('raccomandazioni').select('*').eq('cliente_id',BE.me.id).order('id');BE.racc=data||[];const PS=posOf(BE.ese);
+  st.notifs=BE.racc.map(r=>({id:r.id,p:r.portafoglio,tipo:r.tipo,date:beDate(r.creato_il),titolo:r.tipo==='iniziale'?'Composizione iniziale':'Variazione del portafoglio',motivo:r.motivo||'',
+    ops:r.tipo==='iniziale'?[]:(r.operazioni||[]).map(o=>opHtml(o,r.capitale,r.eseguita?null:PS)),done:r.eseguita,rec:r}));
 }
 function beSaveSoon(){if(!BE.cli||!BE.me||BE.me.ruolo==='consulente'||!SEARLY.includes(BE.cli.stato))return;clearTimeout(BE.saveT);BE.saveT=setTimeout(beSave,700)}
 async function beSave(){
@@ -872,7 +876,7 @@ function beCliente(cid){
   <label class="f">Note interne (visibili solo a te)<textarea id="be-nota" rows="3">${esc(c.note_consulente||'')}</textarea></label><div class="row"><button class="btn sm" data-act="be-nota" data-v="${cid}">Salva la nota</button></div></div>
   <div class="card"><div class="row sb"><h2>Raccomandazioni ricevute (${R.length})</h2><button class="btn sm" data-act="be-csv" data-v="${cid}">Esporta in CSV</button></div>
   ${R.length?`<div class="tablewrap"><table><thead><tr><th>Data</th><th>Tipo</th><th>Portafoglio</th><th>Motivazione e operazioni</th><th>Eseguita</th></tr></thead><tbody>${R.map(r=>`<tr><td>${beDT(r.creato_il)}</td><td>${{iniziale:'Iniziale',variazione:'Variazione',spesa_prevista:'Spesa prevista',altro:'Altro'}[r.tipo]}</td><td>${esc(r.portafoglio)} v${r.versione||''}</td>
-   <td>${esc(r.motivo||'')}<ul class="why">${(r.operazioni||[]).map(o=>'<li>'+opHtml(o,r.capitale)+'</li>').join('')}</ul></td><td>${r.eseguita?'<span class="ok">sì</span><div class="small muted">'+beDT(r.eseguita_il)+'</div>':'<span class="ko">no</span>'}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Nessuna raccomandazione ancora: la prima parte quando attivi il servizio.</p>'}
+   <td>${esc(r.motivo||'')}<ul class="why">${(r.operazioni||[]).map(o=>'<li>'+opHtml(o,r.capitale,r.eseguita?null:posOf(BE.eseAll.filter(e=>e.cliente_id===cid)))+'</li>').join('')}</ul></td><td>${r.eseguita?'<span class="ok">sì</span><div class="small muted">'+beDT(r.eseguita_il)+'</div>':'<span class="ko">no</span>'}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Nessuna raccomandazione ancora: la prima parte quando attivi il servizio.</p>'}
   <p class="small muted">Lo storico è permanente: nessuno, nemmeno tu, può modificarlo o cancellarlo da qui.</p></div>`}
 function beRegistro(){return `<div class="card"><h2>Registro delle operazioni</h2>${BE.reg.length?`<div class="tablewrap"><table><thead><tr><th>Quando</th><th>Chi</th><th>Azione</th><th>Dettagli</th></tr></thead><tbody>${BE.reg.map(r=>`<tr><td>${beDT(r.quando)}</td><td>${esc(r.utente?beNome(r.utente):'')}</td><td>${esc(r.azione)}</td><td class="small">${esc(JSON.stringify(r.dettagli||{}).slice(0,220))}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Nessuna operazione.</p>'}</div>`}
 /* ---------- azioni ---------- */
@@ -1073,8 +1077,9 @@ function impCard(ix,pl){
 function execRows(n){
   if(!BE.on||!n.rec)return [];const r=n.rec;
   if(r.tipo==='iniziale'){try{return planOf(n.p,null).lines.map(l=>({isin:l.isin,nome:l.name,tipo:'acquisto',q:l.sing?l.qty*1000:l.qty,p:l.sing?100:l.price,sing:l.sing})).filter(x=>x.q>0&&x.isin&&x.isin.length===12)}catch(e){return []}}
-  return (r.operazioni||[]).map(o=>{const i=INS.find(k=>k.isin===o.isin),cv=Math.abs((o.a||0)-(o.da||0))/100*(r.capitale||0),b=i&&i.bond,pr=b?100:(i?i.price:null);
-    return{isin:o.isin,nome:o.nome,tipo:(o.azione==='vendi'||o.azione==='riduci')?'vendita':'acquisto',q:pr?(b?Math.floor(cv/1000)*1000:Math.floor(cv/pr)):0,p:pr,sing:b}})}
+  const PS=posOf(BE.ese);
+  return (r.operazioni||[]).map(o=>{const Q=opQty(o,r.capitale,PS);
+    return{isin:o.isin,nome:o.nome,tipo:(o.azione==='vendi'||o.azione==='riduci')?'vendita':'acquisto',q:Q.q||0,p:Q.b?100:Q.p,sing:Q.b}})}
 function execForm(n){
   const R=execRows(n);if(!R.length)return `<div class="row"><button class="btn pri" data-act="done" data-v="${n.id}">Ho eseguito le operazioni</button></div>`;
   return `<div class="sub"><b>Dopo aver eseguito gli ordini, indica quantità e prezzo a cui sono stati eseguiti</b><span class="small muted">La quantità è già quella consigliata: modificala solo se è diversa. Il prezzo lo trovi nella conferma d'ordine del tuo broker (per BOT e BTP è il prezzo ogni 100 € di valore nominale). Se lasci i campi vuoti, restano quantità e prezzo della raccomandazione.</span>
