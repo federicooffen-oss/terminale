@@ -69,13 +69,13 @@
   "P6": {
    "nome": "Bilanciato Crescita",
    "fascia": 2,
-   "ultimo_ribilanciamento": "2026-11-04",
+   "ultimo_ribilanciamento": "2026-11-05",
    "pesi": {
-    "IE00BK5BQT80": 30,
+    "IE00BK5BQT80": 35,
     "IE00BK5BR626": 10,
     "IE00BL25JN58": 10,
     "IE00BP3QZ825": 5,
-    "LU0290358497": 10,
+    "LU0290358497": 5,
     "LU1650487413": 25,
     "LU1650491282": 10
    }
