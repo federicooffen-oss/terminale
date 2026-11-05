@@ -778,7 +778,7 @@ async function beLoadAdmin(){
   try{const {data:es}=await BE.sb.from('esecuzioni').select('*').order('id').limit(5000);BE.eseAll=es||[]}catch(e){BE.eseAll=[]}
 }
 async function beLoadPrezzi(){
-  try{const all=[];for(let from=0;;from+=1000){const {data,error}=await BE.sb.from('prezzi').select('isin,data,prezzo').order('data').range(from,from+999);if(error)throw error;all.push(...(data||[]));if(!data||data.length<1000)break}przSet(all)}catch(e){przSet([])}}
+  try{const all=[];for(let from=0;;from+=1000){const {data,error}=await BE.sb.from('prezzi').select('isin,data,prezzo').order('data').range(from,from+999);if(error)throw error;all.push(...(data||[]));if(!data||data.length<1000)break}przSet(all)}catch(e){przSet([])}applyPrz()}
 async function beRefresh(){
   if(!BE.me||!BE.sb||BE.loading)return;
   try{
@@ -892,6 +892,7 @@ function przStrumenti(){
   Object.values(PF()).forEach(p=>Object.keys(p.w||{}).forEach(k=>{const i=BY[k];if(i&&/^[A-Z0-9]{12}$/.test(i.isin||''))m.set(i.isin,{isin:i.isin,nome:i.name,bond:!!i.bond||isBondE(i.isin,i.name)})}));
   (BE.eseAll||[]).forEach(e=>{if(/^[A-Z0-9]{12}$/.test(e.isin||'')&&!m.has(e.isin))m.set(e.isin,{isin:e.isin,nome:e.nome||e.isin,bond:isBondE(e.isin,e.nome)})});
   return [...m.values()].sort((a,b)=>(a.bond-b.bond)||a.nome.localeCompare(b.nome))}
+const applyPrz=()=>INS.forEach(i=>{if(i.bond)return;const p=przLast(i.isin);if(p)i.price=p[1]});
 const przNum=t=>{const x=+String(t).trim().replace(/\s/g,'').replace(/\.(?=\d{3}(\D|$))/g,'').replace(',','.');return isFinite(x)&&x>0?x:null};
 function bePrezzi(){
   const L=przStrumenti(),oggi=dLoc(new Date()),ult=przData(),pend=BE.przPend||{date:oggi,vals:{}},dt=pend.date||oggi;
@@ -901,8 +902,23 @@ function bePrezzi(){
   <div class="row"><label class="f" style="max-width:220px">Data dei prezzi<input type="date" id="prz-d" value="${esc(dt)}" max="${oggi}"></label></div>
   <div class="tablewrap admin-w"><table><thead><tr><th>Strumento</th><th>Ultimo prezzo</th><th>Nuovo prezzo</th></tr></thead><tbody>${L.map(x=>{const p=przLast(x.isin);return `<tr><td>${esc(x.nome)}<div class="small muted">${x.isin}${x.bond?' · per 100 di nominale':''}</div></td><td class="num">${p?f2(p[1],p[1]<10?4:2)+'<div class="small muted">'+dIt(p[0])+'</div>':'—'}</td><td><input type="text" inputmode="decimal" data-prz="${x.isin}" value="${esc(pend.vals[x.isin]||'')}" placeholder="${p?String(p[1]).replace('.',','):''}" style="width:120px"></td></tr>`}).join('')}</tbody></table></div>
   <div class="row"><button class="btn pri" data-act="be-prz">${BE.przForce?'Salva comunque':'Salva i prezzi'}</button><span class="small muted">I campi vuoti non cambiano nulla. Puoi correggere un giorno già inserito scegliendo la stessa data.</span></div></div>
+  <div class="card"><h3>Con un foglio (Google Sheets o Excel)</h3><p class="small muted">Scarica l'elenco, compila la colonna «Prezzo di chiusura», poi caricalo di nuovo (da Google Sheets: File → Scarica → CSV). Viene salvato con la data scelta sopra.</p>
+  <div class="row"><button class="btn" data-act="be-prz-dl">Scarica l'elenco degli strumenti</button><label class="btn pri" style="cursor:pointer">Carica il file compilato<input type="file" id="prz-file" accept=".csv,.txt,text/csv" hidden></label></div></div>
   <div class="card"><h3>Oppure incolla un elenco</h3><p class="small muted">Una riga per strumento: ISIN e prezzo, separati da punto e virgola, tabulazione o spazio (es. <code>IE00B4L5Y983;87,52</code>). Viene salvato con la data scelta sopra.</p>
   <label class="f"><textarea id="prz-csv" rows="5" placeholder="IE00B4L5Y983;87,52"></textarea></label><div class="row"><button class="btn" data-act="be-prz-csv">${BE.przForce?'Salva comunque':"Salva l'elenco"}</button></div></div>`}
+function csvRows(t){t=String(t).replace(/^\uFEFF/,'');const first=t.split(/\r?\n/)[0]||'',cnt=c=>(first.split(c).length-1),dl=cnt(';')>=Math.max(cnt('\t'),cnt(','))&&cnt(';')>0?';':cnt('\t')>cnt(',')?'\t':',';
+  const rows=[];let r=[],c='',q=false;for(let i=0;i<t.length;i++){const ch=t[i];if(q){if(ch==='"'){if(t[i+1]==='"'){c+='"';i++}else q=false}else c+=ch}else if(ch==='"')q=true;else if(ch===dl){r.push(c);c=''}else if(ch==='\n'||ch==='\r'){if(ch==='\r'&&t[i+1]==='\n')i++;r.push(c);rows.push(r);r=[];c=''}else c+=ch}
+  if(c!==''||r.length){r.push(c);rows.push(r)}return rows}
+function przDaFile(t){const rows=csvRows(t),H=(rows[0]||[]).map(x=>String(x).toLowerCase()),ix=H.findIndex(h=>/chiusura|nuovo/.test(h)),righe=[],sc=[];
+  rows.forEach((r,n)=>{const ii=r.findIndex(x=>/^[A-Z0-9]{12}$/.test(String(x).trim().toUpperCase()));if(ii<0){if(n>0&&r.some(x=>String(x).trim()))sc.push(r.join(' ').slice(0,40));return}
+    const isin=String(r[ii]).trim().toUpperCase();let p=null;if(ix>=0)p=przNum(r[ix]||'');else{for(let j=r.length-1;j>ii&&p==null;j--)if(String(r[j]).trim())p=przNum(r[j])}
+    if(p)righe.push({isin,prezzo:p})});return{righe,sc}}
+function przScarica(){const L=przStrumenti(),oggi=dLoc(new Date()),H=['ISIN','Strumento','Tipo','Ultimo prezzo','Data ultimo prezzo','Prezzo di chiusura'];
+  const rows=L.map(x=>{const p=przLast(x.isin);return [x.isin,x.nome,x.bond?'Titolo di Stato (prezzo per 100)':'ETF',p?String(p[1]).replace('.',','):'',p?dIt(p[0]):'',''].map(csvC).join(';')});
+  const blob=new Blob(['\uFEFF'+[H.join(';'),...rows].join('\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='prezzi_'+oggi+'.csv';document.body.appendChild(a);a.click();a.remove()}
+document.addEventListener('change',async e=>{const t=e.target;if(!t||t.id!=='prz-file'||!t.files||!t.files[0])return;
+  const txt=await t.files[0].text(),{righe,sc}=przDaFile(txt),ok=new Set(przStrumenti().map(x=>x.isin)),ign=righe.filter(r=>!ok.has(r.isin)).map(r=>r.isin);
+  await bePrzSalva(righe.filter(r=>ok.has(r.isin)),beV('prz-d'));if((sc.length||ign.length)&&BE.msg)BE.msg.t+=' Righe non lette o ISIN non presenti nei portafogli: '+[...sc,...ign].slice(0,5).join(', ')+'.';render()});
 async function bePrzSalva(righe,date){
   const d=date||beV('prz-d');if(!/^\d{4}-\d{2}-\d{2}$/.test(d)){beMsg('Scegli la data dei prezzi.',1);return}
   if(!righe.length){beMsg('Nessun prezzo da salvare.',1);return}
@@ -976,6 +992,7 @@ document.addEventListener('click',async e=>{
   else if(a==='be-prz'){const vals={},righe=[];document.querySelectorAll('[data-prz]').forEach(i=>{if(i.value.trim()){vals[i.dataset.prz]=i.value.trim();const p=przNum(i.value);if(p)righe.push({isin:i.dataset.prz,prezzo:p})}});
     const bad=Object.keys(vals).filter(k=>!przNum(vals[k]));BE.przPend={date:beV('prz-d'),vals};
     if(bad.length){BE.przForce=false;beMsg('Controlla i numeri inseriti (usa cifre, con la virgola per i decimali).',1)}else{await bePrzSalva(righe)}}
+  else if(a==='be-prz-dl'){przScarica();return}
   else if(a==='be-prz-csv'){const righe=[],sc=[];beV('prz-csv').split(/\n+/).forEach(r=>{const t=r.trim();if(!t)return;const m=t.split(/[;\t ]+/);const isin=(m[0]||'').toUpperCase(),p=przNum(m[1]||'');if(/^[A-Z0-9]{12}$/.test(isin)&&p)righe.push({isin,prezzo:p});else sc.push(t)});
     const ok=new Set(przStrumenti().map(x=>x.isin)),ign=righe.filter(r=>!ok.has(r.isin)).map(r=>r.isin);await bePrzSalva(righe,beV('prz-d'));if((sc.length||ign.length)&&BE.msg)BE.msg.t+=' Righe non lette: '+[...sc,...ign].slice(0,5).join(', ')+'.'}
   else if(a==='be-rep'){BE.rep=v||null}
@@ -1217,7 +1234,8 @@ function admPortf(){
   ${ricercaView(p,w)}
   <div class="alert"><b>Controllo di fascia</b><span class="small">VaR annuo ${n1(va)}% (${REAL?'su prezzi reali a 5 anni':'con volatilità stimate'}) → fascia ${BANDS[b]}. ${b>b0?`<b class="ko">Modifica bloccata: il VaR sfora il limite della fascia ${BANDS[b0]} e il portafoglio passerebbe a ${BANDS[b]}. Riduci la parte rischiosa finché il VaR rientra.</b>`:(b<b0?`La fascia scende da ${BANDS[b0]} a ${BANDS[b]}.`:'Il VaR resta dentro la fascia.')}</span></div>
   <label class="f">Motivazione e analisi costi/benefici (obbligatoria)<textarea id="motivo" rows="3" placeholder="Es.: aumento la quota di obbligazioni brevi per ridurre la duration; costi di transazione stimati inferiori al beneficio atteso.">${esc(st.motivo||'')}</textarea></label>
-  <div class="row"><button class="btn pri" data-act="publish" ${tot===100&&b<=b0?'':'disabled'}>Pubblica la variazione e invia la notifica</button><button class="btn" data-act="discard">Annulla modifiche</button></div></div>
+  ${(()=>{const mc=BE.on?Object.keys(w).filter(k=>w[k]>0&&BY[k]&&!BY[k].bond&&BY[k].isin&&!przLast(BY[k].isin)):[];return mc.length?`<div class="alert"><b class="ko">Mancano i prezzi di chiusura</b><span class="small">Per calcolare le quantità servono i tuoi prezzi: inseriscili nella scheda «Prezzi» per ${mc.map(k=>esc(BY[k].name)).join(', ')}, poi pubblica.</span></div>`:''})()}
+  <div class="row"><button class="btn pri" data-act="publish" ${tot===100&&b<=b0&&!(BE.on&&Object.keys(w).some(k=>w[k]>0&&BY[k]&&!BY[k].bond&&BY[k].isin&&!przLast(BY[k].isin)))?'':'disabled'}>Pubblica la variazione e invia la notifica</button><button class="btn" data-act="discard">Annulla modifiche</button></div></div>
   ${esportaCard()}`}
 const STC={ok:'ok',preavviso:'warn',allarme:'ko'};
 function monitorCard(){
@@ -1244,7 +1262,7 @@ function ricercaView(p,w){
   <p class="small muted">${CAT?`Catalogo: ${CAT.strumenti.length} strumenti con prezzo (Borsa Italiana o Xetra), aggiornato ${esc(CAT.aggiornato)}.${CAT.senza_prezzo&&CAT.senza_prezzo.length?` ${CAT.senza_prezzo.length} non hanno un prezzo leggibile e non si possono usare.`:''}`:'Catalogo completo non ancora caricato: per ora si possono cercare solo gli strumenti già nel sistema.'}${TITOLI?` Titoli di Stato: ${TITOLI.filter(t=>!scaduto({bond:true,scad:t.scadenza})).length} in circolazione (elenco ufficiale del Tesoro, aggiornato ${esc(TITOLI_AGG||'')}). Senza prezzo: il rischio è stimato dalla duration (rendimento ipotizzato ${n1(TS_Y0)}%, volatilità del rendimento ${n1(TS_SY)} punto) e i titoli scaduti spariscono dall'elenco.`:''}</p></div>`;
 }
 function elencoRicerca(){
-  const base=CAT?CAT.strumenti.map(c=>({isin:c.isin,nome:c.nome,ticker:c.ticker,prezzo:c.prezzo,sd:c.sd,ok:true})).concat((CAT.senza_prezzo||[]).map(c=>({isin:c.isin,nome:c.nome,ok:false})))
+  const base=CAT?CAT.strumenti.map(c=>({isin:c.isin,nome:c.nome,ticker:c.ticker,prezzo:null,sd:c.sd,ok:true})).concat((CAT.senza_prezzo||[]).map(c=>({isin:c.isin,nome:c.nome,ok:false})))
     :INS.filter(i=>!i.finOnly&&!i.bond).map(i=>({isin:i.isin,nome:i.name,prezzo:i.price,ok:true}));
   const ts=(TITOLI||[]).map(t=>({isin:t.isin,nome:t.nome,bond:true,tipo:t.tipo,serie:t.serie,tasso:t.tasso,scad:t.scadenza,ok:true}))
     .filter(t=>!scaduto({bond:true,scad:t.scad}));
@@ -1299,7 +1317,7 @@ function loadTitoli(){try{fetch('titoli_stato.json',{cache:'no-store'}).then(r=>
 let CAT=null,CATTRY=false;
 function loadCat(){if(CAT||CATTRY)return;CATTRY=true;loadTitoli();try{fetch('catalogo.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.strumenti)return;CAT=j;
   setReal({isin:j.strumenti.map(s=>s.isin),sd:j.strumenti.map(s=>s.sd),corr:j.corr.map(r=>r.map(x=>x/100)),giorni:j.giorni});
-  j.strumenti.forEach(s=>{const ex=INS.find(i=>i.isin===s.isin);if(ex&&s.prezzo)ex.price=s.prezzo});render()}).catch(()=>{})}catch(e){}}
+  render()}).catch(()=>{})}catch(e){}}
 /* ======================= EVENTI ======================= */
 function diffOps(o,n){const ops=[];const ks=new Set([...Object.keys(o),...Object.keys(n)]);
   ks.forEach(k=>{const d=(n[k]||0)-(o[k]||0);if(d)ops.push(`<b>${d>0?'Acquista':'Vendi'}</b> ${BY[k].name}: ${(o[k]||0)}% → ${(n[k]||0)}% (${eur(Math.abs(d)/100*modelCap(st.capital,impAct()))} su ${eur(modelCap(st.capital,impAct()))})`)});return ops}
@@ -1369,6 +1387,6 @@ document.addEventListener('input',e=>{const t=e.target;if(t.id==='cerca'){st.q=t
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.ch[data-act]')){e.preventDefault();e.target.click()}});
 loadTitoli(); // elenco BOT/BTP per la scelta delle spese previste
 try{fetch('modelli.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j&&j.portafogli){if(BE.on){BE.mod=j;if(BE.me&&BE.me.ruolo==='consulente')render()}else{syncModelli(j);save();render()}}}).catch(()=>{})}catch(e){}
-let MONI=null;try{fetch('monitor.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{MONI=j;setReal(j&&j.mercato);if(j&&j.mercato&&j.mercato.prezzi)j.mercato.isin.forEach((x,n)=>{const ex=INS.find(i=>i.isin===x);if(ex&&j.mercato.prezzi[n])ex.price=j.mercato.prezzi[n]});if(st.role==='consulente')loadCat();if(BE.on){if(BE.me&&BE.me.ruolo==='consulente')render()}else render()}).catch(()=>{})}catch(e){}
+let MONI=null;try{fetch('monitor.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{MONI=j;setReal(j&&j.mercato);if(st.role==='consulente')loadCat();if(BE.on){if(BE.me&&BE.me.ruolo==='consulente')render()}else render()}).catch(()=>{})}catch(e){}
 if(BE.on)beInit();else render();
 </script>
