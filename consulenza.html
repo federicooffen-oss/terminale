@@ -536,7 +536,9 @@ const selfRow=()=>({id:BE.on&&BE.me?BE.me.id:'demo',dati:{A:st.A,capitale:st.cap
 const dIt=d=>new Date(d).toLocaleDateString('it-IT');
 const f2=(n,d=2)=>n==null?'—':n.toLocaleString('it-IT',{minimumFractionDigits:d,maximumFractionDigits:d});
 const f0=n=>n==null?'—':Math.round(n).toLocaleString('it-IT');
-function opsCli(c,pl,self){ // ultime 20 operazioni eseguite (acquisti iniziali dal piano + variazioni eseguite)
+function opsCli(c,pl,self){
+  {const E=BE.on?(self?BE.ese:(BE.eseAll||[]).filter(e=>e.cliente_id===c.id)):[];if(E.length)return E.slice().sort((a,b)=>b.id-a.id).slice(0,20).map(e=>({isin:e.isin,nome:e.nome,data:e.eseguita_il,tipo:e.tipo==='vendita'?'Vendita':'Acquisto',qty:+e.quantita,prezzo:e.prezzo==null?null:+e.prezzo,cv:(+e.quantita)*(+e.prezzo||0)}))}
+  // ultime 20 operazioni eseguite (acquisti iniziali dal piano + variazioni eseguite)
   const R=(self?(BE.on?BE.racc:[]):BE.raccAll.filter(r=>r.cliente_id===c.id)).filter(r=>r.eseguita),out=[];
   const byIsin=i=>{const x=INS.find(k=>k.isin===i);return x?x.price:null};
   R.forEach(r=>{const dt=r.eseguita_il||r.creato_il;
@@ -546,10 +548,13 @@ function opsCli(c,pl,self){ // ultime 20 operazioni eseguite (acquisti iniziali 
   return out.sort((a,b)=>new Date(b.data)-new Date(a.data)).slice(0,20)}
 function repData(c,self){
   const d=c.dati||{},pl=planCli(c,self);if(!pl)return null;
-  const righe=pl.lines.map(l=>({...l,val:l.amt,macro:l.cls,sub:sottoclasse(l.name,l.cls),emit:emittente(l.name,l.isin)})),tit=righe.reduce((a,l)=>a+l.val,0),liq=Math.max(0,(pl.capital||0)-(pl.monthly?0:pl.spent||tit)),tot=tit+liq;
-  const prof=c.profilo,hor=(typeof HOR!=='undefined'&&HOR.o&&d.A&&d.A.hor!=null)?HOR.o[d.A.hor]:'—';
+  const righe=pl.lines.map(l=>({...l,val:l.amt,macro:l.cls,sub:sottoclasse(l.name,l.cls),emit:emittente(l.name,l.isin)}));
+  const E=BE.on?(self?BE.ese:(BE.eseAll||[]).filter(e=>e.cliente_id===c.id)):[],P=posOf(E);let utili=null,costoTot=0,spent=0;
+  righe.forEach(l=>{const p=P[l.isin];if(p&&p.q>0&&!l.sing&&p.c>0){const last=PRICE_API.last(l);l.qty=p.q;l.carico=p.c;l.val=p.q*last;l.costo=p.q*p.c;l.utile=l.val-l.costo;l.rend=last/p.c-1;utili=(utili||0)+l.utile;costoTot+=l.costo;spent+=l.costo}else spent+=l.amt});
+  const tit=righe.reduce((a,l)=>a+l.val,0),liq=Math.max(0,(pl.capital||0)-(pl.monthly?0:spent)),tot=tit+liq;
+  const prof=c.profilo,E_=E,hor=(typeof HOR!=='undefined'&&HOR.o&&d.A&&d.A.hor!=null)?HOR.o[d.A.hor]:'—';
   const inizio=c.attivo_dal?new Date(c.attivo_dal):new Date(),fine=c.uscito_il&&c.stato==='uscito'?new Date(c.uscito_il):new Date();
-  return{nome:self?st.user.nome:(typeof beNome==='function'?beNome(c.id):''),inizio,fine,prof:prof?BANDS[prof.band]:'—',hor,righe,tit,liq,tot,ops:opsCli(c,pl,self),imp:d.spese||[]}}
+  return{nome:self?st.user.nome:(typeof beNome==='function'?beNome(c.id):''),inizio,fine,prof:prof?BANDS[prof.band]:'—',hor,righe,tit,liq,tot,utili,costoTot,ops:opsCli(c,pl,self),imp:d.spese||[]}}
 const bars=(rows)=>rows.map(([l,v])=>`<div><div class="row sb small"><span>${esc(l)}</span><b class="num">${f2(v)}%</b></div><div class="bar"><i style="width:${Math.min(100,v)}%"></i></div></div>`).join('');
 function reportHtml(r){
   const pct=v=>r.tot?v/r.tot*100:0,perM={};r.righe.forEach(l=>perM[l.macro]=(perM[l.macro]||0)+l.val);perM.Liquidità=r.liq;
@@ -560,13 +565,13 @@ function reportHtml(r){
   const nota='<p class="small muted">I valori di rendimento e utili si compilano automaticamente quando saranno collegati i prezzi storici del fornitore dati: fino ad allora compaiono come «—». Composizione, quantità e controvalori sono calcolati sul portafoglio raccomandato.</p>';
   return `<div class="rep"><div><span class="eyebrow">Binario F · Consulenza finanziaria indipendente</span><h1>Report di portafoglio</h1></div><div class="kv"><span>Cliente</span><span>${esc(r.nome)}</span><span>Periodo</span><span>${periodo}</span></div></div>
   <div class="rep"><h2>Sintesi</h2><div class="grid2"><div><h3>Dati di sintesi</h3><div class="kv"><span>Cliente</span><span>${esc(r.nome)}</span><span>Data inizio rapporto</span><span>${dIt(r.inizio)}</span><span>Profilo di rischio</span><span>${esc(r.prof)}</span><span>Orizzonte temporale</span><span>${esc(r.hor)}</span></div>
-   <h3 style="margin-top:14px">Situazione portafoglio</h3><div class="kv"><span>Periodo valutazione</span><span>${periodo}</span><span>Utili totali (EUR)</span><span>—</span><span>Rendimento (MWR)</span><span>—</span></div>
+   <h3 style="margin-top:14px">Situazione portafoglio</h3><div class="kv"><span>Periodo valutazione</span><span>${periodo}</span><span>Utili totali (EUR)</span><span>${r.utili==null?'—':f2(r.utili)}</span><span>Rendimento (MWR)</span><span>${r.utili==null||!r.costoTot?'—':f2(r.utili/r.costoTot*100)+'%'}</span></div>
    <h3 style="margin-top:14px">Portafoglio</h3><div class="kv"><span>Controvalore titoli</span><span>${f2(r.tit)}</span><span>Liquidità</span><span>${f2(r.liq)}</span><span>Controvalore portafoglio</span><span>${f2(r.tot)}</span></div></div>
    <div><h3>Performance portafoglio (TWR)</h3><div class="box"><span class="small">Il grafico dell'andamento si genera con le serie storiche dei prezzi (fornitore dati in arrivo).</span></div><h3 style="margin-top:14px">Asset allocation</h3>${bars(macroRows)}</div></div>
    <div class="grid2"><div><h3>Azionario · composizione</h3>${bars(sub('Azionario'))||'<span class="small muted">—</span>'}</div><div><h3>Obbligazionario · composizione</h3>${bars(sub('Obbligazionario'))||'<span class="small muted">—</span>'}</div></div>
    <div><h3>Valute</h3>${bars([['EUR',100]])}</div>${nota}</div>
-  <div class="rep"><h2>Analisi di rendimento</h2><p class="small muted">${periodo}</p><div class="tablewrap"><table class="tl"><thead><tr><th>Macro</th><th>Utili maturati</th><th>% media investita</th><th>Performance</th><th>Perf. attribution</th></tr></thead><tbody>${['Azionario','Alternativo','Materie prime','Bilanciato','Obbligazionario','Polizze','Monetario','Altro'].map(m=>{const k=m==='Materie prime'?'Oro':m;const v=perM[k]!=null?pct(perM[k]+(k==='Monetario'?r.liq:0)):null;return `<tr><td>${m}</td><td class="num">—</td><td class="num">${v!=null?f2(v)+'%':'—'}</td><td class="num">—</td><td class="num">—</td></tr>`}).join('')}</tbody><tfoot><tr><td>Totali</td><td class="num">—</td><td></td><td></td><td class="num">—</td></tr></tfoot></table></div>${nota}</div>
-  <div class="rep"><h2>Dettaglio portafoglio</h2><p class="small muted">${periodo}</p><div class="tablewrap"><table class="tl"><thead><tr><th>Tipologia</th><th>Classificazione</th><th>Descrizione</th><th>ISIN</th><th>Valuta</th><th>Nominale</th><th>Prezzo</th><th class="num">Controvalore</th><th>Peso %</th><th>Rend. %</th><th>Utili totali</th></tr></thead><tbody>${r.righe.map(l=>`<tr><td>${MACRO_L[l.macro]}</td><td>${esc(l.sub)}</td><td>${esc(l.name)}</td><td>${esc(l.isin)}</td><td>EUR</td><td class="num">${l.sing?f0(l.qty*1000):(l.qty==null?'—':f0(l.qty))}</td><td class="num">${l.sing?'—':f2(PRICE_API.last(l))}</td><td class="num">${f0(l.val)}</td><td class="num">${f2(pct(l.val))}</td><td class="num">—</td><td class="num">—</td></tr>`).join('')}<tr><td>Monetario</td><td>Euro</td><td>Euro</td><td></td><td>EUR</td><td class="num">${f0(r.liq)}</td><td class="num">1,00</td><td class="num">${f0(r.liq)}</td><td class="num">${f2(pct(r.liq))}</td><td class="num">—</td><td class="num">—</td></tr></tbody><tfoot><tr><td colspan="7">Totali</td><td class="num">${f0(r.tot)}</td><td class="num">100,00</td><td class="num">—</td><td class="num">—</td></tr></tfoot></table></div></div>
+  <div class="rep"><h2>Analisi di rendimento</h2><p class="small muted">${periodo}</p><div class="tablewrap"><table class="tl"><thead><tr><th>Macro</th><th>Utili maturati</th><th>% media investita</th><th>Performance</th><th>Perf. attribution</th></tr></thead><tbody>${['Azionario','Alternativo','Materie prime','Bilanciato','Obbligazionario','Polizze','Monetario','Altro'].map(m=>{const k=m==='Materie prime'?'Oro':m;const v=perM[k]!=null?pct(perM[k]+(k==='Monetario'?r.liq:0)):null,L=r.righe.filter(l=>l.macro===k&&l.utile!=null),u=L.length?L.reduce((a,l)=>a+l.utile,0):null,cs=L.reduce((a,l)=>a+l.costo,0);return `<tr><td>${m}</td><td class="num">${u==null?'—':f0(u)}</td><td class="num">${v!=null?f2(v)+'%':'—'}</td><td class="num">${u==null||!cs?'—':f2(u/cs*100)+'%'}</td><td class="num">${u==null||!r.costoTot?'—':f2(u/r.costoTot*100)+'%'}</td></tr>`}).join('')}</tbody><tfoot><tr><td>Totali</td><td class="num">${r.utili==null?'—':f0(r.utili)}</td><td></td><td></td><td class="num">${r.utili==null||!r.costoTot?'—':f2(r.utili/r.costoTot*100)+'%'}</td></tr></tfoot></table></div>${nota}</div>
+  <div class="rep"><h2>Dettaglio portafoglio</h2><p class="small muted">${periodo}</p><div class="tablewrap"><table class="tl"><thead><tr><th>Tipologia</th><th>Classificazione</th><th>Descrizione</th><th>ISIN</th><th>Valuta</th><th>Nominale</th><th>Prezzo</th><th class="num">Controvalore</th><th>Peso %</th><th>Rend. %</th><th>Utili totali</th></tr></thead><tbody>${r.righe.map(l=>`<tr><td>${MACRO_L[l.macro]}</td><td>${esc(l.sub)}</td><td>${esc(l.name)}</td><td>${esc(l.isin)}</td><td>EUR</td><td class="num">${l.sing?f0(l.qty*1000):(l.qty==null?'—':f0(l.qty))}</td><td class="num">${l.sing?'—':f2(l.carico!=null?l.carico:PRICE_API.last(l))}</td><td class="num">${f0(l.val)}</td><td class="num">${f2(pct(l.val))}</td><td class="num">${l.rend==null?'—':f2(l.rend*100)}</td><td class="num">${l.utile==null?'—':f0(l.utile)}</td></tr>`).join('')}<tr><td>Monetario</td><td>Euro</td><td>Euro</td><td></td><td>EUR</td><td class="num">${f0(r.liq)}</td><td class="num">1,00</td><td class="num">${f0(r.liq)}</td><td class="num">${f2(pct(r.liq))}</td><td class="num">—</td><td class="num">—</td></tr></tbody><tfoot><tr><td colspan="7">Totali</td><td class="num">${f0(r.tot)}</td><td class="num">100,00</td><td class="num">${r.utili==null||!r.costoTot?'—':f2(r.utili/r.costoTot*100)}</td><td class="num">${r.utili==null?'—':f0(r.utili)}</td></tr></tfoot></table></div></div>
   <div class="rep"><h2>Report cedole e dividendi ${r.fine.getFullYear()}</h2><div class="tablewrap"><table class="tl"><thead><tr><th>Descrizione strumento</th>${mesi.map(m=>`<th>${m}</th>`).join('')}</tr></thead><tbody><tr><td><b>Totale per mese</b></td>${mesi.map(()=>'<td class="num">—</td>').join('')}</tr></tbody></table></div><p class="small muted">I valori indicati nel report sono espressi in EUR e sono al lordo della tassazione. Cedole e dividendi si compilano con i dati del fornitore.</p></div>
   <div class="rep"><h2>Ultime 20 operazioni eseguite</h2>${r.ops.length?`<div class="tablewrap"><table class="tl"><thead><tr><th>Codice ISIN</th><th>Descrizione strumento</th><th>Data</th><th>Tipo operazione</th><th>Quantità</th><th>Prezzo</th><th>Cambio</th><th class="num">Controvalore</th><th>Valuta</th></tr></thead><tbody>${r.ops.map(o=>`<tr><td>${esc(o.isin)}</td><td>${esc(o.nome)}</td><td>${dIt(o.data)}</td><td>${o.tipo}</td><td class="num">${o.qty==null?'—':f0(o.qty)}</td><td class="num">${o.prezzo==null?'—':f2(o.prezzo)}</td><td class="num">1,00</td><td class="num">${f0(o.cv)}</td><td>EUR</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted small">Nessuna operazione eseguita nel periodo.</p>'}</div>
   <p class="small muted">Report indicativo basato sul portafoglio raccomandato. Le operazioni effettive vengono eseguite dal cliente sul proprio conto titoli. I rendimenti passati non sono indicativi di quelli futuri.</p>`}
@@ -616,7 +621,7 @@ function beRepView(cid){const c=BE.clienti.find(x=>x.id===cid),r=c&&repData(c,fa
 /* ======================= BACKEND (Supabase): accesso, clienti, raccomandazioni ======================= */
 const BCFG=window.BF_CONFIG||{};
 const BE={on:!!(BCFG.url&&BCFG.key&&window.supabase),sb:null,view:'landing',me:null,ready:false,loading:false,msg:null,f:{},
-  cli:null,racc:[],imp:{},mod:null,pubs:[],
+  cli:null,racc:[],ese:[],eseAll:[],imp:{},mod:null,pubs:[],
   clienti:[],profili:{},raccAll:[],reg:[],sel:null,tab:'clienti',rep:null,ocf:null,filtro:'tutti',saveT:0,saveErr:null,seeding:false};
 const SLOCAL={registrato:'none',questionario:'none',documenti:'attesa',firma:'firma',pagamento:'pagamento',attivo:'attivo',scaduto:'scaduto',uscito:'uscito'};
 const SNOME={registrato:'Registrato',questionario:'Questionario completato',documenti:'Documenti inviati',firma:'Contratto da firmare',pagamento:'In attesa del bonifico',attivo:'Attivo',scaduto:'Scaduto',uscito:'Chiuso'};
@@ -701,7 +706,8 @@ async function beLoadClient(){
 async function beLoadRacc(){
   const {data}=await BE.sb.from('raccomandazioni').select('*').eq('cliente_id',BE.me.id).order('id');BE.racc=data||[];
   st.notifs=BE.racc.map(r=>({id:r.id,p:r.portafoglio,tipo:r.tipo,date:beDate(r.creato_il),titolo:r.tipo==='iniziale'?'Composizione iniziale':'Variazione del portafoglio',motivo:r.motivo||'',
-    ops:r.tipo==='iniziale'?[]:(r.operazioni||[]).map(o=>opHtml(o,r.capitale)),done:r.eseguita}));
+    ops:r.tipo==='iniziale'?[]:(r.operazioni||[]).map(o=>opHtml(o,r.capitale)),done:r.eseguita,rec:r}));
+  try{const {data:es}=await BE.sb.from('esecuzioni').select('*').eq('cliente_id',BE.me.id).order('id');BE.ese=es||[]}catch(e){BE.ese=[]}
 }
 function beSaveSoon(){if(!BE.cli||!BE.me||BE.me.ruolo==='consulente'||!SEARLY.includes(BE.cli.stato))return;clearTimeout(BE.saveT);BE.saveT=setTimeout(beSave,700)}
 async function beSave(){
@@ -712,8 +718,12 @@ async function beSave(){
   if(error){BE.saveErr=beErr(error);const b=$('#besave');if(b)b.textContent='Salvataggio non riuscito: '+BE.saveErr}
   else{BE.saveErr=null;BE.cli.stato=stato;const b=$('#besave');if(b)b.textContent=''}
 }
+function posOf(rows){const m={};(rows||[]).slice().sort((a,b)=>a.id-b.id).forEach(e=>{const x=m[e.isin]=m[e.isin]||{q:0,c:0,nome:e.nome},p=+e.prezzo||0,q=+e.quantita;if(e.tipo==='acquisto'){x.c=(x.c*x.q+p*q)/((x.q+q)||1);x.q+=q}else x.q=Math.max(0,x.q-q)});return m}
 async function beDone(id){
-  const {error}=await BE.sb.rpc('esegui_raccomandazione',{p_id:+id});if(error){beMsg(beErr(error),1);render();return}
+  const righe=[...document.querySelectorAll('tr[data-ex]')].map(tr=>{const qi=tr.querySelector('[data-f=q]'),pi=tr.querySelector('[data-f=p]'),pq=+tr.dataset.pq,pp=+tr.dataset.pp,q=qi&&qi.value!==''?+String(qi.value).replace(',','.'):pq,p=pi&&pi.value!==''?+String(pi.value).replace(',','.'):pp;
+    return{isin:tr.dataset.ex,nome:tr.dataset.nome,tipo:tr.dataset.tipo,q,p:p||'',piano:!(qi&&qi.value!==''&&pi&&pi.value!=='')}}).filter(x=>x.q>0);
+  let {error}=righe.length?await BE.sb.rpc('esegui_con_dettagli',{p_id:+id,p_righe:righe}):{error:{message:'nodati'}};
+  if(error&&/esegui_con_dettagli|nodati|function/i.test(error.message||''))({error}=await BE.sb.rpc('esegui_raccomandazione',{p_id:+id}));if(error){beMsg(beErr(error),1);render();return}
   await beLoadClient();render();
 }
 /* ---------- consulente ---------- */
@@ -727,6 +737,7 @@ async function beLoadAdmin(){
   BE.profili=Object.fromEntries(b.data.map(p=>[p.id,p]));
   BE.clienti=a.data.filter(x=>BE.profili[x.id]&&BE.profili[x.id].ruolo==='cliente');
   BE.raccAll=c.data;BE.reg=d.data;
+  try{const {data:es}=await BE.sb.from('esecuzioni').select('*').order('id').limit(5000);BE.eseAll=es||[]}catch(e){BE.eseAll=[]}
 }
 async function beRefresh(){
   if(!BE.me||!BE.sb||BE.loading)return;
@@ -1053,16 +1064,27 @@ function attivoView(){
   <div class="card">${RECESSO}</div>`}
 const notifsCli=()=>st.notifs.filter(x=>x.p===st.chosen&&x.id>(st.attivoDal||0));
 function pendingNotif(){const n=notifsCli().slice(-1)[0];return n&&!n.done?n:null}
-const linesTable=(rows,pl,pctF,tot)=>`<div class="tablewrap"><table><thead><tr><th>Strumento</th><th>%</th><th>${pl.monthly?'€ al mese':'Importo'}</th><th>Prezzo</th><th>${pl.monthly?'':'Quantità'}</th></tr></thead><tbody>${rows.map(l=>`<tr><td><b>${esc(l.name)}</b><div class="small muted">${esc(l.isin)} · ${esc(l.cls)}${l.sing?(l.scad?' · scade '+esc(dataIt(l.scad)):''):l.fin?' · Fineco: commissione di acquisto zero':' · non in lista Fineco'}</div></td><td class="num">${n1(l.pct*pctF)}%</td><td class="num">${l.sing?'≈ ':''}${eur(l.amt)}</td><td class="num">${l.sing?'<span class="muted">prezzo del giorno</span>':eur(l.price,2)}</td><td class="num">${l.qty==null?'—':l.sing?eur(l.qty*1000)+' di valore nominale':l.qty}</td></tr>`).join('')}</tbody>${tot?`<tfoot><tr><td>${tot[0]}</td><td></td><td class="num">${eur(tot[1])}</td><td></td><td class="num">${pl.monthly?'':'Resto '+eur(tot[2])}</td></tr></tfoot>`:''}</table></div>`;
+const linesTable=(rows,pl,pctF,tot)=>`<div class="tablewrap"><table><thead><tr><th>Strumento</th><th>%</th><th>${pl.monthly?'€ al mese':'Importo'}</th><th>${rows.some(l=>l.carico)?'Prezzo di carico':'Prezzo'}</th><th>${pl.monthly?'':'Quantità'}</th></tr></thead><tbody>${rows.map(l=>`<tr><td><b>${esc(l.name)}</b><div class="small muted">${esc(l.isin)} · ${esc(l.cls)}${l.sing?(l.scad?' · scade '+esc(dataIt(l.scad)):''):l.fin?' · Fineco: commissione di acquisto zero':' · non in lista Fineco'}</div></td><td class="num">${n1(l.pct*pctF)}%</td><td class="num">${l.sing?'≈ ':''}${eur(l.amt)}</td><td class="num">${l.sing?'<span class="muted">prezzo del giorno</span>':eur(l.price,2)}</td><td class="num">${l.qty==null?'—':l.sing?eur(l.qty*1000)+' di valore nominale':l.qty}</td></tr>`).join('')}</tbody>${tot?`<tfoot><tr><td>${tot[0]}</td><td></td><td class="num">${eur(tot[1])}</td><td></td><td class="num">${pl.monthly?'':'Resto '+eur(tot[2])}</td></tr></tfoot>`:''}</table></div>`;
 function impCard(ix,pl){
   const x=pl.imps[ix],rows=pl.lines.filter(l=>l.imp&&l.idx===ix);
   return `<div class="sub"><h3>Spesa prevista · ${esc(x.motivo)} · ${eur(x.amt)}</h3>
   <div class="alert info"><b>Ti servono entro ${mmYYYY(impDate(x))}</b><span class="small">${x.mesi<=12?'Il sistema ha scelto il BOT che scade a ridosso di quella data, ma non dopo (in alternativa, l\'ETF monetario).':'Il sistema ha scelto il BTP che scade a ridosso di quella data, ma non dopo: il mese di scadenza è quello in cui riavrai il capitale.'} Se cambi mese o anno, il titolo si aggiorna da solo.</span></div>
   ${rows.length?linesTable(rows,pl,1,null):'<p class="small muted">Nessun titolo disponibile per quella scadenza: il consulente ti indicherà quello più adatto.</p>'}</div>`}
+function execRows(n){
+  if(!BE.on||!n.rec)return [];const r=n.rec;
+  if(r.tipo==='iniziale'){try{return planOf(n.p,null).lines.map(l=>({isin:l.isin,nome:l.name,tipo:'acquisto',q:l.sing?l.qty*1000:l.qty,p:l.sing?100:l.price,sing:l.sing})).filter(x=>x.q>0&&x.isin&&x.isin.length===12)}catch(e){return []}}
+  return (r.operazioni||[]).map(o=>{const i=INS.find(k=>k.isin===o.isin),cv=Math.abs((o.a||0)-(o.da||0))/100*(r.capitale||0),b=i&&i.bond,pr=b?100:(i?i.price:null);
+    return{isin:o.isin,nome:o.nome,tipo:(o.azione==='vendi'||o.azione==='riduci')?'vendita':'acquisto',q:pr?(b?Math.floor(cv/1000)*1000:Math.floor(cv/pr)):0,p:pr,sing:b}})}
+function execForm(n){
+  const R=execRows(n);if(!R.length)return `<div class="row"><button class="btn pri" data-act="done" data-v="${n.id}">Ho eseguito le operazioni</button></div>`;
+  return `<div class="sub"><b>Dopo aver eseguito gli ordini, indica quantità e prezzo a cui sono stati eseguiti</b><span class="small muted">La quantità è già quella consigliata: modificala solo se è diversa. Il prezzo lo trovi nella conferma d'ordine del tuo broker (per BOT e BTP è il prezzo ogni 100 € di valore nominale). Se lasci i campi vuoti, restano quantità e prezzo della raccomandazione.</span>
+  <div class="tablewrap"><table class="tl"><thead><tr><th>Strumento</th><th>Operazione</th><th>Quantità</th><th>Prezzo eseguito</th></tr></thead><tbody>${R.map(x=>`<tr data-ex="${esc(x.isin)}" data-nome="${esc(x.nome)}" data-tipo="${x.tipo}" data-pq="${x.q}" data-pp="${x.p==null?'':x.p}"><td><b>${esc(x.nome)}</b><div class="small muted">${esc(x.isin)}</div></td><td>${x.tipo==='acquisto'?'Acquisto':'Vendita'}</td><td><input type="number" step="any" min="0" data-f="q" value="${x.q}" style="width:110px"></td><td><input type="number" step="any" min="0" data-f="p" placeholder="${x.p==null?'':String(x.p).replace('.',',')}" style="width:120px"></td></tr>`).join('')}</tbody></table></div>
+  <div class="row"><button class="btn pri" data-act="done" data-v="${n.id}">Conferma eseguito</button></div></div>`}
 function portView(pend){
   const id=st.chosen,pl=planOf(id,st.held&&st.held.id===id?st.held.w:null);
+  if(BE.on&&BE.ese&&BE.ese.length){const P=posOf(BE.ese);pl.lines.forEach(l=>{const p=P[l.isin];if(p&&p.q>0&&!l.sing&&p.c>0){l.qty=p.q;l.price=p.c;l.amt=p.q*p.c;l.carico=true}})}
   const ml=pl.lines.filter(l=>!l.imp),il=pl.lines.filter(l=>l.imp),has=il.length>0;
-  return `${pend?`<div class="alert"><b>${pend.tipo==='iniziale'?'Composizione iniziale: da eseguire':'Il consulente ha aggiornato il portafoglio'}</b><span class="small">${pend.tipo==='iniziale'?'Acquista gli strumenti indicati qui sotto dal tuo conto titoli, poi conferma.':esc(pend.motivo)}</span><ul class="why">${pend.ops.map(o=>`<li>${o}</li>`).join('')}</ul><div class="row"><button class="btn pri" data-act="done" data-v="${pend.id}">Ho eseguito le operazioni</button></div></div>`:''}
+  return `${pend?`<div class="alert"><b>${pend.tipo==='iniziale'?'Composizione iniziale: da eseguire':'Il consulente ha aggiornato il portafoglio'}</b><span class="small">${pend.tipo==='iniziale'?'Acquista gli strumenti indicati qui sotto dal tuo conto titoli, poi conferma.':esc(pend.motivo)}</span><ul class="why">${pend.ops.map(o=>`<li>${o}</li>`).join('')}</ul>${execForm(pend)}</div>`:''}
   <h3>${has?'Portafoglio modello · '+esc(PF()[id].nome)+' · '+eur(pl.mc):'Il tuo portafoglio'}</h3>
   <div class="alert"><b>Versione ${pl.tier.n}</b><span class="small">${pl.tier.k==='pac'?`Versamento mensile di ${eur(pl.capital)} ripartito così:`:`${has?'Parte del capitale che segue il modello':'Capitale '+eur(st.capital)}: ${ml.length} strumenti.`} ${pl.merged.length?'Alcuni comparti sono stati accorpati per la dimensione del capitale.':''}</span></div>
   ${linesTable(ml,pl,pl.mfac,['Totale investito nel modello',pl.spentM,pl.cashM])}
