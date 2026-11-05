@@ -1,5 +1,5 @@
 {
- "aggiornato": "2026-11-05 18:24 UTC",
+ "aggiornato": "2026-11-05 18:26 UTC",
  "ultimo_prezzo": "2026-11-05",
  "strumenti_senza_dati": [],
  "anomalie": [],
@@ -831,17 +831,17 @@
    "nome": "Bilanciato Crescita",
    "fascia": 2,
    "limite": 23.3,
-   "var_modello": 17.61,
-   "var_attuale": 17.61,
+   "var_modello": 16.03,
+   "var_attuale": 16.03,
    "deriva_max": 0.0,
    "stato": "ok",
    "messaggi": [],
    "pesi_attuali": {
-    "IE00BK5BQT80": 35.0,
+    "IE00BK5BQT80": 30.0,
     "IE00BK5BR626": 10.0,
     "IE00BL25JN58": 10.0,
     "IE00BP3QZ825": 5.0,
-    "LU0290358497": 5.0,
+    "LU0290358497": 10.0,
     "LU1650487413": 25.0,
     "LU1650491282": 10.0
    }
