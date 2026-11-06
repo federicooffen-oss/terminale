@@ -928,6 +928,11 @@ function przDaFile(t){const rows=csvRows(t),H=(rows[0]||[]).map(x=>String(x).toL
   if(!righe.length&&isinRows.length&&ix>=0){righe=run(-1);usato='ultima colonna con un numero'}
   const sc=rows.slice(1).filter(r=>r.some(x=>String(x).trim())&&!isinRows.includes(r)).map(r=>r.join(' ').slice(0,40));
   return{righe,sc,info:`Nel file ho letto ${rows.length} righe: ${isinRows.length} con un ISIN e ${righe.length} con un prezzo valido (${usato}).`}}
+function pesiCard(){return `<div class="card"><h3>Esporta i portafogli per il tablero</h3><p class="small muted">Scarica i pesi attuali dei portafogli modello (CSV) da incollare nel foglio «Pesi» del tablero Google: così il tablero resta allineato a quello che hai pubblicato.</p><div class="row"><button class="btn" data-act="be-pesi">Scarica i pesi (CSV)</button></div></div>`}
+function pesiCsv(){const H=['Portafoglio','Nome','Fascia','Ultimo ribilanciamento','ISIN','Strumento','Classe','Peso %'],L=[H.join(';')];
+  Object.keys(PF()).sort((a,b)=>parseInt(String(a).replace(/\D/g,''))-parseInt(String(b).replace(/\D/g,''))).forEach(id=>{const p=PF()[id],w=p.w||{};Object.keys(w).filter(k=>w[k]>0&&BY[k]).sort((a,b)=>w[b]-w[a]).forEach(k=>{const i=BY[k];
+    L.push([id,p.nome,BANDS[fasciaDich(id)],(st.rib&&st.rib[id])||'',i.isin,i.name,MACRO_L[i.cls]||i.cls,w[k]].map(csvC).join(';'))})});
+  const blob=new Blob(['\uFEFF'+L.join('\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='pesi_portafogli_'+dLoc(new Date())+'.csv';document.body.appendChild(a);a.click();a.remove()}
 function przScarica(){const L=przStrumenti(),oggi=dLoc(new Date()),H=['ISIN','Strumento','Tipo','Prezzo di chiusura','Data del prezzo','Esito','Ultimo prezzo salvato (data)'];
   const rows=L.map(x=>{const p=przLast(x.isin);return [x.isin,x.nome,x.bond?'Titolo di Stato (prezzo per 100)':'ETF','','','',p?String(p[1]).replace('.',',')+' ('+dIt(p[0])+')':''].map(csvC).join(';')});
   const blob=new Blob(['\uFEFF'+[H.join(';'),...rows].join('\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='prezzi_'+oggi+'.csv';document.body.appendChild(a);a.click();a.remove()}
@@ -1009,6 +1014,7 @@ document.addEventListener('click',async e=>{
     const bad=Object.keys(vals).filter(k=>!przNum(vals[k]));BE.przPend={date:beV('prz-d'),vals};
     if(bad.length){BE.przForce=false;beMsg('Controlla i numeri inseriti (usa cifre, con la virgola per i decimali).',1)}else{await bePrzSalva(righe)}}
   else if(a==='be-prz-dl'){przScarica();return}
+  else if(a==='be-pesi'){pesiCsv();return}
   else if(a==='be-prz-csv'){const righe=[],sc=[];beV('prz-csv').split(/\n+/).forEach(r=>{const t=r.trim();if(!t)return;const m=t.split(/[;\t ]+/);const isin=(m[0]||'').toUpperCase(),p=przNum(m[1]||'');if(/^[A-Z0-9]{12}$/.test(isin)&&p)righe.push({isin,prezzo:p});else sc.push(t)});
     const ok=new Set(przStrumenti().map(x=>x.isin)),ign=righe.filter(r=>!ok.has(r.isin)).map(r=>r.isin);await bePrzSalva(righe,beV('prz-d'));if((sc.length||ign.length)&&BE.msg)BE.msg.t+=' Righe non lette: '+[...sc,...ign].slice(0,5).join(', ')+'.'}
   else if(a==='be-rep'){BE.rep=v||null}
@@ -1252,7 +1258,7 @@ function admPortf(){
   <label class="f">Motivazione e analisi costi/benefici (obbligatoria)<textarea id="motivo" rows="3" placeholder="Es.: aumento la quota di obbligazioni brevi per ridurre la duration; costi di transazione stimati inferiori al beneficio atteso.">${esc(st.motivo||'')}</textarea></label>
   ${(()=>{const mc=przMancanti(w);return mc.length?`<div class="alert"><b class="ko">Manca il prezzo di chiusura</b><span class="small">Scrivi nella tabella qui sopra il prezzo di ${mc.map(k=>esc(BY[k].name)).join(', ')}: viene salvato insieme alla variazione e arriva ai clienti già aggiornato.</span></div>`:''})()}
   <div class="row"><button class="btn pri" data-act="publish" ${tot===100&&b<=b0&&!przMancanti(w).length?'':'disabled'}>Pubblica la variazione e invia la notifica</button><button class="btn" data-act="discard">Annulla modifiche</button></div></div>
-  ${esportaCard()}`}
+  ${BE.on?pesiCard():''}${esportaCard()}`}
 const STC={ok:'ok',preavviso:'warn',allarme:'ko'};
 function monitorCard(){
   if(!MONI)return `<div class="card"><h2>Monitoraggio</h2><p class="muted">Nessun dato di monitoraggio disponibile.</p></div>`;
