@@ -1,0 +1,35 @@
+name: Variazioni giornaliere
+on:
+  schedule:
+    - cron: '*/30 7-16 * * 1-5'
+    - cron: '10 17 * * 1-5'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  variazioni:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install yfinance pandas numpy
+      - name: Recupera i ticker già trovati
+        run: |
+          git fetch origin dati || true
+          git show origin/dati:ticker_clienti.json > ticker_clienti.json 2>/dev/null || true
+      - name: Calcolo variazioni
+        run: python variazioni.py
+      - name: Pubblica sul ramo dati
+        run: |
+          rm -rf /tmp/dati && mkdir /tmp/dati
+          cp variazioni.csv ticker_clienti.json /tmp/dati/
+          cd /tmp/dati
+          git init -q -b dati
+          git config user.name "monitor-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add .
+          git commit -q -m "Variazioni $(date -u +%FT%TZ)"
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" dati
