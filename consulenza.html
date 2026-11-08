@@ -205,6 +205,7 @@ function rho(a,b){
   if(a===b)return 1;const ga=BY[a].g,gb=BY[b].g,s=[a,b];
   if(ga==='M'||gb==='M')return .05;
   if(ga==='E'&&gb==='E'){if(s.some(x=>['TECH','EM','REIT'].includes(x)))return s.includes('REIT')?.8:.75;if(s.some(x=>['MVOL','HC'].includes(x)))return .85;return .92}
+  if(ga==='B'&&gb==='B'&&(BY[a].bond||BY[a].ib||BY[b].bond||BY[b].ib)){const o=(BY[a].bond||BY[a].ib)?b:a;return (BY[o].bond||BY[o].ib)?.8:o==='HY'?.45:.8} // titoli singoli e ETF a scadenza: stesse correlazioni del monitoraggio
   if(ga==='B'&&gb==='B'){if(s.includes('HY'))return s.some(x=>['CORP','BESG'].includes(x))?.7:.45;if(s.includes('GOVS'))return s.includes('GOVM')?.6:.45;return .8}
   if(ga==='G'||gb==='G')return (ga==='B'||gb==='B')?.2:.1;
   const bnd=ga==='B'?a:b;if(BY[bnd].ib)return BY[bnd].sp>0?.3:.1;return bnd==='HY'?.65:bnd==='CORP'?.4:bnd==='BESG'?.3:.1;

@@ -36,10 +36,12 @@ def var_annuo(w,rets):
     titoli di Stato da duration (vol. = duration x 1 punto) con correlazioni ipotizzate. Giorni = radice di 256."""
     ec=[c for c in w if c in rets.columns and c not in BONDS];bc=[c for c in w if c in BONDS]
     cols=ec+bc;x=np.array([w[c] for c in cols]);x=x/x.sum()
-    sub=rets[ec].dropna() if ec else None            # finestra comune: solo i giorni in cui esistono tutti gli strumenti
-    if sub is not None and len(sub)<250:sub=rets[ec]
+    # stessa base di calcolo dell'app (catalogo.json): deviazione standard di ciascun strumento e correlazioni a coppie (minimo 120 giorni), arrotondate come nel catalogo
     n=len(cols);cov=np.zeros((n,n))
-    if ec:cov[:len(ec),:len(ec)]=sub.cov().values
+    if ec:
+        sdv=np.array([round(float(rets[c].std()),6) for c in ec])
+        cr=np.round(rets[ec].corr(min_periods=120).fillna(0).values*100)/100
+        cov[:len(ec),:len(ec)]=cr*np.outer(sdv,sdv)
     sd_b=[BONDS[c]['vol']/100/np.sqrt(GG) for c in bc]
     for a,ca in enumerate(bc):
         i=len(ec)+a
