@@ -172,6 +172,12 @@ const RAW=[
 ['DIVA','IE00BK5BR626','Vanguard FTSE All-World High Dividend Yield UCITS ETF (USD) Accumulating','Azionario',60,.29,1,.88,0,13,8,'E'],
 ['CASH','IE000JJPY166','iShares EUR Cash UCITS ETF EUR (Acc)','Monetario',100,.07,1,0,0,.4,2,'M'],
 ['IB28','IE0008UEVOE0','iShares iBonds Dec 2028 Term € Corp UCITS ETF EUR Acc','Obbligazionario',5,.12,1,.3,.6,3,3,'B'],
+['I27C','IE000ZOI8OK5','iShares iBonds Dec 2027 Term € Corp UCITS ETF EUR Acc','Obbligazionario',100,0.12,1,0.3,0.4,2.2,3,'B'],
+['I28CD','IE000264WWY0','iShares iBonds Dec 2028 Term € Corp UCITS ETF EUR Dist','Obbligazionario',100,0.11,1,0.3,0.6,3,3,'B'],
+['I30C','IE000Y2BJVK9','iShares iBonds Dec 2030 Term € Corp UCITS ETF EUR Acc','Obbligazionario',100,0.12,1,0.3,1,4.5,3.2,'B'],
+['I30CD','IE000LX17BP9','iShares iBonds Dec 2030 Term € Corp UCITS ETF EUR Dist','Obbligazionario',100,0.12,1,0.3,1,4.5,3.2,'B'],
+['I28ITA','IE000JHMFVN7','iShares iBonds Dec 2028 Term € Italy Govt Bond UCITS ETF EUR Acc','Obbligazionario',100,0.12,1,0.05,0.8,2.8,3,'B'],
+['I28ITD','IE000Q2EQ5K8','iShares iBonds Dec 2028 Term € Italy Govt Bond UCITS ETF EUR Dist','Obbligazionario',100,0.12,1,0.05,0.8,2.8,3,'B'],
 ['XG13','LU0290356871','Xtrackers II Eurozone Government Bond 1-3 UCITS ETF 1C','Obbligazionario',200,.15,1,0,.5,1.8,1.5,'B'],
 ['XG35','LU0290356954','Xtrackers II Eurozone Government Bond 3-5 UCITS ETF 1C','Obbligazionario',200,.15,1,.05,.8,4.2,2.2,'B'],
 ['XINF','LU0290358224','Xtrackers II Eurozone Inflation-Linked Bond UCITS ETF 1C','Obbligazionario',200,.25,1,.1,.7,6,2.6,'B'],
@@ -483,7 +489,7 @@ function whyNone(profile,A,PF){
   return'Nessun portafoglio è adatto alla combinazione di profilo di rischio e orizzonte che hai indicato: servirebbe un orizzonte più lungo o una tolleranza maggiore.';
 }
 /* ======================= ARRICCHIMENTO PORTAFOGLIO PER CAPITALE ======================= */
-const TIER_FULL_MIN=25000; // sotto questa soglia (e da 3.000 €) il portafoglio è la versione per piccoli capitali, accorpata; sopra, il portafoglio completo del consulente
+const TIER_FULL_MIN=15000; // sotto questa soglia (e da 3.000 €) il portafoglio è la versione per piccoli capitali, accorpata; sopra, il portafoglio completo del consulente
 const TIERS=[{k:'pac',n:'PAC',max:3,min:0},{k:'ess',n:'Piccoli capitali',max:3},{k:'full',n:'Completo',max:99}];
 const tierOf=c=>c<3000?TIERS[0]:c<TIER_FULL_MIN?TIERS[1]:TIERS[2];
 const tierFor=(capital,imps)=>capital<3000?TIERS[0]:tierOf(Math.max(modelCap(capital,imps),3000));
