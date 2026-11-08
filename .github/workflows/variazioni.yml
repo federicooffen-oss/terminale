@@ -26,6 +26,7 @@ jobs:
         run: |
           rm -rf /tmp/dati && mkdir /tmp/dati
           cp variazioni.csv ticker_clienti.json /tmp/dati/
+          cp var_portafogli.csv /tmp/dati/ 2>/dev/null || true
           cd /tmp/dati
           git init -q -b dati
           git config user.name "monitor-bot"
