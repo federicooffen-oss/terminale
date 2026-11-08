@@ -1008,7 +1008,7 @@ function amlFlagsOf(aml){const f=AML.filter(q=>q.flag&&(aml||{})[q.id]===1).map(
 function beAdmin(){
   const T=[['clienti','Clienti'],['portafogli','Portafogli'],['prezzi','Prezzi'],['ocf','Indicatori OCF'],['registro','Registro']];
   return `<div class="row"><div class="seg" role="group">${T.map(([k,l])=>`<button data-act="be-tab" data-v="${k}" aria-pressed="${BE.tab===k}">${l}${k==='clienti'&&BE.clienti.filter(c=>c.stato==='questionario'||c.stato==='documenti').length?'<span class="badge">'+BE.clienti.filter(c=>c.stato==='questionario'||c.stato==='documenti').length+'</span>':''}</button>`).join('')}</div></div>`+
-   (BE.tab==='clienti'?(BE.rep?beRepView(BE.rep):BE.sel?beCliente(BE.sel):beElenco()):BE.tab==='portafogli'?(BE.pubs.length?monitorCard()+admPortf():beSeedCard()):BE.tab==='prezzi'?bePrezzi():BE.tab==='ocf'?beOcf():beRegistro());
+   (BE.tab==='clienti'?(BE.rep?beRepView(BE.rep):BE.sel?beCliente(BE.sel):beElenco()):BE.tab==='portafogli'?(BE.pubs.length?monitorCard()+beAllineaCard()+admPortf():beSeedCard()):BE.tab==='prezzi'?bePrezzi():BE.tab==='ocf'?beOcf():beRegistro());
 }
 /* ---------- PREZZI: inserimento giornaliero ---------- */
 function przStrumenti(){
@@ -1065,6 +1065,8 @@ async function bePrzSalva(righe,date){
   const {data,error}=await BE.sb.rpc('salva_prezzi',{p_data:d,p_righe:righe});
   if(error){beMsg(beErr(error),1);return}
   BE.przPend=null;await beLoadPrezzi();beMsg('Salvati '+data+' prezzi del '+dIt(d)+'.')}
+function beAllineaCard(){const j=BE.mod;if(!j)return '';const d=Object.keys(j.portafogli).filter(id=>{const p=BE.pubs.find(x=>x.id===id),o=(PF()[id]||{}).w||{},n=beChiavi(j.portafogli[id].pesi,j.nomi,j.titoli);return !p||JSON.stringify(Object.entries(o).filter(e=>e[1]).sort())!==JSON.stringify(Object.entries(n).filter(e=>e[1]).sort())});
+  if(!d.length)return '';return `<div class="card"><h3>Il file modelli.json è diverso dal database</h3><p class="small">Portafogli diversi: <b>${d.join(', ')}</b>. Il pulsante riallinea il database al file del repository (pesi, VaR e fascia ricalcolati). <b>Non</b> invia notifiche ai clienti: usalo solo per sistemare i modelli prima di avere clienti attivi su questi portafogli.</p><div class="row"><button class="btn pri" data-act="be-seed" ${BE.busy?'disabled':''}>Aggiorna i portafogli dal repository</button></div></div>`}
 function beSeedCard(){return `<div class="card"><h2>Portafogli modello</h2><p>Nel database non ci sono ancora portafogli. Carico i 10 portafogli attuali dal repository (<code>modelli.json</code>): da quel momento il database è la fonte, e ogni variazione pubblicata da qui parte verso i clienti.</p>
   <div class="row"><button class="btn pri" data-act="be-seed" ${BE.mod&&!BE.busy?'':'disabled'}>Carica i portafogli</button>${BE.mod?'':'<span class="muted small">Sto leggendo modelli.json…</span>'}</div></div>`}
 function beElenco(){
