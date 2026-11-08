@@ -1,5 +1,5 @@
 {
- "aggiornato": "2026-11-08 16:00 UTC",
+ "aggiornato": "2026-11-08 16:58 UTC",
  "ultimo_prezzo": "2026-11-06",
  "strumenti_senza_dati": [],
  "storico_ricostruito": {
@@ -37,6 +37,102 @@
    "senza_prezzo_proprio": true,
    "nota": "iBonds Dec 2030 Corp ESG (Acc): media Amundi EUR Corp 1-5Y ESG e EUR Corp ESG"
   }
+ },
+ "bonds": {
+  "IT0005735094": {
+   "vol": 0.9038,
+   "rho_az": null
+  },
+  "IT0005388167": {
+   "vol": 0.9533,
+   "rho_az": null
+  },
+  "IT0005532723": {
+   "vol": 1.3124,
+   "rho_az": null
+  },
+  "IT0001278511": {
+   "vol": 2.7614,
+   "rho_az": null
+  },
+  "IT0005521981": {
+   "vol": 1.3512,
+   "rho_az": null
+  },
+  "IT0005733636": {
+   "vol": 4.8113,
+   "rho_az": null
+  },
+  "IT0005024234": {
+   "vol": 3.0899,
+   "rho_az": null
+  },
+  "IT0005542359": {
+   "vol": 4.4996,
+   "rho_az": null
+  },
+  "IT0005542797": {
+   "vol": 3.3092,
+   "rho_az": null
+  },
+  "IT0005508590": {
+   "vol": 7.2062,
+   "rho_az": null
+  },
+  "IE000Q2EQ5K8": {
+   "vol": 1.5538,
+   "rho_az": null
+  },
+  "IE000JHMFVN7": {
+   "vol": 1.5477,
+   "rho_az": null
+  },
+  "IE000ZOI8OK5": {
+   "vol": 0.8318,
+   "rho_az": 0.3
+  },
+  "IE0008UEVOE0": {
+   "vol": 2.0281,
+   "rho_az": 0.3
+  },
+  "IE000264WWY0": {
+   "vol": 2.0281,
+   "rho_az": 0.3
+  },
+  "IE000LX17BP9": {
+   "vol": 4.3323,
+   "rho_az": 0.3
+  },
+  "IE000Y2BJVK9": {
+   "vol": 4.3323,
+   "rho_az": 0.3
+  }
+ },
+ "grp": {
+  "FR0007056841": "E",
+  "FR0010315770": "E",
+  "FR0013416716": "G",
+  "IE000LAUZQT6": "E",
+  "IE00B8FHGS14": "E",
+  "IE00B8GKDB10": "E",
+  "IE00BCHWNQ94": "E",
+  "IE00BF4RFH31": "E",
+  "IE00BG370F43": "E",
+  "IE00BK5BQT80": "E",
+  "IE00BK5BR626": "E",
+  "IE00BL25JL35": "E",
+  "IE00BL25JN58": "E",
+  "IE00BL25JP72": "E",
+  "IE00BM67HT60": "E",
+  "IE00BP3QZ825": "E",
+  "LU0290358497": "M",
+  "LU0832436512": "E",
+  "LU1435356149": "H",
+  "LU1650487413": "B",
+  "LU1650487926": "B",
+  "LU1650491282": "B",
+  "LU2082999306": "M",
+  "LU2182388236": "B"
  },
  "anomalie": [],
  "mercato": {
@@ -774,6 +870,8 @@
  },
  "portafogli": {
   "P1": {
+   "data_calcolo": "2026-11-08",
+   "var_ieri": 1.33,
    "nome": "Liquidità Plus",
    "fascia": 0,
    "limite": 5.8,
@@ -789,6 +887,8 @@
    }
   },
   "P2": {
+   "data_calcolo": "2026-11-08",
+   "var_ieri": 4.4,
    "nome": "Prudente Anti-inflazione",
    "fascia": 0,
    "limite": 5.8,
@@ -807,6 +907,8 @@
    }
   },
   "P3": {
+   "data_calcolo": "2026-11-08",
+   "var_ieri": 6.92,
    "nome": "Rendita Prudente",
    "fascia": 1,
    "limite": 11.6,
@@ -825,6 +927,8 @@
    }
   },
   "P4": {
+   "data_calcolo": "2026-11-08",
+   "var_ieri": 9.93,
    "nome": "Bilanciato Prudente",
    "fascia": 1,
    "limite": 11.6,
@@ -844,6 +948,8 @@
    }
   },
   "P5": {
+   "data_calcolo": "2026-11-08",
+   "var_ieri": 10.71,
    "nome": "ESG Prudente",
    "fascia": 1,
    "limite": 11.6,
@@ -865,6 +971,8 @@
    }
   },
   "P6": {
+   "data_calcolo": "2026-11-08",
+   "var_ieri": 16.02,
    "nome": "Bilanciato Crescita",
    "fascia": 2,
    "limite": 23.3,
@@ -884,6 +992,8 @@
    }
   },
   "P7": {
+   "data_calcolo": "2026-11-08",
+   "var_ieri": 15.0,
    "nome": "Rendita Dinamica",
    "fascia": 2,
    "limite": 23.3,
@@ -903,6 +1013,8 @@
    }
   },
   "P8": {
+   "data_calcolo": "2026-11-08",
+   "var_ieri": 19.85,
    "nome": "ESG Crescita",
    "fascia": 2,
    "limite": 23.3,
@@ -922,6 +1034,8 @@
    }
   },
   "P9": {
+   "data_calcolo": "2026-11-08",
+   "var_ieri": 23.84,
    "nome": "Crescita Globale",
    "fascia": 3,
    "limite": 46.5,
@@ -942,6 +1056,8 @@
    }
   },
   "P10": {
+   "data_calcolo": "2026-11-08",
+   "var_ieri": 24.91,
    "nome": "Crescita Dinamica",
    "fascia": 3,
    "limite": 46.5,
