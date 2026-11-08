@@ -1431,7 +1431,8 @@ function elencoRicerca(){
     :INS.filter(i=>!i.finOnly&&!i.bond).map(i=>({isin:i.isin,nome:i.name,prezzo:i.price,ok:true}));
   const ts=(TITOLI||[]).map(t=>({isin:t.isin,nome:t.nome,bond:true,tipo:t.tipo,serie:t.serie,tasso:t.tasso,scad:t.scadenza,ok:true}))
     .filter(t=>!scaduto({bond:true,scad:t.scad}));
-  return base.concat(ts);
+  const have=new Set(base.map(x=>x.isin)),ib=INS.filter(i=>/iBonds Dec/i.test(i.name)&&!have.has(i.isin)).map(i=>({isin:i.isin,nome:i.name,ticker:'',prezzo:null,ok:true})); // ETF a scadenza (iBonds) sempre disponibili, anche se non ancora nel catalogo automatico
+  return base.concat(ib,ts);
 }
 function risultatiHtml(){
   const q=(st.q||'').toLowerCase().split(/\s+/).filter(Boolean),qc=st.qc||'';if(!q.length&&!qc)return '<p class="small muted">Scrivi almeno una parte del nome o dell\'ISIN per vedere gli strumenti.</p>';
