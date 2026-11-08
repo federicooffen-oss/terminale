@@ -114,6 +114,7 @@ tfoot td{font-weight:700;background:var(--bg)}
 .imp2{display:grid;grid-template-columns:2fr 1fr auto;gap:12px;align-items:end;margin:6px 0}@media(max-width:640px){.imp2{grid-template-columns:1fr}}
 .sub{margin-top:16px;padding-top:16px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:12px}
 .sub select{width:100%}
+.nsub{margin:4px 0 10px 10px;padding-left:14px;border-left:3px solid var(--line);display:flex;flex-direction:column;gap:12px}
 .srch{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
 .srch li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid var(--line);border-radius:12px}
 .rem td{background:rgba(209,138,28,.10)}.rem td:first-child{text-decoration:line-through}.rem td:first-child b,.rem td:first-child div{text-decoration:none;display:inline-block}
@@ -287,41 +288,114 @@ const QUIZ=[
  {id:'z3',t:'Un ETF azionario che replica un indice…',o:['garantisce il capitale investito','può perdere valore come l\'indice, ed ha costi annui che ne riducono il rendimento','è un\'azione della società che lo gestisce'],ok:1,why:'Un ETF segue l\'indice, quindi ne segue anche le perdite, e il suo costo annuo (TER) riduce il rendimento.',etf:true},
  {id:'z4',t:'Chi compra azioni diventa…',o:['creditore, con diritto al rimborso del capitale','socio, e può perdere anche tutto il capitale investito','socio, con un capitale minimo garantito'],ok:1,why:'Le azioni sono capitale di rischio: nessun rimborso garantito.'},
 ];
-const QB=[ // area B: capacità di sopportare perdite
- {id:'b1',t:'Patrimonio complessivo (immobili, attività, patrimonio finanziario)',o:['Meno di 100.000 €','100.000 – 300.000 €','300.000 € – 1 milione','Oltre 1 milione'],pt:[0,1,2,3]},
- {id:'b2',t:'Che parte del patrimonio complessivo rappresenta la somma che investirai con questo servizio?',o:['Oltre il 90%','Dal 50% al 90%','Dal 20% al 50%','Meno del 20%'],pt:[0,1,2,3],cap:[1]},
- {id:'b3',t:'Reddito netto annuo (esclusi i rendimenti finanziari)',o:['Meno di 20.000 €','20.000 – 50.000 €','50.000 – 100.000 €','Oltre 100.000 €'],pt:[0,1,2,3]},
- {id:'b4',t:'Quanto riesci a risparmiare in un anno?',o:['Meno di 5.000 €','5.000 – 15.000 €','15.000 – 40.000 €','Oltre 40.000 €'],pt:[0,1,2,3]},
- {id:'b5',t:'I tuoi impegni finanziari futuri (mutui, spese già decise) rispetto al reddito annuo',o:['Oltre il triplo','Circa il doppio','Circa uguali','Non ho impegni'],pt:[0,1,2,3],cap:[1]},
- {id:'b6',t:'Il tuo tenore di vita dipende dai redditi che ti danno gli investimenti?',o:['Sì, vivo di quei redditi','In parte, circa metà','No'],pt:[0,1,3],cap:[0]},
- {id:'b7',t:'Qual è la tua situazione lavorativa?',o:['Non occupato o contratto temporaneo','Autonomo o imprenditore','Dipendente a tempo indeterminato o pensionato'],pt:[0,1,2]},
- {id:'b8',t:'Quante persone sono a tuo carico?',o:['Tre o più','Una o due','Nessuna'],pt:[0,1,2]},
+/* ===== Questionario di adeguatezza: Allegato A Nafop (versione 2), senza la parte facoltativa ===== */
+const Q_VER=2,NS='Non so / non rispondo';
+/* sezioni 2-5: titolarità, stato civile, famiglia, abitazione (informative; la casa e le persone a carico entrano nella capacità) */
+const Q_TIT={id:'s2',t:'Titolarità del patrimonio oggetto di consulenza',o:['Il patrimonio finanziario è di mia esclusiva proprietà','Il patrimonio finanziario è di mia proprietà e del mio coniuge','Sono comproprietario del patrimonio finanziario con uno o più familiari']};
+const Q_CIV={id:'s3',t:'Stato civile',o:['Coniugato in regime non conosciuto','Vedovo/a','Non coniugato','Coniugato in regime di comunione legale','Coniugato in regime di comunione convenzionale','Coniugato in regime di separazione dei beni','Separato/divorziato','Altro']};
+const Q_FAM=[['f1','Numero di componenti del nucleo familiare'],['f2','Numero di percettori di reddito'],['f3','Numero di persone a carico']];
+const Q_CASA={id:'s5',t:'Abitazione principale',o:['In affitto','Casa di proprietà'],pt:[0,1]};
+const caricoPt=n=>n>=3?0:n>=1?1:2;
+/* A) conoscenza ed esperienza (informativa: non limita mai il profilo) */
+const Q_A1={id:'a1',t:'Attività professionale',o:['Non occupato','Occupato con contratto temporaneo','Pensionato','Occupato con contratto a tempo indeterminato','Autonomo / professionista','Imprenditore'],pt:[0,0,2,2,1,1]};
+const Q_A2={id:'a2',t:'Lavora o ha mai lavorato nel settore della finanza o in aziende con compiti che presuppongono competenze specifiche inerenti il campo finanziario?',o:['No','Sì'],pt:[0,2]};
+const Q_A3={id:'a3',t:'Titolo di studio',o:['Licenza elementare','Licenza media','Diploma di scuola superiore','Laurea'],pt:[0,0,1,2]};
+const CATS=[
+ {k:'b',n:'Titoli di Stato, obbligazioni (plain vanilla o semplici) area euro e valuta euro',qs:[
+  {id:'k_b1',t:'All\'aumentare dei tassi di mercato sulla stessa scadenza di un\'obbligazione, il prezzo dell\'obbligazione',o:['aumenta','diminuisce','le due cose non sono collegate',NS],ok:1},
+  {id:'k_b2',t:'Investire denaro in un titolo di Stato decennale in scadenza tra 6 mesi è da considerarsi un investimento',o:['a basso rischio','a medio rischio','ad alto rischio',NS],ok:0}]},
+ {k:'c',n:'Titoli di Stato e obbligazioni ordinarie in valuta non euro',qs:[
+  {id:'k_c1',t:'Il rendimento di una obbligazione in valuta estera',o:['dipende dai tassi di interesse e dall\'andamento del cambio della valuta','dipende solo dal tasso di interesse','non dipende dall\'andamento della valuta',NS],ok:0},
+  {id:'k_c2',t:'Il rating di un\'obbligazione è',o:['un punteggio che misura la redditività del titolo rispetto alle altre obbligazioni simili','un giudizio sulla capacità dell\'emittente di rimborsare l\'obbligazione',NS],ok:1}]},
+ {k:'d',n:'Fondi comuni, comparti SICAV, ETF e ETC non a leva',qs:[
+  {id:'k_d1',t:'Se fallisce la società che gestisce un fondo comune d\'investimento',o:['il sottoscrittore del fondo rischia di perdere tutti i soldi investiti','il patrimonio del fondo è separato da quelli del gestore e quindi non rientra nella procedura fallimentare',NS],ok:1},
+  {id:'k_d2',t:'I costi di un fondo comune d\'investimento',o:['si pagano solo al momento dell\'investimento oppure del disinvestimento','oltre ai costi a carico dell\'investitore vi sono una serie di costi a carico del fondo che indirettamente pagano i sottoscrittori poiché diminuiscono il valore della quota','non ci sono costi nei fondi comuni',NS],ok:1},
+  {id:'k_d3',t:'Gli ETF (Exchange Traded Funds) sono',o:['fondi comuni quotati il cui prezzo è generalmente legato ad un indice di mercato','una categoria di azioni di gestori di fondi comuni d\'investimento',NS],ok:0,etf:true}]},
+ {k:'e',n:'Polizze index linked, polizze unit linked',qs:[
+  {id:'k_e1',t:'Il valore di riscatto di una polizza index linked o unit linked',o:['è sempre garantito almeno pari al valore di sottoscrizione','può essere inferiore al valore di sottoscrizione solo se si riscatta in anticipo','dipende dalle condizioni della polizza e dall\'andamento dell\'indice o del fondo sottostante',NS],ok:2}]},
+ {k:'f',n:'Azioni ordinarie, di risparmio, privilegiate',qs:[
+  {id:'k_f1',t:'Acquistando azioni di un\'azienda quotata si diventa',o:['creditori dell\'azienda, che deve restituire almeno il capitale investito pagando i dividendi','soci dell\'azienda, esposti a perdere anche tutto il capitale investito','soci dell\'azienda ma con un capitale minimo garantito in proporzione al capitale sociale',NS],ok:1},
+  {id:'k_f2',t:'Cosa sono i dividendi',o:['dei lotti di azioni destinati inizialmente agli investitori istituzionali e che verranno poi suddivisi in lotti più piccoli per il mercato retail','una parte degli utili dell\'emittente che vengono distribuiti agli azionisti',NS],ok:1}]},
+ {k:'g',n:'Certificates non a leva, obbligazioni strutturate, obbligazioni subordinate',qs:[
+  {id:'k_g1',t:'Investire denaro in un «Investment Certificate» rappresenta sempre',o:['un investimento ad alto rischio perché al suo interno sono presenti strumenti derivati','un investimento con un livello di rischio che varia a seconda della tipologia del certificato','un investimento con rischi contenuti perché viene comunque garantito il rimborso di una percentuale prestabilita dell\'importo investito',NS],ok:1},
+  {id:'k_g2',t:'Le obbligazioni subordinate sono',o:['obbligazioni il cui rimborso è subordinato al comportamento di alcuni indici di mercato','obbligazioni legate al pagamento dei mutui ipotecari','obbligazioni che garantiscono, in caso di fallimento dell\'emittente, una minore priorità nei diritti di credito rispetto alle obbligazioni senior',NS],ok:2}]},
+ {k:'h',n:'Prodotti a leva (ETC, ETN e certificates)',qs:[
+  {id:'k_h1',t:'Per investimenti a leva si intende',o:['un investimento il cui rendimento (in positivo o in negativo) è più che proporzionale al movimento di prezzo del sottostante','un investimento che prevede più opzioni di rendimento che si possono attivare in base al verificarsi di determinati «eventi» finanziari (delle «leve»)',NS],ok:0}]},
+ {k:'i',n:'OICR alternativi (FIA, EuVECA, EuSEF, ELTIF)',qs:[
+  {id:'k_i1',t:'Quali fra queste frasi ritiene essere vera?',o:['gli OICR Alternativi sono sempre facilmente liquidabili','gli OICR Alternativi possono investire in società non quotate sui mercati','gli OICR Alternativi investono solo in beni immobili'],ok:1},
+  {id:'k_i2',t:'Quali tra queste frasi ritiene essere falsa?',o:['gli OICR Alternativi possono essere riservati o non riservati','gli OICR Alternativi possono avere limiti minimi di ingresso','gli OICR Alternativi non possono investire in società quotate'],ok:2}]},
 ];
-const QT=[ // aree C-D: tolleranza al rischio
- {id:'t1',t:'Che rendimento ti aspetti dai tuoi investimenti?',o:['Conservare il capitale, seguendo l\'inflazione','Stare al passo con l\'inflazione, con poche oscillazioni','Superare l\'inflazione, accettando oscillazioni','Superare nettamente l\'inflazione, anche con oscillazioni forti'],pt:[0,1,2,3]},
- {id:'t2',t:'Il tuo portafoglio perde il 20% in pochi mesi. Cosa fai?',o:['Vendo tutto','Sposto subito tutto su investimenti più sicuri','Aspetto, e se peggiora sposto una parte','Mantengo la strategia e accetto le oscillazioni','Valuto di investire di più'],pt:[0,1,2,3,3],cap:[0,1]},
- {id:'t3',t:'In quel caso, come ti sentiresti?',o:['Molto preoccupato','Preoccupato','Un po\' preoccupato','Consapevole, lo avevo messo in conto'],pt:[0,1,2,3]},
- {id:'t4',t:'«Sono paziente e accetto periodi in cui il portafoglio rende meno di zero». Quanto sei d\'accordo?',o:['Per nulla','Poco','D\'accordo','Pienamente d\'accordo'],pt:[0,1,2,3]},
- {id:'t5',t:'Quale scelta preferiresti?',o:['1.000 € sicuri','5.000 € con il 50% di probabilità','15.000 € con il 25% di probabilità','100.000 € con il 5% di probabilità'],pt:[0,1,2,3]},
- {id:'t6',t:'Devi scegliere dove investire un\'eredità: cosa scegli?',o:['Deposito o fondo monetario','Fondo bilanciato di azioni e obbligazioni','Portafoglio di azioni','Beni reali (oro, immobili, opere d\'arte)'],pt:[0,1,3,1]},
+const X_F=['annuale o più','semestrale/trimestrale','mensile','settimanale/giornaliera'];
+const X_V=['inferiore a 10.000 €','tra 10.000 e 30.000 €','tra 30.000 e 50.000 €','superiore a 50.000 €'];
+const X_P=['più di 3 anni fa','negli ultimi 3 anni','negli ultimi 2 anni','nell\'ultimo anno'];
+const Q_A6={id:'a6',t:'Qual è la Sua principale fonte di informazione finanziaria?',o:['Amici e conoscenti','Stampa generica','Banche, consulenti abilitati all\'offerta fuori sede, agenti assicurativi','Consulenti indipendenti','Internet e stampa specializzata'],pt:[0,0,1,2,2]};
+const EXP_MAX=[Q_A2,Q_A3,Q_A6].reduce((a,q)=>a+Math.max(...q.pt),0)+CATS.reduce((a,c)=>a+1+c.qs.length+4,0),EXP_LIV=[.33,.66].map(x=>Math.round(x*EXP_MAX)); // soglie solo descrittive: non entrano nel profilo
+function expScore(A){let p=0;
+  [Q_A2,Q_A3,Q_A6].forEach(q=>{p+=q.pt[A[q.id]]||0});
+  const k4=A.a4||[],k5=A.a5||[];
+  CATS.forEach(c=>{
+    if(k4.includes(c.k)){p+=1;c.qs.forEach(q=>{if(A[q.id]===q.ok)p++})}
+    if(k5.includes(c.k)){p+=1+((A['x_'+c.k+'_f']||0)>=1?1:0)+((A['x_'+c.k+'_v']||0)>=1?1:0)+((A['x_'+c.k+'_p']||0)>=2?1:0)}
+  });
+  return p}
+const EXP_NOME=p=>p<=EXP_LIV[0]?'Base':p<=EXP_LIV[1]?'Intermedia':'Avanzata';
+/* B) situazione finanziaria e capacità di sopportare perdite. pt = punti; cp = {risposta:fascia massima} (tetto di fascia: 0 Basso … 3 Alto) */
+const QB=[
+ {id:'b1',t:'A quanto ammonta il patrimonio complessivo, inclusi gli immobili, il valore di realizzo delle attività economiche e il patrimonio finanziario?',o:['Dispongo di un patrimonio complessivo fino a 300.000 euro','Dispongo di un patrimonio complessivo compreso tra 300.000 e 1.000.000 di euro','Dispongo di un patrimonio complessivo superiore a 1.000.000 di euro'],pt:[0,2,3]},
+ {id:'b2',t:'Qual è la fonte del patrimonio complessivo?',o:['Prevalentemente ereditaria o da donazioni','In parte ereditaria o da donazioni, in parte frutto della propria attività','Prevalentemente frutto della propria attività','Altro'],info:true},
+ {id:'b3',t:'Quanto rappresenta, in termini percentuali, il peso degli investimenti oggetto della consulenza, rispetto al suo patrimonio complessivo?',o:['Oltre il 90%','Dal 50% al 90%','Dal 20% al 50%','Meno del 20%'],pt:[0,1,2,3],cp:{0:1}},
+ {id:'b4',t:'Si attendono significative entrate future per via ereditaria?',o:['No, le aspettative ereditarie sono nulle o non importanti','Sì, le aspettative ereditarie sono importanti ma lontane','Sì, le aspettative sono importanti e probabilmente vicine'],pt:[0,1,2]},
+ {id:'b5',t:'L\'attuale tenore di vita dipende dall\'utilizzo di flussi generati dagli investimenti finanziari?',o:['Sì, utilizzo tutti i redditi derivanti dai miei investimenti per mantenere il mio tenore di vita','Sì, utilizzo circa il 50% dei redditi derivanti dai miei investimenti per mantenere inalterato il mio tenore di vita','No, non utilizzo questi redditi per mantenere costante il mio tenore di vita'],pt:[0,1,3],cp:{0:0}},
+ {id:'b6',t:'Qual è il reddito netto su base annua, incluse le rendite immobiliari, assicurative o similari (esclusi i rendimenti finanziari)?',o:['Fino a 20.000 euro','Da 20.000 a 50.000 euro','Da 50.000 a 100.000 euro','Oltre 100.000 euro'],pt:[0,1,2,3]},
+ {id:'b7',t:'Nei prossimi anni cosa pensa possa accadere al suo reddito?',o:['Diminuirà sensibilmente','Diminuirà leggermente','Rimarrà invariato','Aumenterà leggermente','Aumenterà notevolmente'],pt:[0,1,2,3,3]},
+ {id:'b8',t:'A quanto ammonta il risparmio su base annua?',o:['Fino a 10.000 euro','Da 10.000 a 30.000 euro','Da 30.000 a 60.000 euro','Oltre 60.000 euro'],pt:[0,1,2,3]},
+ {id:'b9',t:'A quanto ammontano i suoi impegni finanziari futuri?',o:['Oltre il triplo del mio reddito annuo','Circa il doppio del mio reddito annuo','Circa il valore del mio reddito annuo','Non ho impegni finanziari'],pt:[0,1,2,3],cp:{0:1}},
+ {id:'b10',t:'Nel corso dei prossimi anni, cosa pensa che potrà accadere alla sua quota di risparmio annuo?',o:['Diminuirà sensibilmente','Diminuirà leggermente','Rimarrà invariata','Aumenterà leggermente','Aumenterà notevolmente'],pt:[0,1,2,3,3]},
 ];
-const D1={t:'Qual è la perdita massima che potresti accettare in un anno, su 100.000 € investiti? (stima prudente: VaR al 99%)',o:['Fino al 5,8% (resto a 94.200 € o più)','Dal 5,8% all\'11,6%','Dall\'11,6% al 23,3%','Oltre il 23,3%']};
-const HOR={t:'Per quanto tempo lascerai investito il capitale, salvo la parte che ti serve prima?',o:['Meno di 1 anno','1 – 3 anni','3 – 5 anni','5 – 10 anni','Oltre 10 anni'],cap:[0,0,1,2,3],years:[.5,2,4,7,10]};
-/* area E: conoscenza ed esperienza con gli strumenti finanziari (punteggio proprio, soglie da validare) */
-const EXPL=['Mai','Li conosco ma non ho mai investito','Ho investito poche volte','Investo regolarmente'];
-const QE=[
- {id:'e1',t:'Da quanti anni investi in strumenti finanziari (oltre a conti e depositi)?',o:['Mai','Meno di 2 anni','Da 2 a 5 anni','Oltre 5 anni'],pt:[0,1,2,3]},
- {id:'e2',t:'Negli ultimi 3 anni, quante operazioni di acquisto o vendita hai fatto in media ogni anno?',o:['Nessuna','Da 1 a 5','Da 6 a 20','Più di 20'],pt:[0,1,2,3]},
- {id:'e3',t:'Titoli di Stato e obbligazioni',o:EXPL,pt:[0,1,2,3]},
- {id:'e4',t:'ETF e fondi di investimento',o:EXPL,pt:[0,1,2,3]},
- {id:'e5',t:'Azioni',o:EXPL,pt:[0,1,2,3]},
- {id:'e6',t:'Strumenti complessi (derivati, opzioni, CFD, operazioni a leva)',o:EXPL,pt:[0,0,1,2]},
- {id:'e7',t:'Importo medio delle tue operazioni',o:['Fino a 5.000 €','Da 5.000 a 25.000 €','Da 25.000 a 100.000 €','Oltre 100.000 €'],pt:[0,1,2,3]},
- {id:'e8',t:'Formazione o esperienza di lavoro in ambito economico-finanziario',o:['Nessuna','Corsi o studio autonomo','Studi universitari in materie economico-finanziarie','Lavoro o ho lavorato nel settore finanziario'],pt:[0,1,2,3]},
- {id:'e9',t:'Come ti informi sugli investimenti?',o:['Non mi informo','Consigli di amici o familiari','Siti, giornali, social','Fonti specializzate e documenti informativi (KID, prospetti)'],pt:[0,1,2,3]},
- {id:'e10',t:'Hai già vissuto un calo superiore al 20% su un tuo investimento?',o:['No, non ho mai investito','No','Sì, e ho venduto','Sì, e ho mantenuto la posizione'],pt:[0,1,1,3]},
+const prop=(m,f)=>f.map(x=>Math.round(m*x));
+const CAP_MAX=QB.reduce((a,q)=>a+(q.pt?Math.max(...q.pt):0),0)+Math.max(...Q_A1.pt)+Math.max(...Q_CASA.pt)+caricoPt(0);
+const CAP_TH=prop(CAP_MAX,[.23,.45,.73]); // soglie proporzionali: stesse percentuali della versione 1 (5/10/16 su 22)
+/* C-D) obiettivi e tolleranza al rischio */
+const QC1={id:'c1',t:'Quali sono le sue aspettative di rendimento per il suo portafoglio finanziario?',o:['Preservare il capitale cercando di recuperare l\'inflazione','Il rendimento deve tenere almeno il passo con l\'inflazione, con una volatilità medio/bassa','Il rendimento deve essere superiore all\'inflazione, accettando una discreta volatilità','Il rendimento deve essere superiore in modo significativo all\'inflazione, anche se questo comporta una volatilità elevata'],pt:[0,1,2,3]};
+const QC2={id:'c2',t:'Ha in programma di dover utilizzare nei prossimi anni una parte del suo patrimonio per obiettivi (risposta multipla)',o:['Integrazione pensionistica','Acquisto / ristrutturazione di immobili','Esigenze economiche per i figli o altri familiari','Esigenze di salute','Esigenze imprenditoriali','Acquisto beni mobili','Viaggi','Non so']};
+const QT=[ // aree C-D: tolleranza al rischio (D.1, perdita massima, e l'orizzonte E.1 sono a parte)
+ QC1,
+ {id:'d2',t:'Nel caso si fosse concretizzata, nell\'arco di poco tempo, la perdita massima da lei indicata nella domanda sopra indicata, cosa farebbe?',o:['Disinvesto il capitale','Sposto immediatamente il capitale su investimenti più conservativi per non avere altre perdite','Seguo la situazione, se continua a peggiorare sposto parte del capitale su investimenti più conservativi','Mi faccio consigliare dal consulente finanziario per verificare se la mia asset allocation è corretta e accetto la volatilità dei mercati','Prendo in considerazione di aumentare l\'investimento, perché forse si tratta di un\'opportunità di acquisto a basso prezzo'],pt:[0,1,2,3,3],cp:{0:0,1:1}},
+ {id:'d3',t:'Nel caso si fosse concretizzata, nell\'arco di poco tempo, la perdita massima da lei indicata nella domanda precedente, quale sarebbe il suo stato d\'animo?',o:['Di forte preoccupazione','Di preoccupazione','Di leggera preoccupazione','Di consapevole accettazione'],pt:[0,1,2,3]},
+ {id:'d4',t:'Quanto è d\'accordo con questa affermazione? «Mi considero paziente con i miei investimenti finanziari. Sono disponibile ad accettare periodi nei quali il rendimento del portafoglio è negativo»',o:['Totale disaccordo','Disaccordo','Concordo','Concordo pienamente'],pt:[0,1,2,3]},
+ {id:'d5',t:'Pensa in futuro per la gestione del suo patrimonio di dover assumere più rischi rispetto al passato?',o:['Sì','No'],pt:[1,0]},
+ {id:'d6',t:'Immagini di partecipare a uno show televisivo. Il presentatore le offre una serie di proposte, quale sceglie?',o:['Una vincita di 1.000 euro in contanti subito','Una vincita di 5.000 euro con il 50% di possibilità','Una vincita di 15.000 euro con il 25% di possibilità','Una vincita di 100.000 euro con il 5% di possibilità'],pt:[0,1,2,3]},
+ {id:'d7',t:'Immagini che un lontano zio le abbia lasciato in eredità un patrimonio importante ma abbia espresso nel testamento la volontà di investire tutto l\'importo in una di queste alternative. Quale sceglie?',o:['Un deposito bancario o un fondo monetario','Un fondo comune bilanciato (che investe sia in obbligazioni che in azioni)','Un portafoglio di 15 azioni','Beni come oro, gioielli, quadri, case'],pt:[0,1,3,1]},
 ];
-const EXP_MAX=QE.reduce((a,q)=>a+Math.max(...q.pt),0),EXP_LIV=[8,16,23]; // soglie solo descrittive (principiante, intermedio, esperto…): non entrano nel profilo
+const TOL_MAX=QT.reduce((a,q)=>a+Math.max(...q.pt),0);
+const TOL_TH=prop(TOL_MAX,[.22,.5,.78]); // 4/9/14 su 18 nella versione 1
+/* D.1: perdita massima (VaR 99%, 252 giorni). Le fasce del modulo si traducono nelle fasce VaR della piattaforma: vedi d1Band */
+const D1={t:'Fatto ipoteticamente 100.000 euro il patrimonio finanziario e tenendo conto delle inevitabili oscillazioni negative, quant\'è la perdita massima che è disposto a tollerare nell\'arco di 12 mesi (V.a.R. su 252 gg. lavorativi con confidenza al 99%)?',o:['Inferiore al 2%, ovvero portafoglio finale di 98.000 euro','Dal 2% al 7%, ovvero portafoglio finale da 93.000 a 98.000 euro','Dal 7% al 12%, ovvero portafoglio finale da 88.000 a 93.000 euro','Superiore al 12%, ovvero portafoglio finale anche inferiore a 88.000 euro']};
+const D1B={t:'Hai indicato una perdita superiore al 12%: fino a quale perdita massima, su 100.000 euro, potresti arrivare?',o:['Fino al 23,3% (portafoglio finale non inferiore a 76.700 euro)','Oltre il 23,3% (portafoglio finale anche inferiore a 76.700 euro)']};
+/* E.1: orizzonte temporale */
+const HOR={t:'Per quanto tempo lascerai investito il capitale, salvo la parte che ti serve prima?',o:['Meno di 1 anno','1 – 3 anni','3 – 5 anni','5 – 10 anni','Oltre 10 anni'],cap:[0,0,1,2,3],years:[.5,2,4,7,10]}; // indice derivato da E.1 + sotto-domanda
+const E1={t:'Qual è l\'orizzonte temporale principale che si pone?',o:['Breve termine: minore di 1 anno','Breve/medio termine: minore di 3 anni','Medio termine: minore di 5 anni','Lungo termine: oltre 5 anni']};
+const E1B={t:'Hai indicato un orizzonte oltre 5 anni: quanto lungo?',o:['Da 5 a 10 anni','Oltre 10 anni']};
+function deriveA(A){ // valori derivati dalle risposte a due livelli (D.1 + sotto-domanda, E.1 + sotto-domanda)
+  if(A.d1n!==3)delete A.d1b;if(A.e1n!==3)delete A.e1b;
+  A.d1=A.d1n==null?undefined:A.d1n<=1?0:A.d1n===2?1:(A.d1b==null?undefined:A.d1b===0?2:3);
+  A.hor=A.e1n==null?undefined:A.e1n<=2?A.e1n:(A.e1b==null?undefined:3+A.e1b);
+  A.ver=Q_VER}
+/* F) sostenibilità (F.1 sì/no, F.2 quota sostenibili, F.3 quota ecosostenibili, F.4 impatti negativi) */
+const F1={id:'esg',t:'Fatto salvo che tutti gli strumenti utilizzati devono essere adeguati al Suo profilo MiFID, è importante per Lei che gli strumenti e prodotti finanziari su cui andrà ad investire promuovano obiettivi di sostenibilità ambientale e/o sociale o che comunque considerino gli impatti negativi sui fattori di sostenibilità ambientale e/o sociale?',o:['Sì','No']};
+const esgSi=A=>A.esg===0; // «Sì» è la prima opzione, come nel modulo
+const F2={id:'esgp',t:'Qual è la percentuale minima da investire in INVESTIMENTI SOSTENIBILI (ovvero un investimento in un\'attività economica che contribuisce a un obiettivo ambientale o un investimento in un\'attività economica che contribuisce a un obiettivo sociale)?',o:['Nessuna','5%','15%','30%','Non saprei rispondere']};
+const F3={id:'esg3',t:'Qual è la percentuale minima da investire in attività ECOSOSTENIBILI (ovvero attività economiche che contribuiscono in modo sostanziale al raggiungimento di uno o più obiettivi ambientali dell\'UE cioè la mitigazione dei cambiamenti climatici; l\'adattamento ai cambiamenti climatici; l\'uso sostenibile e la protezione delle acque e delle risorse marine; la transizione verso un\'economia circolare)?',o:['Nessuna','2%','5%','10%','Non saprei rispondere']};
+const F4={id:'esg4',t:'Quali Impatti avversi significativi (PAI) devono essere presi in considerazione negli investimenti proposti? (risposta multipla)',o:['Clima e ambiente','Problematiche sociali','Problematiche di governance d\'impresa','Nessuno','Non saprei rispondere']};
+const MSX={a4:['n'],a5:['n'],c2:['7'],esg4:['3','4']}; // risposte che escludono le altre
+function toggleMs(A,id,k){
+  let L=(A[id]||[]).slice();const ex=MSX[id]||[];
+  if(L.includes(k))L=L.filter(x=>x!==k);else L=ex.includes(k)?[k]:L.filter(x=>!ex.includes(x)).concat([k]);
+  A[id]=L;
+  if(id==='a4')CATS.forEach(c=>{if(!L.includes(c.k))c.qs.forEach(q=>delete A[q.id])});
+  if(id==='a5')CATS.forEach(c=>{if(!L.includes(c.k))['f','v','p'].forEach(s=>delete A['x_'+c.k+'_'+s])});
+}
+const etaDa=iso=>{const d=new Date(iso);if(isNaN(d))return null;const n=new Date();let e=n.getFullYear()-d.getFullYear();if(n<new Date(n.getFullYear(),d.getMonth(),d.getDate()))e--;return e};
 /* spese previste: quanto e quando serve una parte del capitale */
 const IMP_MOTIVI=['Casa (acquisto o ristrutturazione)','Auto','Viaggi','Studi o formazione','Spese familiari o sanitarie','Altro'];
 const MESI_IT=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
@@ -342,23 +416,58 @@ function quizResult(a){
   const etfKo=err.some(q=>q.etf);
   return{done:true,errors:err.length,pass:err.length<=2&&!etfKo,etfKo,wrong:err};
 }
+function coerenza(A){ // incongruenze tra risposte: non bloccano, ma sono segnalate al consulente (linee guida ESMA, parr. 32, 49, 51)
+  const f=[],k4=A.a4||[],k5=A.a5||[];
+  if((A.d2===0||A.d2===1)&&(A.d1n>=3||A.c1===3))f.push('Dichiara che in caso di forte calo disinvestirebbe o ridurrebbe il rischio (D.2), ma indica una perdita massima superiore al 12% o aspettative di rendimento molto elevate (D.1, C.1).');
+  if(A.hor<=1&&A.c1===3)f.push('Orizzonte inferiore a 3 anni (E.1) con aspettative di rendimento molto elevate (C.1).');
+  if(A.b3===0&&A.b5===0&&A.d1>=2)f.push('Oltre il 90% del patrimonio e tenore di vita che dipende dai redditi finanziari (B.3, B.5), ma accetta perdite elevate (D.1).');
+  if(A.b9===0&&A.d1>=2)f.push('Impegni finanziari futuri superiori al triplo del reddito (B.9), ma accetta perdite elevate (D.1).');
+  if(A.d3===0&&A.d4===3)f.push('Dichiara «forte preoccupazione» davanti alla perdita massima (D.3) e insieme «piena pazienza» con i rendimenti negativi (D.4).');
+  CATS.forEach(c=>{if(k4.includes(c.k)){const w=c.qs.filter(q=>A[q.id]!==q.ok).length;if(w*2>c.qs.length)f.push(`Dichiara di conoscere «${c.n}» (A.4) ma risponde in modo errato alle domande di verifica.`)}});
+  CATS.forEach(c=>{if(k5.includes(c.k)&&!k4.includes(c.k))f.push(`Ha operato in «${c.n}» (A.5) ma non dichiara di conoscerli (A.4).`)});
+  if(k4.includes('n')&&k5.length&&!k5.includes('n'))f.push('Dichiara di non conoscere alcuno strumento (A.4) ma di avere operato in strumenti finanziari (A.5).');
+  return f}
 function scoreProfile(A){
+  deriveA(A);
   const reasons=[];let cap=0,tol=0;const capCaps=[],tolCaps=[];
-  QB.forEach(q=>{const i=A[q.id];cap+=q.pt[i];if(q.cap&&(q.id==='b6'?i===0:q.id==='b2'?i===0:i===0))capCaps.push([q.cap[0],q.t,q.o[i]])});
-  QT.forEach(q=>{const i=A[q.id];tol+=q.pt[i];if(q.cap&&i<q.cap.length)tolCaps.push([q.cap[i]===undefined?0:q.cap[i],q.t,q.o[i]])});
-  const capB=band4(cap,[5,10,16]),tolB=band4(tol,[4,9,14]);
+  const addCap=(q,i)=>{if(q.pt)cap+=q.pt[i]||0;if(q.cp&&q.cp[i]!==undefined)capCaps.push([q.cp[i],q.t,q.o[i]])};
+  QB.forEach(q=>addCap(q,A[q.id]));addCap(Q_A1,A.a1);addCap(Q_CASA,A.s5);cap+=caricoPt(A.f3);
+  QT.forEach(q=>{const i=A[q.id];tol+=q.pt[i]||0;if(q.cp&&q.cp[i]!==undefined)tolCaps.push([q.cp[i],q.t,q.o[i]])});
+  const capB=band4(cap,CAP_TH),tolB=band4(tol,TOL_TH);
   let capF=capB;capCaps.forEach(c=>{if(c[0]<capF){capF=c[0];reasons.push(`«${c[2]}» (${c[1].replace(/\?$/,'')}) limita la capacità a ${BANDS[c[0]]}.`)}});
-  let tolF=tolB;tolCaps.forEach(c=>{if(c[0]<tolF){tolF=c[0];reasons.push(`La reazione a un calo («${c[2]}») limita la tolleranza a ${BANDS[c[0]]}.`)}});
+  let tolF=tolB;tolCaps.forEach(c=>{if(c[0]<tolF){tolF=c[0];reasons.push(`La risposta «${c[2]}» limita la tolleranza a ${BANDS[c[0]]}.`)}});
   const d1=A.d1,hc=HOR.cap[A.hor];
-  let exp=0;QE.forEach(q=>{exp+=q.pt[A[q.id]]||0});const prof=Math.min(capF,tolF,d1,hc); // l'esperienza è informativa: non peggiora mai il profilo
-  reasons.unshift(`Capacità di sopportare perdite: ${BANDS[capF]} (${cap} punti su 22).`,`Tolleranza al rischio: ${BANDS[tolF]} (${tol} punti su 18).`,`Conoscenza ed esperienza: ${exp} punti su ${EXP_MAX} (non limita il profilo).`,`Perdita massima indicata: ${BANDS[d1]}.`,`Orizzonte (${HOR.o[A.hor].toLowerCase()}): massimo ${BANDS[hc]}.`);
-  return{band:prof,capF,tolF,d1,hc,cap,tol,exp,reasons};
+  const exp=expScore(A);const prof=Math.min(capF,tolF,d1,hc); // l'esperienza è informativa: non peggiora mai il profilo
+  reasons.unshift(`Capacità di sopportare perdite: ${BANDS[capF]} (${cap} punti su ${CAP_MAX}).`,`Tolleranza al rischio: ${BANDS[tolF]} (${tol} punti su ${TOL_MAX}).`,`Conoscenza ed esperienza: livello ${EXP_NOME(exp).toLowerCase()} (${exp} punti su ${EXP_MAX}; non limita il profilo).`,`Perdita massima indicata: ${BANDS[d1]}.`,`Orizzonte (${HOR.o[A.hor].toLowerCase()}): massimo ${BANDS[hc]}.`);
+  return{band:prof,capF,tolF,d1,hc,cap,tol,exp,capMax:CAP_MAX,tolMax:TOL_MAX,expMax:EXP_MAX,expLiv:EXP_NOME(exp),capTh:CAP_TH,tolTh:TOL_TH,reasons,flags:coerenza(A),ver:Q_VER}
 }
-const QA_DONE=A=>QB.every(q=>A[q.id]!=null)&&QT.every(q=>A[q.id]!=null)&&A.d1!=null&&A.hor!=null&&A.esg!=null&&(A.esg===0||(A.esgp!=null))&&QE.every(q=>A[q.id]!=null)&&impOk(A);
+function qMissing(A){
+  const m=[],need=(c,l)=>{if(!c)m.push(l)},ans=id=>A[id]!=null,k4=A.a4||[],k5=A.a5||[];
+  need((A.nome||'').trim().length>=3,'cognome e nome');
+  const e=etaDa(A.nasc);need(e!==null&&e>=18&&e<=110,'data di nascita (maggiorenne)');
+  need(/^[A-Za-z0-9]{16}$/.test((A.cf||'').trim()),'codice fiscale (16 caratteri)');
+  need(ans('s2'),'titolarità del patrimonio');need(A.s2!==1&&A.s2!==2||(A.s2info||'').trim().length>0,'informazioni sugli altri titolari');
+  need(ans('s3'),'stato civile');
+  Q_FAM.forEach(([id,t])=>need(Number.isInteger(A[id])&&A[id]>=(id==='f1'?1:0),t.toLowerCase()));
+  need(ans('s5'),'abitazione principale');
+  [Q_A1,Q_A2,Q_A3,Q_A6].forEach(q=>need(ans(q.id),q.t.toLowerCase().slice(0,40)));
+  need(k4.length>0,'A.4 strumenti conosciuti');CATS.forEach(c=>{if(k4.includes(c.k))c.qs.forEach(q=>need(ans(q.id),'A.4 '+c.k+': domanda di verifica'))});
+  need(k5.length>0,'A.5 operazioni effettuate');CATS.forEach(c=>{if(k5.includes(c.k))['f','v','p'].forEach(s=>need(ans('x_'+c.k+'_'+s),'A.5 '+c.k+': dettaglio operazioni'))});
+  QB.forEach(q=>need(ans(q.id),q.id.toUpperCase()));
+  need(ans('c1'),'C.1');need((A.c2||[]).length>0,'C.2');
+  QT.slice(1).forEach(q=>need(ans(q.id),q.id.toUpperCase()));
+  need(ans('d1n')&&(A.d1n!==3||ans('d1b')),'D.1');
+  need(ans('e1n')&&(A.e1n!==3||ans('e1b')),'E.1');
+  need(ans('esg'),'F.1');
+  if(esgSi(A)){need(ans('esgp'),'F.2');need(ans('esg3'),'F.3');need((A.esg4||[]).length>0,'F.4')}
+  need(impOk(A),'spese previste');
+  need(A.dich===1,'dichiarazione finale');
+  return m}
+const QA_DONE=A=>qMissing(A).length===0;
 /* portafogli: fascia dal VaR calcolato; eleggibilità */
 function pfBand(w){return bandOf(varAnnuo(w))}
 function eligible(profile,A,PF){
-  const yrs=HOR.years[A.hor],esg=A.esg===1;
+  const yrs=HOR.years[A.hor],esg=esgSi(A);
   return Object.keys(PF).filter(id=>{
     const p=PF[id];const b=pfBand(p.w);
     if(b>profile.band)return false;
@@ -369,13 +478,14 @@ function eligible(profile,A,PF){
 }
 function whyNone(profile,A,PF){
   const yrs=HOR.years[A.hor];
-  if(A.esg===1){const ok=ESG_P.filter(id=>pfBand(PF[id].w)<=profile.band);if(!ok.length)return'Hai indicato una preferenza di sostenibilità, ma i portafogli ESG disponibili hanno un rischio superiore al tuo profilo. Non è possibile raccomandarne uno: puoi rivedere la preferenza o parlarne con il consulente.';
+  if(esgSi(A)){const ok=ESG_P.filter(id=>pfBand(PF[id].w)<=profile.band);if(!ok.length)return'Hai indicato una preferenza di sostenibilità, ma i portafogli ESG disponibili hanno un rischio superiore al tuo profilo. Non è possibile raccomandarne uno: puoi rivedere la preferenza o parlarne con il consulente.';
     if(!ok.some(id=>MINY[id]<=yrs))return'I portafogli ESG disponibili richiedono un orizzonte più lungo del tuo.'}
   return'Nessun portafoglio è adatto alla combinazione di profilo di rischio e orizzonte che hai indicato: servirebbe un orizzonte più lungo o una tolleranza maggiore.';
 }
 /* ======================= ARRICCHIMENTO PORTAFOGLIO PER CAPITALE ======================= */
-const TIERS=[{k:'pac',n:'PAC',max:3,min:0},{k:'ess',n:'Essenziale',max:3},{k:'std',n:'Standard',max:6},{k:'full',n:'Completo',max:99}];
-const tierOf=c=>c<3000?TIERS[0]:c<10000?TIERS[1]:c<50000?TIERS[2]:TIERS[3];
+const TIER_FULL_MIN=25000; // sotto questa soglia (e da 3.000 €) il portafoglio è la versione per piccoli capitali, accorpata; sopra, il portafoglio completo del consulente
+const TIERS=[{k:'pac',n:'PAC',max:3,min:0},{k:'ess',n:'Piccoli capitali',max:3},{k:'full',n:'Completo',max:99}];
+const tierOf=c=>c<3000?TIERS[0]:c<TIER_FULL_MIN?TIERS[1]:TIERS[2];
 const tierFor=(capital,imps)=>capital<3000?TIERS[0]:tierOf(Math.max(modelCap(capital,imps),3000));
 function applyVariant(w,variant){if(variant!=='fineco')return{...w};const o={};Object.entries(w).forEach(([k,p])=>{const t=FIN_SUB[k]||k;o[t]=(o[t]||0)+p});return o}
 function mergeLines(w,tier,capital){ // accorpa le righe piccole nel comparto più simile
@@ -968,7 +1078,7 @@ function beCliente(cid){
   return `<div class="card"><div class="row sb"><h2>${esc(beNome(cid))}</h2><button class="btn sm" data-act="be-cli" data-v="">← Tutti i clienti</button></div>
   <div class="grid2"><div><div class="small muted">Email</div>${esc(p.email||'')}<div class="small muted" style="margin-top:8px">Registrato il</div>${beDate(p.creato_il)} · consenso privacy ${p.consenso_privacy?beDate(p.consenso_privacy):'<b class="ko">non registrato</b>'}</div>
   <div><div class="small muted">Stato</div><b>${SNOME[c.stato]}</b>${c.attivo_dal?'<div class="small muted">Attivo dal '+beDate(c.attivo_dal)+'</div>':''}${c.uscito_il?'<div class="small muted">Chiuso il '+beDate(c.uscito_il)+'</div>':''}</div></div>
-  <h3>Profilo</h3><div class="grid2"><div>Profilo di rischio: <b>${pr?BANDS[pr.band]:'—'}</b><div class="small muted">${pr?pr.reasons.map(esc).join('<br>'):'Questionario non ancora completato.'}</div></div>
+  <h3>Profilo</h3><div class="grid2"><div>Profilo di rischio: <b>${pr?BANDS[pr.band]:'—'}</b><div class="small muted">${pr?pr.reasons.map(esc).join('<br>'):'Questionario non ancora completato.'}</div>${pr&&pr.flags&&pr.flags.length?'<div class="small ko"><b>Incoerenze da chiarire con il cliente:</b><br>'+pr.flags.map(esc).join('<br>')+'</div>':''}</div>
   <div>Verifica di conoscenza: ${qz.pass?'<span class="ok">superata</span>':'—'}<br>Antiriciclaggio: ${d.aml&&Object.keys(d.aml).length?amlFlagsOf(d.aml):'—'}<br>Portafoglio scelto: <b>${pf?esc(c.portafoglio+' · '+pf.nome):'—'}</b> (${d.variant==='fineco'?'Fineco':'Classica'})<br>Capitale: ${d.capitale?eur(d.capitale):'—'}${d.capitale?` · sul modello ${eur(Math.max(0,d.capitale-((c.portafoglio&&pnum(c.portafoglio)>=SLEEVE_DA)?(d.spese||[]).filter(x=>x.uso!==0&&x.mesi<=IMP_MAX).reduce((a,x)=>a+(x.amt||0),0):0)))}`:''}<br>Spese previste: ${spese}<br>Contratto: ${d.contract==='una'?'Una tantum':'Continuativa'}${d.capitale?(()=>{const q=d.parcella||{cont:feeCont(d.capitale),una:feeUna(d.capitale)};return ' · parcella '+eur(d.contract==='una'?q.una:q.cont)+(d.contract==='una'?'':' / anno')+' <span class="muted">(calcolata in automatico)</span>'})():''}</div></div>
   <h3>Avanza lo stato</h3><div class="row">${bt('firma','Contratto inviato per la firma')}${bt('pagamento','Contratto firmato')}${bt('attivo','Pagamento ricevuto: attiva')}${bt('scaduto','Rinnovo non pagato')}${bt('uscito','Chiudi il rapporto (recesso)')}</div>
   <p class="small muted">Quando ricevi la comunicazione di recesso (preavviso di un mese a federico.offen@binariof.it) premi «Chiudi il rapporto»: il cliente passa da Attivo a Chiuso e conta negli indicatori OCF del trimestre di chiusura. Alla attivazione il cliente riceve in automatico la composizione iniziale del portafoglio, con data e ora. Da lì in poi riceve ogni variazione che pubblichi per quel portafoglio.</p>
@@ -1081,22 +1191,49 @@ function render(){
   app.innerHTML=PROTO+(st.role==='consulente'?adminView():clientView())+FOOT;save();
 }
 const stepper=n=>`<div class="steps">${STEPS.slice(1).map((_,i)=>`<i class="${i<n?'on':''}"></i>`).join('')}</div>`;
+const MEET_URL='https://www.binariof.it/contatti/';
+const meetLink=`<a href="${MEET_URL}" target="_blank" rel="noopener">prenota un primo incontro online gratuito con il consulente</a>`;
+const meetBox=()=>`<div class="alert info"><b>Hai dubbi o vuoi parlarne prima di iniziare?</b><span class="small">Per maggiori informazioni, ${meetLink}: ti spiego tutto prima che tu decida, senza impegno.</span><div class="row"><a class="btn sm pri" href="${MEET_URL}" target="_blank" rel="noopener">Prenota il primo incontro gratuito</a></div></div>`;
+const profFlags=pr=>pr.flags&&pr.flags.length?`<div class="alert"><b>Alcune risposte meritano un chiarimento</b><span class="small">Il consulente le esaminerà con te prima di procedere. Se preferisci, puoi parlarne subito in un incontro online gratuito.</span></div>`:'';
+/* ---- questionario Nafop: viste ---- */
+const ms=(id,list,cur)=>list.map((l,i)=>`<label class="opt"><input type="checkbox" data-act="ms" data-q="${id}" data-v="${id==='a4'||id==='a5'?l[0]:i}" ${(cur||[]).includes(id==='a4'||id==='a5'?l[0]:String(i))?'checked':''}><span>${esc(id==='a4'||id==='a5'?l[1]:l)}</span></label>`).join('');
+const txt=(id,t,v,type='text',ph='')=>`<label class="f">${esc(t)}<input type="${type}" data-act="atxt" data-q="${id}" value="${esc(v==null?'':v)}" placeholder="${esc(ph)}"></label>`;
+const numI=(id,t,v)=>`<label class="f">${esc(t)}<input type="number" min="0" step="1" data-act="atxt" data-q="${id}" data-num="1" value="${v==null?'':v}"></label>`;
+const catOpts=(extra)=>[['n','Nessuno']].concat(CATS.map(c=>[c.k,c.n]));
+function qCont(A){const m=qMissing(A);return `<div class="row"><button class="btn pri" id="qcont" data-act="go" data-v="quiz" ${m.length?'disabled':''}>Continua</button><span class="muted small" id="qmiss">${m.length?`Mancano ancora ${m.length} ${m.length===1?'risposta':'risposte'}: ${esc(m.slice(0,3).join(', '))}${m.length>3?'…':''}`:''}</span></div>`}
+function qRefresh(){const A=st.A,b=$('#qcont'),s=$('#qmiss');if(!b)return;const m=qMissing(A);b.disabled=m.length>0;if(s)s.textContent=m.length?`Mancano ancora ${m.length} ${m.length===1?'risposta':'risposte'}: ${m.slice(0,3).join(', ')}${m.length>3?'…':''}`:''}
+function questView(){
+  const A=st.A;if(A.nome==null&&st.user.nome)A.nome=st.user.nome;deriveA(A);
+  const k4=A.a4||[],k5=A.a5||[];
+  return `<div class="card">${stepper(1)}<h2>Questionario di adeguatezza</h2><p class="muted small">Il questionario raccoglie i dati necessari alla valutazione di adeguatezza (MiFID II). Le risposte determinano il tuo profilo di rischio: rispondi con sincerità, non esistono risposte giuste. Ti servono circa 15 minuti. Hai dubbi? Per maggiori informazioni, ${meetLink}.</p>
+  <h3>1. Dati anagrafici</h3>${txt('nome','Cognome e nome',A.nome)}${txt('nasc','Data di nascita',A.nasc,'date')}${txt('cf','Codice fiscale',A.cf,'text','16 caratteri')}
+  <h3>2. Titolarità del patrimonio</h3>${block(Q_TIT,A.s2)}${A.s2===1||A.s2===2?`<label class="f">Informazioni riguardo al/ai soggetto/i cui appartiene il patrimonio finanziario<textarea rows="3" data-act="atxt" data-q="s2info">${esc(A.s2info||'')}</textarea></label>`:''}
+  <h3>3. Stato civile</h3>${block(Q_CIV,A.s3)}
+  <h3>4. Composizione della famiglia</h3>${Q_FAM.map(([id,t])=>numI(id,t,A[id])).join('')}
+  <h3>5. Abitazione principale</h3>${block(Q_CASA,A.s5)}
+  <h3>A. Conoscenza ed esperienza</h3>${block(Q_A1,A.a1)}${block(Q_A2,A.a2)}${block(Q_A3,A.a3)}
+  <div class="q"><div class="t">A.4 Di quali strumenti finanziari ha conoscenza? (risposta multipla)</div>${ms('a4',catOpts(),k4)}</div>
+  ${CATS.filter(c=>k4.includes(c.k)).map(c=>`<div class="nsub"><div class="small"><b>${esc(c.n)}</b>: rispondi a queste domande.</div>${c.qs.map(q=>block(q,A[q.id])).join('')}</div>`).join('')}
+  <div class="q"><div class="t">A.5 In quali strumenti e prodotti finanziari ha realizzato operazioni di investimento? (risposta multipla)</div>${ms('a5',catOpts(),k5)}</div>
+  ${CATS.filter(c=>k5.includes(c.k)).map(c=>`<div class="nsub"><div class="small"><b>${esc(c.n)}</b></div>${block({id:'x_'+c.k+'_f',t:'Qual è la frequenza normale delle operazioni finanziarie da Lei effettuate?',o:X_F},A['x_'+c.k+'_f'])}${block({id:'x_'+c.k+'_v',t:'Qual è il volume medio delle operazioni finanziarie da Lei effettuate?',o:X_V},A['x_'+c.k+'_v'])}${block({id:'x_'+c.k+'_p',t:'In quale periodo ha realizzato le suddette operazioni?',o:X_P},A['x_'+c.k+'_p'])}</div>`).join('')}
+  ${block(Q_A6,A.a6)}
+  <h3>B. Situazione finanziaria e capacità di sopportare le perdite</h3>${QB.map((q,i)=>block({...q,t:'B.'+(i+1)+' '+q.t},A[q.id])).join('')}
+  <h3>C. Obiettivi finanziari</h3>${block({...QC1,t:'C.1 '+QC1.t},A.c1)}<div class="q"><div class="t">C.2 ${esc(QC2.t)}</div>${ms('c2',QC2.o,A.c2)}</div>
+  <h3>Spese previste</h3>${impBlock()}
+  <h3>D. Tolleranza al rischio</h3>${block({...D1,t:'D.1 '+D1.t,id:'d1n'},A.d1n)}${A.d1n===3?block({...D1B,id:'d1b'},A.d1b):''}${QT.slice(1).map((q,i)=>block({...q,t:'D.'+(i+2)+' '+q.t},A[q.id])).join('')}
+  <h3>E. Orizzonte temporale d'investimento</h3>${block({...E1,t:'E.1 '+E1.t,id:'e1n'},A.e1n)}${A.e1n===3?block({...E1B,id:'e1b'},A.e1b):''}
+  <h3>F. Preferenze in tema di sostenibilità degli investimenti</h3>${block({...F1,t:'F.1 '+F1.t},A.esg)}
+  ${esgSi(A)?block({...F2,t:'F.2 '+F2.t},A.esgp)+block({...F3,t:'F.3 '+F3.t},A.esg3)+`<div class="q"><div class="t">F.4 ${esc(F4.t)}</div>${ms('esg4',F4.o,A.esg4)}</div>`:''}
+  <h3>Altre informazioni</h3><label class="f">Ritieni che vi siano informazioni da comunicare che non sono state affrontate dal questionario? (facoltativo)<textarea rows="3" data-act="atxt" data-q="altro">${esc(A.altro||'')}</textarea></label>
+  <label class="opt"><input type="checkbox" data-act="dich" ${A.dich===1?'checked':''}><span>Dichiaro che il questionario è stato compilato in modo attento e ponderato in tutte le sue parti e che le informazioni rilasciate sulla conoscenza ed esperienza si riferiscono a me medesimo.</span></label>
+  ${qCont(A)}</div>`}
 /* ======================= CLIENTE ======================= */
 function clientView(){
   const s=st.step;
   if(s==='auth')return `<div class="card"><h1>Il tuo portafoglio, da un consulente indipendente</h1><p class="muted">Rispondi al questionario di adeguatezza, scopri il tuo profilo di rischio e scegli un portafoglio modello seguito da un consulente iscritto all'Albo. Eseguirai tu le operazioni dal tuo conto titoli: non gestiamo il tuo patrimonio.</p>
   <label class="f">Nome e cognome<input type="text" id="nome" value="${esc(st.user.nome)}" placeholder="Nome di prova"></label><label class="f">Email<input type="email" id="email" value="${esc(st.user.email)}" placeholder="prova@esempio.it"></label>
-  <div class="row"><button class="btn pri" data-act="go" data-v="quest">Inizia il questionario</button></div></div>`;
-  if(s==='quest'){const A=st.A,ok=QA_DONE(A);
-    return `<div class="card">${stepper(1)}<h2>Questionario di adeguatezza</h2><p class="muted small">Le risposte determinano il tuo profilo di rischio. Rispondi con sincerità: non esistono risposte giuste.</p>
-    <h3>La tua situazione finanziaria</h3>${QB.map(q=>block(q,A[q.id])).join('')}
-    <h3>Obiettivi e tolleranza al rischio</h3>${QT.map(q=>block(q,A[q.id])).join('')}${block({...D1,id:'d1'},A.d1)}
-    <h3>Conoscenza ed esperienza con gli strumenti finanziari</h3><p class="muted small">Per ogni strumento indica la tua esperienza.</p>${QE.map(q=>block(q,A[q.id])).join('')}
-    <h3>Orizzonte temporale</h3>${block({...HOR,id:'hor'},A.hor)}
-    <h3>Spese previste</h3>${impBlock()}
-    <h3>Sostenibilità</h3>${block({id:'esg',t:'Vuoi che gli strumenti promuovano obiettivi di sostenibilità ambientale o sociale, o considerino i loro impatti negativi?',o:['No, non è un criterio per me','Sì']},A.esg)}
-    ${A.esg===1?block({id:'esgp',t:'Quota minima in investimenti sostenibili',o:['Nessuna','Almeno il 5%','Almeno il 15%','Almeno il 30%','Non so']},A.esgp):''}
-    <div class="row"><button class="btn pri" data-act="go" data-v="quiz" ${ok?'':'disabled'}>Continua</button>${ok?'':'<span class="muted small">Rispondi a tutte le domande per continuare.</span>'}</div></div>`}
+  <div class="row"><button class="btn pri" data-act="go" data-v="quest">Inizia il questionario</button></div></div>${meetBox()}`;
+  if(s==='quest')return questView();
   if(s==='quiz'){const r=quizResult(st.A);
     return `<div class="card">${stepper(2)}<h2>Verifica di conoscenza</h2><p class="muted small">Quattro domande sugli strumenti dei nostri portafogli. Serve a verificare che tu li conosca abbastanza per investire con consapevolezza.</p>
     ${QUIZ.map(q=>block(q,st.A[q.id],'quiz')).join('')}
@@ -1118,17 +1255,17 @@ function profiloView(){
   const pr=st.profile,el=eligible(pr,st.A,PF());
   const head=`<div class="card">${stepper(4)}<h2>Il tuo profilo di rischio</h2><div class="row"><div class="big">${BANDS[pr.band]}</div><div class="muted small">VaR annuo (99%) del portafoglio adatto: ${BAND_VAR[pr.band]}</div></div>
   <div class="gauge" style="grid-template-columns:repeat(4,1fr)">${BANDS.map((b,i)=>`<i class="${i<=pr.band?'on':''}" title="${b}"></i>`).join('')}</div>
-  <ul class="why">${pr.reasons.map(r=>`<li>${esc(r)}</li>`).join('')}</ul></div>`;
+  <ul class="why">${pr.reasons.map(r=>`<li>${esc(r)}</li>`).join('')}</ul>${profFlags(pr)}</div>${meetBox()}`;
   if(!el.length)return head+`<div class="card"><div class="alert"><b>Nessun portafoglio raccomandabile</b><p>${esc(whyNone(pr,st.A,PF()))}</p></div><div class="row"><button class="btn" data-act="go" data-v="quest">Rivedi le risposte</button></div></div>`;
   const tier=tierFor(st.capital,impAct()),sorted=el.slice().sort((a,b)=>stats(PF()[a].w).va-stats(PF()[b].w).va);
   const ch=sorted.map(id=>{const{p,s,b}=lineOpt(id);return `<div class="ch" role="button" tabindex="0" data-act="pick" data-v="${id}" aria-pressed="${st.chosen===id}"><header><h3>${esc(p.nome)}</h3><span class="muted small">${b===pr.band?'Fascia del tuo profilo':'Più prudente'} · ${BANDS[b]}</span></header>
    <p class="small muted">${esc(p.obiettivo)} · orizzonte consigliato da ${MINY[id]} ${MINY[id]===1?'anno':'anni'}</p>
    <div class="stats"><div><small>Rendimento annuo storico simulato</small><b>${pc0(s.cagr)}</b></div><div><small>Volatilità</small><b>${pc0(s.vol)}</b></div><div><small>Perdita massima storica</small><b>${pc0(s.mdd)}</b></div><div><small>VaR annuo 99%</small><b>${n1(s.va)}%</b></div><div><small>Azioni</small><b>${pfAz(p.w)}%</b></div></div></div>`}).join('');
   const full=tier.k==='full',pac=tier.k==='pac';
-  return head+`<div class="card"><h2>Scegli il portafoglio</h2><p class="muted small">Puoi scegliere il portafoglio della tua fascia o uno più prudente.${st.A.esg===1?' Sono mostrati solo i portafogli con strumenti ESG.':''}</p><div class="choices">${ch}</div></div>
+  return head+`<div class="card"><h2>Scegli il portafoglio</h2><p class="muted small">Puoi scegliere il portafoglio della tua fascia o uno più prudente.${esgSi(st.A)?' Sono mostrati solo i portafogli con strumenti ESG.':''}</p><div class="choices">${ch}</div></div>
   <div class="card"><h2>Capitale e versione</h2><div class="grid2"><div><label class="f">${pac?'Importo mensile (PAC)':'Capitale da mettere sotto consulenza'} (€)<input type="number" id="${pac?'monthly':'capital'}" min="0" step="${pac?50:1000}" value="${pac?st.monthly:st.capital}"></label><span class="small muted">${capHint()}</span></div>
   <div><div class="small muted">Versione</div><div class="seg" role="group"><button data-act="variant" data-v="classic" aria-pressed="${st.variant==='classic'}">Classica</button><button data-act="variant" data-v="fineco" aria-pressed="${st.variant==='fineco'}">Fineco</button></div><p class="small muted">${st.variant==='fineco'?'ETF a commissione di acquisto zero su Fineco, secondo la lista del mese.':'ETF scelti dal consulente, per qualsiasi conto titoli.'}</p></div></div>
-  ${tier.k==='full'?'':`<div class="alert"><b>Versione ${tier.n}</b><span class="small">${{pac:'Capitali sotto i 3.000 €: Piano di Accumulo con versamenti mensili su 1-3 ETF.',ess:'Fino a 3 strumenti: i comparti simili sono accorpati.',std:'Fino a 6 strumenti: i comparti principali del modello.',full:''}[tier.k]}</span></div>`}
+  ${tier.k==='full'?'':`<div class="alert"><b>Versione ${tier.n}</b><span class="small">${{pac:'Capitali sotto i 3.000 €: Piano di Accumulo con versamenti mensili su 1-3 ETF.',ess:'Per capitali fino a '+eur(TIER_FULL_MIN)+': fino a 3 strumenti, con i comparti simili accorpati.',full:''}[tier.k]}</span></div>`}
   ${tier.k==='pac'&&st.capital>=3000?'':''}
   ${impSummary()}
   <div class="row"><button class="btn" data-act="go" data-v="aml">Indietro</button><button class="btn pri" data-act="go" data-v="contratto" ${st.chosen&&el.includes(st.chosen)&&impAll().reduce((a,x)=>a+x.amt,0)<=st.capital?'':'disabled'}>Procedi</button></div></div>
@@ -1359,7 +1496,7 @@ document.addEventListener('click',e=>{
   else if(a==='rm'){st.okpub=false;st.edit=st.edit||JSON.parse(JSON.stringify(PF()[st.aid].w));delete st.edit[v]}
   else if(a==='reset'){st=fresh()}
   else if(a==='go'){if(st.step==='auth'){st.user.nome=($('#nome')||{}).value||st.user.nome;st.user.email=($('#email')||{}).value||st.user.email}st.step=v}
-  else if(a==='ans')st.A[q]=+v;
+  else if(a==='ans'){st.A[q]=+v;deriveA(st.A)}
   else if(a==='quiz')st.A[q]=+v;
   else if(a==='aml')st.aml[q]=+v;
   else if(a==='quizreset'){QUIZ.forEach(z=>delete st.A[z.id])}
@@ -1395,6 +1532,9 @@ document.addEventListener('change',e=>{
   else if(a==='impmesi'){const x=st.imp[+v];x.mesi=+t.value;x.data=x.mesi<60?impEnd(x.mesi):impDate({mesi:x.mesi});delete x.isin;delete x.parti}
   else if(a==='impsel'){const [i,j]=v.split(':').map(Number);partsOf(st.imp[i])[j].isin=t.value}
   else if(a==='impamtp'){const [i,j]=v.split(':').map(Number);partsOf(st.imp[i])[j].amt=Math.max(0,+t.value||0)}
+  else if(a==='atxt'){const q=t.dataset.q;let x=t.value;if(t.dataset.num)x=x===''?undefined:Math.max(0,Math.floor(+x));else if(q==='cf')x=x.toUpperCase().trim();st.A[q]=x;deriveA(st.A);qRefresh();save();return}
+  else if(a==='ms'){toggleMs(st.A,t.dataset.q,t.dataset.v)}
+  else if(a==='dich'){st.A.dich=t.checked?1:0}
   else if(a==='bAmt'){st.bAmt=Math.max(0,+t.value||0)}
   else if(a==='bYrs'){st.bYrs=Math.min(10,Math.max(1,+t.value||1))}
   else if(a==='w'){st.okpub=false;st.edit=st.edit||JSON.parse(JSON.stringify(PF()[st.aid].w));const x=Math.max(0,Math.min(100,+t.value||0));if(x)st.edit[v]=x;else delete st.edit[v]}
@@ -1405,7 +1545,7 @@ document.addEventListener('change',e=>{
   else return;
   render();
 });
-document.addEventListener('input',e=>{const t=e.target;if(t.id==='cerca'){st.q=t.value;const r=$('#risultati');if(r)r.innerHTML=risultatiHtml()}});
+document.addEventListener('input',e=>{const t=e.target;if(t.dataset&&t.dataset.act==='atxt'){const q=t.dataset.q;let x=t.value;if(t.dataset.num)x=x===''?undefined:Math.max(0,Math.floor(+x));else if(q==='cf')x=x.toUpperCase().trim();st.A[q]=x;qRefresh();return}if(t.id==='cerca'){st.q=t.value;const r=$('#risultati');if(r)r.innerHTML=risultatiHtml()}});
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.ch[data-act]')){e.preventDefault();e.target.click()}});
 loadTitoli(); // elenco BOT/BTP per la scelta delle spese previste
 try{fetch('modelli.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j&&j.portafogli){if(BE.on){BE.mod=j;if(BE.me&&BE.me.ruolo==='consulente')render()}else{syncModelli(j);save();render()}}}).catch(()=>{})}catch(e){}
