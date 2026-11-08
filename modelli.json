@@ -179,11 +179,11 @@
   "IE00BM67HT60": "Xtrackers MSCI World Information Technology 1C",
   "IE000Q2EQ5K8": "iShares iBonds Dec 2028 Term € Italy Govt (Dist)",
   "IE000JHMFVN7": "iShares iBonds Dec 2028 Term € Italy Govt (Acc)",
-  "IE000ZOI8OK5": "iShares iBonds Dec 2027 Term € Corp (Acc)",
-  "IE0008UEVOE0": "iShares iBonds Dec 2028 Term € Corp (Acc)",
-  "IE000264WWY0": "iShares iBonds Dec 2028 Term € Corp ESG (Dist)",
-  "IE000LX17BP9": "iShares iBonds Dec 2030 Term € Corp ESG (Dist)",
-  "IE000Y2BJVK9": "iShares iBonds Dec 2030 Term € Corp ESG (Acc)",
+  "IE000ZOI8OK5": "iShares iBonds Dec 2027 Term € Corp ESG Screened UCITS ETF EUR Acc",
+  "IE0008UEVOE0": "iShares iBonds Dec 2028 Term € Corp ESG Screened UCITS ETF EUR Acc",
+  "IE000264WWY0": "iShares iBonds Dec 2028 Term € Corp ESG Screened UCITS ETF EUR Dist",
+  "IE000LX17BP9": "iShares iBonds Dec 2030 Term € Corp ESG Screened UCITS ETF EUR Dist",
+  "IE000Y2BJVK9": "iShares iBonds Dec 2030 Term € Corp ESG Screened UCITS ETF EUR Acc",
   "IE00BL25JP72": "Xtrackers MSCI World Momentum UCITS ETF 1C"
  },
  "titoli": {
@@ -277,5 +277,83 @@
    "duration": 7.21,
    "vol_stimata": 7.21
   }
- }
+ },
+ "ibonds": {
+  "IE000Q2EQ5K8": {
+   "scadenza": "2028-12-03",
+   "duration_ref": 1.56,
+   "data_ref": "2026-11-05",
+   "spread_vol": 0,
+   "ter": 0.12,
+   "ytm_ref": 3.27,
+   "distribuzione": "trimestrale",
+   "nota": "Italia Govt Dic 2028 (Dist)"
+  },
+  "IE000JHMFVN7": {
+   "scadenza": "2028-12-03",
+   "duration_ref": 1.56,
+   "data_ref": "2026-11-02",
+   "spread_vol": 0,
+   "ter": 0.12,
+   "ytm_ref": 3.36,
+   "distribuzione": "accumulazione",
+   "nota": "Italia Govt Dic 2028 (Acc)"
+  },
+  "IE000ZOI8OK5": {
+   "scadenza": "2028-01-01",
+   "duration_ref": 0.71,
+   "data_ref": "2026-09-30",
+   "spread_vol": 0.8,
+   "rho_az": 0.3,
+   "ter": 0.12,
+   "ytm_ref": 3.28,
+   "distribuzione": "accumulazione",
+   "nota": "Corp ESG Screened Dic 2027 (Acc)"
+  },
+  "IE0008UEVOE0": {
+   "scadenza": "2028-12-03",
+   "duration_ref": 1.59,
+   "data_ref": "2026-11-05",
+   "spread_vol": 0.8,
+   "rho_az": 0.3,
+   "ter": 0.12,
+   "ytm_ref": 3.68,
+   "distribuzione": "accumulazione",
+   "nota": "Corp ESG Screened Dic 2028 (Acc)"
+  },
+  "IE000264WWY0": {
+   "scadenza": "2028-12-03",
+   "duration_ref": 1.59,
+   "data_ref": "2026-11-05",
+   "spread_vol": 0.8,
+   "rho_az": 0.3,
+   "ter": 0.12,
+   "ytm_ref": 3.68,
+   "distribuzione": "trimestrale",
+   "nota": "Corp ESG Screened Dic 2028 (Dist)"
+  },
+  "IE000LX17BP9": {
+   "scadenza": "2030-12-03",
+   "duration_ref": 3.54,
+   "data_ref": "2026-08-31",
+   "spread_vol": 0.8,
+   "rho_az": 0.3,
+   "ter": 0.12,
+   "ytm_ref": 3.64,
+   "distribuzione": "trimestrale (mar, giu, set, dic)",
+   "nota": "Corp ESG Screened Dic 2030 (Dist)"
+  },
+  "IE000Y2BJVK9": {
+   "scadenza": "2030-12-03",
+   "duration_ref": 3.54,
+   "data_ref": "2026-08-31",
+   "spread_vol": 0.8,
+   "rho_az": 0.3,
+   "ter": 0.12,
+   "ytm_ref": 3.64,
+   "distribuzione": "accumulazione",
+   "nota": "Corp ESG Screened Dic 2030 (Acc)"
+  }
+ },
+ "nota_ibonds": "Dati dalle schede prodotto iShares (scadenza = rimborso delle quote, duration effettiva e rendimento alla data_ref). Il rischio e' calcolato con la duration scalata col tempo residuo; spread_vol e rho_az sono ipotesi del consulente. Da aggiornare ogni mese."
 }

@@ -171,11 +171,11 @@ const RAW=[
 ['XMVOL','IE00BL25JN58','Xtrackers MSCI World Minimum Volatility UCITS ETF 1C','Azionario',50,.25,1,.8,0,11,7.5,'E'],
 ['DIVA','IE00BK5BR626','Vanguard FTSE All-World High Dividend Yield UCITS ETF (USD) Accumulating','Azionario',60,.29,1,.88,0,13,8,'E'],
 ['CASH','IE000JJPY166','iShares EUR Cash UCITS ETF EUR (Acc)','Monetario',100,.07,1,0,0,.4,2,'M'],
-['IB28','IE0008UEVOE0','iShares iBonds Dec 2028 Term € Corp UCITS ETF EUR Acc','Obbligazionario',5,.12,1,.3,.6,3,3,'B'],
-['I27C','IE000ZOI8OK5','iShares iBonds Dec 2027 Term € Corp UCITS ETF EUR Acc','Obbligazionario',100,0.12,1,0.3,0.4,2.2,3,'B'],
-['I28CD','IE000264WWY0','iShares iBonds Dec 2028 Term € Corp UCITS ETF EUR Dist','Obbligazionario',100,0.11,1,0.3,0.6,3,3,'B'],
-['I30C','IE000Y2BJVK9','iShares iBonds Dec 2030 Term € Corp UCITS ETF EUR Acc','Obbligazionario',100,0.12,1,0.3,1,4.5,3.2,'B'],
-['I30CD','IE000LX17BP9','iShares iBonds Dec 2030 Term € Corp UCITS ETF EUR Dist','Obbligazionario',100,0.12,1,0.3,1,4.5,3.2,'B'],
+['IB28','IE0008UEVOE0','iShares iBonds Dec 2028 Term € Corp ESG Screened UCITS ETF EUR Acc','Obbligazionario',5,.12,1,.3,.6,3,3,'B'],
+['I27C','IE000ZOI8OK5','iShares iBonds Dec 2027 Term € Corp ESG Screened UCITS ETF EUR Acc','Obbligazionario',100,0.12,1,0.3,0.4,2.2,3,'B'],
+['I28CD','IE000264WWY0','iShares iBonds Dec 2028 Term € Corp ESG Screened UCITS ETF EUR Dist','Obbligazionario',100,0.12,1,0.3,0.6,3,3,'B'],
+['I30C','IE000Y2BJVK9','iShares iBonds Dec 2030 Term € Corp ESG Screened UCITS ETF EUR Acc','Obbligazionario',100,0.12,1,0.3,1,4.5,3.2,'B'],
+['I30CD','IE000LX17BP9','iShares iBonds Dec 2030 Term € Corp ESG Screened UCITS ETF EUR Dist','Obbligazionario',100,0.12,1,0.3,1,4.5,3.2,'B'],
 ['I28ITA','IE000JHMFVN7','iShares iBonds Dec 2028 Term € Italy Govt Bond UCITS ETF EUR Acc','Obbligazionario',100,0.12,1,0.05,0.8,2.8,3,'B'],
 ['I28ITD','IE000Q2EQ5K8','iShares iBonds Dec 2028 Term € Italy Govt Bond UCITS ETF EUR Dist','Obbligazionario',100,0.12,1,0.05,0.8,2.8,3,'B'],
 ['XG13','LU0290356871','Xtrackers II Eurozone Government Bond 1-3 UCITS ETF 1C','Obbligazionario',200,.15,1,0,.5,1.8,1.5,'B'],
@@ -207,14 +207,14 @@ function rho(a,b){
   if(ga==='E'&&gb==='E'){if(s.some(x=>['TECH','EM','REIT'].includes(x)))return s.includes('REIT')?.8:.75;if(s.some(x=>['MVOL','HC'].includes(x)))return .85;return .92}
   if(ga==='B'&&gb==='B'){if(s.includes('HY'))return s.some(x=>['CORP','BESG'].includes(x))?.7:.45;if(s.includes('GOVS'))return s.includes('GOVM')?.6:.45;return .8}
   if(ga==='G'||gb==='G')return (ga==='B'||gb==='B')?.2:.1;
-  const bnd=ga==='B'?a:b;return bnd==='HY'?.65:bnd==='CORP'?.4:bnd==='BESG'?.3:.1;
+  const bnd=ga==='B'?a:b;if(BY[bnd].ib)return BY[bnd].sp>0?.3:.1;return bnd==='HY'?.65:bnd==='CORP'?.4:bnd==='BESG'?.3:.1;
 }
 let REAL=null; // volatilità e correlazioni reali (5 anni), lette da monitor.json
 function setReal(m){REAL=null;if(!m||!m.isin||!m.sd||!m.corr)return;const ix={};m.isin.forEach((x,i)=>ix[x]=i);REAL={ix,sd:m.sd,corr:m.corr,giorni:m.giorni}}
 function varAnnuo(w){if(w&&w.__pub)return w.__pub.va; // VaR parametrico 99% annuo (%): dati reali dove ci sono, ipotesi per classe (o duration, per i titoli di Stato) altrove
   const ks=Object.keys(w);let v=0;
-  const ri=k=>REAL&&BY[k]&&!BY[k].bond?REAL.ix[BY[k].isin]:undefined;
-  const vol=k=>{const i=ri(k);return i!==undefined?REAL.sd[i]*16*100:(BY[k]&&BY[k].bond?BY[k].vol:(VOLA[k]!==undefined?VOLA[k]:BY[k].vol))};
+  const ri=k=>REAL&&BY[k]&&!BY[k].bond&&!BY[k].ib?REAL.ix[BY[k].isin]:undefined;
+  const vol=k=>{const i=ri(k);if(BY[k]&&BY[k].ib)return volIB(BY[k]);return i!==undefined?REAL.sd[i]*16*100:(BY[k]&&BY[k].bond?BY[k].vol:(VOLA[k]!==undefined?VOLA[k]:BY[k].vol))};
   ks.forEach(a=>ks.forEach(b=>{const i=ri(a),j=ri(b);v+=w[a]/100*w[b]/100*vol(a)*vol(b)*((i!==undefined&&j!==undefined)?REAL.corr[i][j]:rho(a,b))}));
   return 2.326*Math.sqrt(v);
 }
@@ -286,6 +286,17 @@ function addIns(r){ // r: {isin,nome,prezzo,sd,k?}
 /* titoli di Stato dei portafogli modello (anagrafica MEF): così l'app funziona anche prima di caricare titoli_stato.json */
 const TS_MODELLI=[{"isin": "IT0005735094", "nome": "BOT 365 gg 14.10.2026 - 14.10.2027", "tipo": "BOT", "serie": "BOT", "tasso": 0.0, "scad": "2027-10-14"}, {"isin": "IT0005323032", "nome": "BTP 2% 1.2.2018 - 1.2.2028", "tipo": "BTP", "serie": "BTP", "tasso": 2.0, "scad": "2028-02-01"}, {"isin": "IT0005521981", "nome": "BTP 3,4% 30.11.2022 - 1.4.2028", "tipo": "BTP", "serie": "BTP", "tasso": 3.4, "scad": "2028-04-01"}, {"isin": "IT0001278511", "nome": "BTP 5,25% 1.11.1998 - 1.11.2029", "tipo": "BTP", "serie": "BTP", "tasso": 5.25, "scad": "2029-11-01"}, {"isin": "IT0005733636", "nome": "BTP 3,95% 1.10.2026 - 1.2.2032", "tipo": "BTP", "serie": "BTP", "tasso": 2.64, "scad": "2032-02-01"}, {"isin": "IT0005024234", "nome": "BTP 3,5% 1.3.2014 - 1.3.2030", "tipo": "BTP", "serie": "BTP", "tasso": 3.5, "scad": "2030-03-01"}, {"isin": "IT0005542359", "nome": "BTPGREEN 4% 13.4.2023 - 30.10.2031", "tipo": "BTP", "serie": "BTP Green", "tasso": 4.0, "scad": "2031-10-30"}, {"isin": "IT0005508590", "nome": "BTPGREEN 4% 30.4.2022 - 30.4.2035", "tipo": "BTP", "serie": "BTP Green", "tasso": 4.0, "scad": "2035-04-30"}, {"isin": "IT0005542797", "nome": "BTP 3,7% 17.4.2023 - 15.6.2030", "tipo": "BTP", "serie": "BTP", "tasso": 3.7, "scad": "2030-06-15"}];
 TS_MODELLI.forEach(addBond);
+/* ETF A SCADENZA (iBonds): hanno una data di fine, quindi la duration scende col tempo. Il rischio si calcola come per un'obbligazione con quella scadenza
+   (Italia = come un BTP di pari scadenza; corporate = stessa duration + rischio di spread), non come un ETF a duration costante. Date indicative: verificare sulle schede iShares. */
+const IBM={ // scad = data di rimborso delle quote (scheda iShares); dref = duration effettiva dichiarata da iShares alla data dd. Aggiornare periodicamente (vedi ibonds_dati in modelli.json).
+ IE000Q2EQ5K8:{scad:'2028-12-03',dref:1.56,dd:'2026-11-05',sp:0},IE000JHMFVN7:{scad:'2028-12-03',dref:1.56,dd:'2026-11-02',sp:0},
+ IE000ZOI8OK5:{scad:'2028-01-01',dref:.71,dd:'2026-09-30',sp:.8,rhoAz:.3},
+ IE0008UEVOE0:{scad:'2028-12-03',dref:1.59,dd:'2026-11-05',sp:.8,rhoAz:.3},IE000264WWY0:{scad:'2028-12-03',dref:1.59,dd:'2026-11-05',sp:.8,rhoAz:.3},
+ IE000LX17BP9:{scad:'2030-12-03',dref:3.54,dd:'2026-08-31',sp:.8,rhoAz:.3},IE000Y2BJVK9:{scad:'2030-12-03',dref:3.54,dd:'2026-08-31',sp:.8,rhoAz:.3}};
+// duration oggi = duration dichiarata alla data di riferimento, scalata col tempo residuo alla scadenza (approssimazione lineare)
+const durIB=(i,oggi)=>{oggi=oggi||new Date();const T=(new Date(i.scad)-oggi)/(365.25*864e5),T0=(new Date(i.scad)-new Date(i.dd))/(365.25*864e5);return T>0&&T0>0?Math.max(0,i.dref*T/T0):0};
+const volIB=i=>Math.max(.1,durIB(i)*Math.sqrt(TS_SY*TS_SY+(i.sp||0)*(i.sp||0)));
+INS.forEach(i=>{const m=IBM[i.isin];if(m){i.ib=true;i.scad=m.scad;i.sp=m.sp;i.dref=m.dref;i.dd=m.dd;i.dur=durIB(i);i.vol=volIB(i)}});
 /* ======================= QUESTIONARIO (domande Binario F, scoring a soglie) ======================= */
 /* pt = punti per risposta; cap = tetto di fascia (0 Basso … 3 Alto) per risposta */
 const QUIZ=[
@@ -1447,6 +1458,7 @@ function esportaModelli(){
   const pesi={},out={nota:"Pesi dei portafogli modello per ISIN. 'ultimo_ribilanciamento' è la data dell'ultima volta che i clienti hanno riportato il portafoglio ai pesi del modello: aggiornala quando pubblichi una variazione. 'fascia' è la fascia dichiarata (0 Basso, 1 Medio-basso, 2 Medio-alto, 3 Alto).",portafogli:{},soglie:{deriva_punti:5,preavviso_var:0.9},nomi:{}};
   Object.entries(PF()).forEach(([id,p])=>{const o={};Object.entries(p.w).forEach(([k,x])=>{if(BY[k]){o[BY[k].isin]=x;out.nomi[BY[k].isin]=BY[k].name;if(BY[k].bond){out.titoli=out.titoli||{};out.titoli[BY[k].isin]={nome:BY[k].name,tipo:BY[k].tipo,serie:BY[k].serie,tasso:BY[k].tasso,scadenza:BY[k].scad,duration:Math.round(BY[k].dur*100)/100,vol_stimata:Math.round(BY[k].vol*100)/100}}}});
     out.portafogli[id]={nome:p.nome,fascia:fasciaDich(id),ultimo_ribilanciamento:(st.rib&&st.rib[id])||'2026-10-31',pesi:o}});
+  out.ibonds={};Object.entries(IBM).forEach(([isin,m])=>{out.ibonds[isin]={scadenza:m.scad,duration_ref:m.dref,data_ref:m.dd,spread_vol:m.sp,rho_az:m.rhoAz}});
   return JSON.stringify(out,null,1);
 }
 const GHK='bf-ghtok';

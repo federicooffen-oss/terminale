@@ -34,7 +34,7 @@ def rho_titolo(g):  # correlazione ipotizzata tra un titolo di Stato e uno strum
 def var_annuo(w,rets):
     """VaR annuo (%) di un portafoglio con pesi w (dict isin->frazione): ETF da covarianza campionaria (media zero);
     titoli di Stato da duration (vol. = duration x 1 punto) con correlazioni ipotizzate. Giorni = radice di 256."""
-    ec=[c for c in w if c in rets.columns];bc=[c for c in w if c in BONDS]
+    ec=[c for c in w if c in rets.columns and c not in BONDS];bc=[c for c in w if c in BONDS]
     cols=ec+bc;x=np.array([w[c] for c in cols]);x=x/x.sum()
     sub=rets[ec].dropna() if ec else None            # finestra comune: solo i giorni in cui esistono tutti gli strumenti
     if sub is not None and len(sub)<250:sub=rets[ec]
@@ -46,7 +46,9 @@ def var_annuo(w,rets):
         for b,cb in enumerate(bc):
             cov[i,len(ec)+b]=sd_b[a]*sd_b[b]*(1 if a==b else .8)
         for j,ce in enumerate(ec):
-            sdj=float(np.sqrt(max(cov[j,j],0)));cov[i,j]=cov[j,i]=sd_b[a]*sdj*rho_titolo(GRP.get(ce,'E'))
+            sdj=float(np.sqrt(max(cov[j,j],0)));g_=GRP.get(ce,'E');rh=rho_titolo(g_)
+            if g_=='E' and BONDS[ca].get('rho_az') is not None:rh=BONDS[ca]['rho_az']      # ETF a scadenza corporate: piu' legati all'azionario dei titoli di Stato
+            cov[i,j]=cov[j,i]=sd_b[a]*sdj*rh
     sd=float(np.sqrt(max(x@cov@x,0.0)))
     return Z*sd*np.sqrt(GG)*100
 def band_of(v):return next((i for i,m in enumerate(BAND_MAX) if v<=m),3)
@@ -150,6 +152,29 @@ def scarica(tick):
             for i in isl:out[i]=df[t]
     return pd.DataFrame(out).dropna(how='all').ffill()
 
+def applica_proxy(prices,prox_cfg,minimo=250):
+    """ETF recenti (es. iBonds a scadenza): dove manca lo storico uso i rendimenti di ETF simili e piu' vecchi (media), indicati a mano in
+    proxy_storico.json. I prezzi reali restano quelli veri; il tratto mancante e' ricostruito all'indietro. Restituisce (prezzi, dict isin->info)."""
+    info={}
+    for isin,cfgp in prox_cfg.items():
+        if isin.startswith('_'):continue
+        pr=[p for p in cfgp.get('proxy',[]) if p in prices.columns and prices[p].dropna().shape[0]>=500]
+        if not pr:continue
+        rp=prices[pr].pct_change(fill_method=None).where(lambda d:d.abs()<0.15).mean(axis=1,skipna=True).dropna()
+        own=prices[isin].dropna() if isin in prices.columns else pd.Series(dtype=float)
+        if len(own)>=minimo:continue
+        if len(own):
+            primo=own.index[0];base=float(own.iloc[0]);rr=rp[rp.index<=primo]
+            if rr.empty:continue
+            cum=(1+rr).cumprod();back=base*cum/float(cum.iloc[-1]);back=back[back.index<primo]
+            full=pd.concat([back,own])
+        else:
+            cum=(1+rp).cumprod();full=100.0*cum/float(cum.iloc[-1])
+        full=full[~full.index.duplicated(keep='last')].sort_index()
+        prices[isin]=full.reindex(prices.index).ffill()
+        info[isin]={'proxy':pr,'giorni_reali':int(len(own)),'senza_prezzo_proprio':not len(own),'nota':cfgp.get('nota','')}
+    return prices,info
+
 def backtest(cfg,prices,anni=5):
     """Storico retrospettivo dei portafogli modello (pesi attuali, ribilanciamento periodico, al lordo dei costi di consulenza).
     Dove manca lo storico di uno strumento uso un sostituto simile: per un ETF recente la media degli ETF dello stesso gruppo
@@ -202,6 +227,12 @@ def main():
     BONDS.clear()
     for i,t in (cfg.get('titoli') or {}).items():
         d=durata_mod(t);BONDS[i]={'nome':t.get('nome',i),'tipo':t.get('tipo'),'tasso':t.get('tasso'),'scadenza':t['scadenza'],'vol':max(.1,d*TS_SY),'duration':round(d,2)}
+    # ETF a scadenza (iBonds): rischio come un'obbligazione con la loro scadenza (duration che scende col tempo), non come un ETF a duration costante.
+    # Italia: come un BTP di pari scadenza. Corporate: la stessa duration, piu' un rischio di spread (volatilita' annua dello spread in punti).
+    for i,t in (cfg.get('ibonds') or {}).items():
+        T=(dt.date.fromisoformat(t['scadenza'])-dt.date.today()).days/365.25;T0=(dt.date.fromisoformat(t['scadenza'])-dt.date.fromisoformat(t['data_ref'])).days/365.25
+        d=max(0.0,t['duration_ref']*T/T0) if T>0 and T0>0 else 0.0     # duration effettiva dichiarata da iShares, scalata col tempo residuo
+        BONDS[i]={'nome':(cfg.get('nomi') or {}).get(i,i),'tipo':'ETF a scadenza','tasso':None,'scadenza':t['scadenza'],'vol':max(.1,d*float(np.sqrt(TS_SY**2+float(t.get('spread_vol',0))**2))),'duration':round(d,2),'rho_az':t.get('rho_az'),'ib':True}
     isins_pf=sorted({c for p in cfg['portafogli'].values() for c in p['pesi'] if c not in BONDS})
     cat_p=os.path.join(BASE,'catalogo_isin.json')
     seed=json.load(open(cat_p)) if os.path.exists(cat_p) else []
@@ -214,11 +245,17 @@ def main():
             if i_ in nomi:nomi_y[i_]=nomi[i_]      # per i ticker forzati a mano vale il nome mio, non quello di Yahoo
     except Exception:pass
     prices=scarica(tick)
+    try:prox_cfg=json.load(open(os.path.join(BASE,'proxy_storico.json')))
+    except Exception:prox_cfg={}
+    for i_ in prox_cfg:
+        if not i_.startswith('_') and i_ not in prices.columns:prices[i_]=np.nan
+    prices,proxy_usati=applica_proxy(prices,prox_cfg)
     ok=[i for i in tutti if i in prices.columns and prices[i].dropna().shape[0]>=60]   # ETF recenti: li tengo, 'n' dice quanti giorni di storico ci sono
     # stesso codice di borsa per più ISIN (classi diverse dello stesso ETF o abbinamento sbagliato): tengo il primo, segnalo gli altri
     visto={};ambigui=[]
     for i in list(ok):
-        t=tick[i]
+        t=tick.get(i)
+        if t is None:continue
         if t in visto:ambigui.append({'isin':i,'uguale_a':visto[t],'ticker':t});ok.remove(i)
         else:visto[t]=i
     mancanti=[i for i in isins_pf if i not in ok]
@@ -232,9 +269,9 @@ def main():
     for c in ok:
         vol=float(rets[c].std())*16*100 if c in rets.columns else None;n=nomi.get(c,'')
         if vol is not None and re.search(r'bond|govt|government',n,re.I) and not re.search(r'0-6|0-1|overnight|ultrashort|cash|floating|rolling|target|ibonds',n,re.I) and vol<1.0:
-            anomalie.append({'isin':c,'nome':n,'ticker':tick[c],'volatilita_annua':round(vol,2),'messaggio':'Volatilità quasi nulla per un obbligazionario: probabile ETF diverso da quello atteso. Verifica il codice di borsa.'})
+            anomalie.append({'isin':c,'nome':n,'ticker':tick.get(c,''),'volatilita_annua':round(vol,2),'messaggio':'Volatilità quasi nulla per un obbligazionario: probabile ETF diverso da quello atteso. Verifica il codice di borsa.'})
     adesso=dt.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')
-    out={'aggiornato':adesso,'ultimo_prezzo':str(prices.index[-1].date()),'strumenti_senza_dati':mancanti,'anomalie':[a for a in anomalie if a['isin'] in isins_pf],'mercato':mercato,'portafogli':res}
+    out={'aggiornato':adesso,'ultimo_prezzo':str(prices.index[-1].date()),'strumenti_senza_dati':mancanti,'storico_ricostruito':proxy_usati,'anomalie':[a for a in anomalie if a['isin'] in isins_pf],'mercato':mercato,'portafogli':res}
     json.dump(out,open(out_path,'w'),ensure_ascii=False,indent=1)
     print('OK',out['ultimo_prezzo'],'portafogli senza dati:',mancanti)
     try:
@@ -248,7 +285,7 @@ def main():
     # catalogo completo (per la ricerca nell'app): prezzo, volatilità e correlazioni reali di ogni strumento
     ca=[c for c in tutti if c in ok]
     rc=rets[ca]
-    cat={'aggiornato':adesso,'strumenti':[{'isin':c,'nome':nomi_y.get(c) or nomi.get(c,c),'ticker':tick[c],'prezzo':ultimo(c),'sd':round(float(rc[c].std()),6),'n':int(rc[c].count())} for c in ca],
+    cat={'aggiornato':adesso,'strumenti':[{'isin':c,'nome':nomi_y.get(c) or nomi.get(c,c),'ticker':tick.get(c,''),'prezzo':(None if proxy_usati.get(c,{}).get('senza_prezzo_proprio') else ultimo(c)),'sd':round(float(rc[c].std()),6),'n':int(rc[c].count())} for c in ca],
          'senza_prezzo':[{'isin':c,'nome':nomi.get(c,c)} for c in tutti if c not in ok and c not in [a['isin'] for a in ambigui]],'ambigui':ambigui,'anomalie':anomalie,
          'corr':[[int(round(float(x)*100)) for x in r] for r in rc.corr(min_periods=120).fillna(0).values],'giorni':int(len(rc))}
     json.dump(cat,open(os.path.join(BASE,'catalogo.json'),'w'),ensure_ascii=False,separators=(',',':'))

@@ -1,0 +1,7 @@
+{
+ "_nota": "ETF recenti senza storico sufficiente: per il calcolo di VaR e correlazioni uso la media dei rendimenti di ETF simili e piu' vecchi (proxy). Il tratto ricostruito e' un'approssimazione; si sostituisce da solo con i dati reali man mano che passano i giorni (sotto 250 giorni reali il proxy resta attivo).",
+ "IE000Q2EQ5K8": {"proxy": ["LU1598691050"], "nota": "iBonds Dec 2028 Italy Govt (Dist): proxy Amundi Italy BTP 1-3Y"},
+ "IE000JHMFVN7": {"proxy": ["LU1598691050"], "nota": "iBonds Dec 2028 Italy Govt (Acc): proxy Amundi Italy BTP 1-3Y"},
+ "IE000LX17BP9": {"proxy": ["LU1525418643", "LU1437018168"], "nota": "iBonds Dec 2030 Corp ESG (Dist): media Amundi EUR Corp 1-5Y ESG e EUR Corp ESG"},
+ "IE000Y2BJVK9": {"proxy": ["LU1525418643", "LU1437018168"], "nota": "iBonds Dec 2030 Corp ESG (Acc): media Amundi EUR Corp 1-5Y ESG e EUR Corp ESG"}
+}
