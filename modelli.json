@@ -6,9 +6,9 @@
    "fascia": 0,
    "ultimo_ribilanciamento": "2026-11-04",
    "pesi": {
-    "IT0005735094": 30,
-    "LU0290358497": 60,
-    "LU1650487413": 10
+    "LU0290358497": 65,
+    "LU1650487413": 25,
+    "IE000ZOI8OK5": 10
    }
   },
   "P2": {
@@ -16,12 +16,12 @@
    "fascia": 0,
    "ultimo_ribilanciamento": "2026-11-04",
    "pesi": {
-    "IE00BK5BQT80": 7,
-    "IT0005388167": 10,
-    "IT0005532723": 10,
-    "LU0290358497": 25,
     "LU1650487413": 40,
-    "LU1650491282": 8
+    "LU0290358497": 25,
+    "IE0008UEVOE0": 10,
+    "IE000JHMFVN7": 10,
+    "LU1650491282": 8,
+    "IE00BK5BQT80": 7
    }
   },
   "P3": {
@@ -29,13 +29,12 @@
    "fascia": 1,
    "ultimo_ribilanciamento": "2026-11-04",
    "pesi": {
+    "IE000Q2EQ5K8": 30,
+    "LU2082999306": 20,
+    "LU1650487926": 15,
+    "IE000LX17BP9": 15,
     "FR0007056841": 10,
-    "IE00B8GKDB10": 10,
-    "IT0001278511": 15,
-    "IT0005521981": 20,
-    "IT0005733636": 15,
-    "LU1650487926": 10,
-    "LU2082999306": 20
+    "IE00B8GKDB10": 10
    }
   },
   "P4": {
@@ -43,13 +42,13 @@
    "fascia": 1,
    "ultimo_ribilanciamento": "2026-11-04",
    "pesi": {
-    "IE00B8FHGS14": 10,
-    "IE00BJ0KDQ92": 5,
-    "IE00BL25JL35": 15,
-    "IT0005024234": 10,
-    "LU0290358497": 15,
     "LU1650487413": 35,
-    "LU1650491282": 10
+    "IE00BL25JL35": 15,
+    "LU0290358497": 15,
+    "IE00B8FHGS14": 10,
+    "LU1650491282": 10,
+    "IE000Y2BJVK9": 10,
+    "IE00BL25JP72": 5
    }
   },
   "P5": {
@@ -57,13 +56,13 @@
    "fascia": 1,
    "ultimo_ribilanciamento": "2026-11-04",
    "pesi": {
-    "IE000LAUZQT6": 5,
+    "LU1650487413": 28,
     "IE00BCHWNQ94": 18,
-    "IE00BG370F43": 7,
-    "IT0005542359": 15,
     "LU0290358497": 15,
-    "LU1650487413": 25,
-    "LU2182388236": 15
+    "LU2182388236": 15,
+    "IE000Y2BJVK9": 10,
+    "IE000LAUZQT6": 7,
+    "IE00BG370F43": 7
    }
   },
   "P6": {
@@ -86,12 +85,12 @@
    "ultimo_ribilanciamento": "2026-11-04",
    "pesi": {
     "FR0010315770": 25,
-    "IE00B8GKDB10": 15,
-    "IT0005542797": 10,
-    "LU0832436512": 15,
-    "LU1435356149": 5,
     "LU1650487926": 20,
-    "LU2082999306": 10
+    "IE00B8GKDB10": 15,
+    "LU0832436512": 15,
+    "LU2082999306": 10,
+    "IE000Q2EQ5K8": 10,
+    "LU1435356149": 5
    }
   },
   "P8": {
@@ -99,13 +98,13 @@
    "fascia": 2,
    "ultimo_ribilanciamento": "2026-11-05",
    "pesi": {
-    "IE000LAUZQT6": 13,
     "IE00BCHWNQ94": 45,
-    "IE00BG370F43": 7,
-    "IT0005508590": 10,
-    "LU0290358497": 5,
+    "IE000LAUZQT6": 13,
     "LU1650487413": 10,
-    "LU2182388236": 10
+    "LU2182388236": 10,
+    "IE000Y2BJVK9": 10,
+    "IE00BG370F43": 7,
+    "LU0290358497": 5
    }
   },
   "P9": {
@@ -177,7 +176,15 @@
   "IT0005508590": "BTPGREEN 4% 30.4.2022 - 30.4.2035",
   "FR0013416716": "Amundi Physical Gold ETC (C)",
   "IE00BF4RFH31": "iShares MSCI World Small Cap (Acc)",
-  "IE00BM67HT60": "Xtrackers MSCI World Information Technology 1C"
+  "IE00BM67HT60": "Xtrackers MSCI World Information Technology 1C",
+  "IE000Q2EQ5K8": "iShares iBonds Dec 2028 Term € Italy Govt (Dist)",
+  "IE000JHMFVN7": "iShares iBonds Dec 2028 Term € Italy Govt (Acc)",
+  "IE000ZOI8OK5": "iShares iBonds Dec 2027 Term € Corp (Acc)",
+  "IE0008UEVOE0": "iShares iBonds Dec 2028 Term € Corp (Acc)",
+  "IE000264WWY0": "iShares iBonds Dec 2028 Term € Corp ESG (Dist)",
+  "IE000LX17BP9": "iShares iBonds Dec 2030 Term € Corp ESG (Dist)",
+  "IE000Y2BJVK9": "iShares iBonds Dec 2030 Term € Corp ESG (Acc)",
+  "IE00BL25JP72": "Xtrackers MSCI World Momentum UCITS ETF 1C"
  },
  "titoli": {
   "IT0005735094": {
