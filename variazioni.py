@@ -41,6 +41,23 @@ def serie(df,t):
         s=df[t]['Close'] if isinstance(df.columns,pd.MultiIndex) else df['Close']
         return s.dropna()
     except Exception:return None
+
+def var_portafogli(righe):
+    """VaR dei portafogli aggiornato con i prezzi di adesso: parte dai pesi dell'ultimo monitoraggio (monitor.json) e li fa muovere con i prezzi
+    da allora. Scrive var_portafogli.csv (numeri interi x100, come variazioni.csv)."""
+    import monitor as M
+    m=jl('monitor.json',{})
+    if not m.get('portafogli') or 'bonds' not in m or not m.get('mercato'):print('var_portafogli: monitor.json non ancora aggiornato, salto');return
+    merc=m['mercato'];lp=dict(zip(merc['isin'],merc['prezzi']));px={r['isin']:r['p'] for r in righe}
+    soglia=(jl('modelli.json',{}).get('soglie') or {}).get('preavviso_var',0.9)
+    ora=int(dt.datetime.now(ZoneInfo('Europe/Rome')).strftime('%Y%m%d%H%M'));out=['id,fascia,limite,var_modello,var_ultimo,var_ora,var_ieri,stato,ora']
+    c100=lambda x:'' if x is None else str(int(round(float(x)*100)))
+    for k,p in m['portafogli'].items():
+        w={c:x/100*((px[c]/lp[c]) if c in px and lp.get(c,0)>0 else 1.0) for c,x in p['pesi_attuali'].items()}
+        v=M.var_da_mercato(w,merc,m['bonds'],m.get('grp',{}));lim=p['limite']
+        stato='allarme' if v>lim else 'preavviso' if v>=lim*soglia else 'ok'
+        out.append(','.join([k,str(p['fascia']),c100(lim),c100(p['var_modello']),c100(p['var_attuale']),c100(v),c100(p.get('var_ieri')),stato,str(ora)]))
+    open(os.path.join(BASE,'var_portafogli.csv'),'w').write('\n'.join(out)+'\n');print('var_portafogli.csv:',len(out)-1,'portafogli')
 def main():
     import yfinance as yf
     nomi,ordine=universo();tick=trova_ticker(nomi,ordine,yf)
@@ -65,5 +82,7 @@ def main():
         out.append('%s,%s,%d,%d,%s,%d,%d'%(r['isin'],r['ticker'],round(r['p']*1e4),round(r['pp']*1e4),bp,r['d'],ora))
     open(os.path.join(BASE,'variazioni.csv'),'w').write('\n'.join(out)+'\n')
     print('variazioni.csv:',len(righe),'strumenti su',len(ordine),'· seduta',dmax)
+    try:var_portafogli(righe)
+    except Exception as e:print('var_portafogli non calcolato:',e)
     return 0
 if __name__=='__main__':sys.exit(main())

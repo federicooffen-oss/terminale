@@ -53,6 +53,25 @@ def var_annuo(w,rets):
             cov[i,j]=cov[j,i]=sd_b[a]*sdj*rh
     sd=float(np.sqrt(max(x@cov@x,0.0)))
     return Z*sd*np.sqrt(GG)*100
+
+def var_da_mercato(w,merc,bonds,grp):
+    """Stesso calcolo di var_annuo, ma partendo da sd e correlazioni gia' esportate in monitor.json ('mercato'): serve per aggiornare il VaR durante la giornata
+    (variazioni.py) senza riscaricare lo storico. w: isin->peso; bonds: isin->{vol,rho_az}; grp: isin->gruppo."""
+    ix={c:i for i,c in enumerate(merc['isin'])}
+    ec=[c for c in w if c in ix and c not in bonds];bc=[c for c in w if c in bonds]
+    cols=ec+bc;x=np.array([w[c] for c in cols],dtype=float);x=x/x.sum();n=len(cols);cov=np.zeros((n,n))
+    for a,ca in enumerate(ec):
+        for b,cb in enumerate(ec):
+            cov[a,b]=round(merc['corr'][ix[ca]][ix[cb]],2)*merc['sd'][ix[ca]]*merc['sd'][ix[cb]]
+    sd_b=[bonds[c]['vol']/100/np.sqrt(GG) for c in bc]
+    for a,ca in enumerate(bc):
+        i=len(ec)+a
+        for b in range(len(bc)):cov[i,len(ec)+b]=sd_b[a]*sd_b[b]*(1 if a==b else .8)
+        for j,ce in enumerate(ec):
+            g_=grp.get(ce,'E');rh=rho_titolo(g_)
+            if g_=='E' and bonds[ca].get('rho_az') is not None:rh=bonds[ca]['rho_az']
+            cov[i,j]=cov[j,i]=sd_b[a]*float(np.sqrt(max(cov[j,j],0)))*rh
+    return Z*float(np.sqrt(max(x@cov@x,0.0)))*np.sqrt(GG)*100
 def band_of(v):return next((i for i,m in enumerate(BAND_MAX) if v<=m),3)
 def deriva(w,prices,date0):
     """Pesi attuali se il cliente ha ribilanciato in date0 e non ha più toccato nulla."""
@@ -85,7 +104,9 @@ def valuta(cfg,prices,prev=None):
         if dm>=th['deriva_punti']:
             if stato=='ok':stato='preavviso'
             msgs.append(f"Un peso si è spostato di {dm:.1f} punti dal modello dall'ultimo ribilanciamento ({p['ultimo_ribilanciamento']}): valuta un ribilanciamento.")
-        res[k]={'nome':p['nome'],'fascia':p['fascia'],'limite':lim,'var_modello':round(v0,2),'var_attuale':round(vd,2),'deriva_max':round(dm,2),'stato':stato,'messaggi':msgs,
+        oggi_s=dt.datetime.utcnow().strftime('%Y-%m-%d');p0=prev.get(k,{})
+        v_ieri=p0.get('var_ieri') if p0.get('data_calcolo')==oggi_s else p0.get('var_attuale')      # VaR dell'ultimo calcolo di un giorno precedente
+        res[k]={'data_calcolo':oggi_s,'var_ieri':v_ieri,'nome':p['nome'],'fascia':p['fascia'],'limite':lim,'var_modello':round(v0,2),'var_attuale':round(vd,2),'deriva_max':round(dm,2),'stato':stato,'messaggi':msgs,
                 'pesi_attuali':{c:round(wd[c]*100,2) for c in wd}}
         if stato!='ok' and prev.get(k,{}).get('stato')!=stato:avvisi.append((k,p['nome'],stato,msgs))
     return res,avvisi
@@ -266,6 +287,7 @@ def main():
     ultimo=lambda c:round(float(prices[c].dropna().iloc[-1]),4)
     cols=[c for c in isins_pf if c in ok]
     mercato={'isin':cols,'sd':[round(float(rets[c].std()),6) for c in cols],'prezzi':[ultimo(c) for c in cols],'corr':[[round(float(x),3) for x in r] for r in rets[cols].corr(min_periods=120).fillna(0).values],'giorni':int(len(rets)),'storico':[int(rets[c].count()) for c in cols]}
+    bonds_exp={c:{'vol':round(float(b['vol']),4),'rho_az':b.get('rho_az')} for c,b in BONDS.items()};grp_exp={c:GRP.get(c,'E') for c in cols}
     # controllo di coerenza: obbligazionari "normali" con volatilità quasi nulla = probabile ETF sbagliato (es. 0-6 mesi)
     anomalie=[]
     for c in ok:
@@ -273,7 +295,7 @@ def main():
         if vol is not None and re.search(r'bond|govt|government',n,re.I) and not re.search(r'0-6|0-1|overnight|ultrashort|cash|floating|rolling|target|ibonds',n,re.I) and vol<1.0:
             anomalie.append({'isin':c,'nome':n,'ticker':tick.get(c,''),'volatilita_annua':round(vol,2),'messaggio':'Volatilità quasi nulla per un obbligazionario: probabile ETF diverso da quello atteso. Verifica il codice di borsa.'})
     adesso=dt.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')
-    out={'aggiornato':adesso,'ultimo_prezzo':str(prices.index[-1].date()),'strumenti_senza_dati':mancanti,'storico_ricostruito':proxy_usati,'anomalie':[a for a in anomalie if a['isin'] in isins_pf],'mercato':mercato,'portafogli':res}
+    out={'aggiornato':adesso,'ultimo_prezzo':str(prices.index[-1].date()),'strumenti_senza_dati':mancanti,'storico_ricostruito':proxy_usati,'bonds':bonds_exp,'grp':grp_exp,'anomalie':[a for a in anomalie if a['isin'] in isins_pf],'mercato':mercato,'portafogli':res}
     json.dump(out,open(out_path,'w'),ensure_ascii=False,indent=1)
     print('OK',out['ultimo_prezzo'],'portafogli senza dati:',mancanti)
     try:
