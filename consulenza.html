@@ -513,7 +513,7 @@ function mergeLines(w,tier,capital){ // accorpa le righe piccole nel comparto pi
   while(true){
     L.sort((a,b)=>b.p-a.p);
     const small=L[L.length-1];
-    if(L.length<=tier.max&&small.p>=minPct-1e-9)break;
+    if(L.length<=tier.max)break;   // sempre fino a 3 strumenti: con soglie piu' alte (1.000 € per riga) a 3.000-5.000 € si finiva con 1-2 strumenti e il rischio usciva dalla fascia
     if(L.length===1)break;
     const rest=L.slice(0,-1),tgt=rest.find(x=>cls(x.k)===cls(small.k))||rest[0];
     tgt.p+=small.p;merged.push([small.k,tgt.k]);L.pop();
@@ -874,7 +874,8 @@ async function beLoadClient(){
   const {data:c,error}=await BE.sb.from('clienti').select('*').eq('id',BE.me.id).single();if(error)throw error;
   BE.cli=c;const d=c.dati||{};
   Object.assign(st,{A:d.A||{},aml:d.aml||{},capital:d.capitale!=null?d.capitale:20000,monthly:d.monthly!=null?d.monthly:250,variant:d.variant||'classic',bonds:d.bonds||'etf',contract:d.contract||'cont',imp:d.spese||[],
-    profile:c.profilo||null,chosen:c.portafoglio||null,tab:d.tab||'portafoglio',status:SLOCAL[c.stato]||'none',chiusoDal:c.uscito_il?new Date(c.uscito_il).getTime():null});
+    revisioni:d.revisioni||[],profile:c.profilo||null,chosen:c.portafoglio||null,tab:d.tab||'portafoglio',status:SLOCAL[c.stato]||'none',chiusoDal:c.uscito_il?new Date(c.uscito_il).getTime():null});
+  {const lr=(d.revisioni||[]).filter(r=>r.esito==='confermato'||r.esito==='applicato').slice(-1)[0];if(lr&&lr.A&&lr.profilo){st.A=lr.A;st.profile=lr.profilo}}
   if(SEARLY.includes(c.stato)){st.step=(d.step&&STEPS.includes(d.step)&&d.step!=='auth')?d.step:'quest';if(st.step==='profilo'&&!st.profile)st.step='quest'}
   else st.step='stato';
   if(c.stato==='attivo'||c.stato==='scaduto'){await beLoadRacc();
@@ -938,6 +939,18 @@ async function beCambiaStato(cid,stato){
   const {error}=await BE.sb.from('clienti').update({stato}).eq('id',cid);
   if(error){beMsg(beErr(error),1)}else{beMsg('Stato aggiornato: '+SNOME[stato]+'.')}
   await beLoadAdmin();render();
+}
+async function beSaveRev(){ // la revisione si AGGIUNGE allo storico (dati.revisioni): non sovrascrive le risposte originali
+  if(!BE.on||!BE.cli||!BE.me)return;const d=Object.assign({},BE.cli.dati||{},{revisioni:st.revisioni});
+  const {error}=await BE.sb.from('clienti').update({dati:d}).eq('id',BE.me.id);
+  if(error){beMsg('Revisione non salvata: '+beErr(error),1)}else{BE.cli.dati=d}
+}
+async function beRevRisolvi(cid,esito){ // consulente: dopo il colloquio applica il nuovo profilo o mantiene quello precedente
+  const c=BE.clienti.find(x=>x.id===cid);if(!c)return;const d=Object.assign({},c.dati||{}),rv=(d.revisioni||[]).slice();const l=rv[rv.length-1];if(!l||l.esito!=='da_valutare')return;
+  rv[rv.length-1]=Object.assign({},l,{esito,risolta_il:Date.now()});d.revisioni=rv;
+  const upd={dati:d};if(esito==='applicato')upd.profilo=l.profilo;
+  const {error}=await BE.sb.from('clienti').update(upd).eq('id',cid);if(error){beMsg(beErr(error),1);return}
+  c.dati=d;if(esito==='applicato')c.profilo=l.profilo;beMsg(esito==='applicato'?'Nuovo profilo applicato: ora cambia il portafoglio con il cliente.':'Profilo precedente mantenuto.');
 }
 async function beNota(cid,t){const {error}=await BE.sb.from('clienti').update({note_consulente:t}).eq('id',cid);beMsg(error?beErr(error):'Nota salvata.',!!error);if(!error){const c=BE.clienti.find(x=>x.id===cid);if(c)c.note_consulente=t}render()}
 async function beImp(k,v){const {error}=await BE.sb.rpc('salva_impostazione',{p_chiave:k,p_valore:v});if(error)beMsg(beErr(error),1);else{BE.imp[k]=v;beMsg('Salvato.')}render()}
@@ -1032,7 +1045,7 @@ function amlFlagsOf(aml){const f=AML.filter(q=>q.flag&&(aml||{})[q.id]===1).map(
 function beAdmin(){
   const T=[['clienti','Clienti'],['portafogli','Portafogli'],['prezzi','Prezzi'],['ocf','Indicatori OCF'],['registro','Registro']];
   return `<div class="row"><div class="seg" role="group">${T.map(([k,l])=>`<button data-act="be-tab" data-v="${k}" aria-pressed="${BE.tab===k}">${l}${k==='clienti'&&BE.clienti.filter(c=>c.stato==='questionario'||c.stato==='documenti').length?'<span class="badge">'+BE.clienti.filter(c=>c.stato==='questionario'||c.stato==='documenti').length+'</span>':''}</button>`).join('')}</div></div>`+
-   (BE.tab==='clienti'?(BE.rep?beRepView(BE.rep):BE.sel?beCliente(BE.sel):beElenco()):BE.tab==='portafogli'?(BE.pubs.length?monitorCard()+beAllineaCard()+admPortf():beSeedCard()):BE.tab==='prezzi'?bePrezzi():BE.tab==='ocf'?beOcf():beRegistro());
+   (BE.tab==='clienti'?(BE.rep?beRepView(BE.rep):BE.sel?beCliente(BE.sel):beElenco()):BE.tab==='portafogli'?(BE.pubs.length?monitorCard()+beAllineaCard()+versioniCard()+admPortf():beSeedCard()):BE.tab==='prezzi'?bePrezzi():BE.tab==='ocf'?beOcf():beRegistro());
 }
 /* ---------- PREZZI: inserimento giornaliero ---------- */
 function przStrumenti(){
@@ -1100,7 +1113,7 @@ function beElenco(){
   return `<div class="card"><div class="row sb"><h2>Clienti</h2><button class="btn sm" data-act="be-csv" data-v="">Esporta tutto lo storico (CSV)</button></div>
   <div class="row">${filtri.map(([k,l,f])=>`<button class="btn sm ${F===k?'pri':''}" data-act="be-filtro" data-v="${k}">${l} (${conta(f)})</button>`).join('')}</div>
   ${L.length?`<div class="tablewrap"><table><thead><tr><th>Cliente</th><th>Stato</th><th>Profilo</th><th>Portafoglio</th><th>Capitale</th><th>Ultimo aggiornamento</th></tr></thead><tbody>${L.map(c=>{const pr=c.profilo,pf=c.portafoglio&&PF()[c.portafoglio];
-    return `<tr><td><a href="#" data-act="be-cli" data-v="${c.id}"><b>${esc(beNome(c.id))}</b></a><div class="small muted">${esc((BE.profili[c.id]||{}).email||'')}</div></td><td>${SNOME[c.stato]}</td><td>${pr?BANDS[pr.band]:'—'}</td><td>${pf?esc(c.portafoglio+' · '+pf.nome):'—'}</td><td class="num">${c.profilo&&(c.dati||{}).capitale?eur(c.dati.capitale):'—'}</td><td>${beDate(c.aggiornato_il)}</td></tr>`}).join('')}</tbody></table></div>`:'<p class="muted">Nessun cliente in questo elenco.</p>'}
+    return `<tr><td><a href="#" data-act="be-cli" data-v="${c.id}"><b>${esc(beNome(c.id))}</b></a><div class="small muted">${esc((BE.profili[c.id]||{}).email||'')}</div></td><td>${SNOME[c.stato]}${(((c.dati||{}).revisioni||[]).slice(-1)[0]||{}).esito==='da_valutare'?'<div class="small ko"><b>Revisione da valutare</b></div>':''}</td><td>${pr?BANDS[pr.band]:'—'}</td><td>${pf?esc(c.portafoglio+' · '+pf.nome):'—'}</td><td class="num">${c.profilo&&(c.dati||{}).capitale?eur(c.dati.capitale):'—'}</td><td>${beDate(c.aggiornato_il)}</td></tr>`}).join('')}</tbody></table></div>`:'<p class="muted">Nessun cliente in questo elenco.</p>'}
   <p class="small muted">Il nome compare qui appena il cliente si registra; con il questionario completato lo stato diventa «Questionario completato». Clicca il nome per vedere il dettaglio e tutte le raccomandazioni.</p></div>`}
 function beCliente(cid){
   const c=BE.clienti.find(x=>x.id===cid);if(!c){BE.sel=null;return beElenco()}
@@ -1112,6 +1125,7 @@ function beCliente(cid){
   <div><div class="small muted">Stato</div><b>${SNOME[c.stato]}</b>${c.attivo_dal?'<div class="small muted">Attivo dal '+beDate(c.attivo_dal)+'</div>':''}${c.uscito_il?'<div class="small muted">Chiuso il '+beDate(c.uscito_il)+'</div>':''}</div></div>
   <h3>Profilo</h3><div class="grid2"><div>Profilo di rischio: <b>${pr?BANDS[pr.band]:'—'}</b><div class="small muted">${pr?pr.reasons.map(esc).join('<br>'):'Questionario non ancora completato.'}</div>${pr&&pr.flags&&pr.flags.length?'<div class="small ko"><b>Incoerenze da chiarire con il cliente:</b><br>'+pr.flags.map(esc).join('<br>')+'</div>':''}</div>
   <div>Verifica di conoscenza: ${qz.pass?'<span class="ok">superata</span>':'—'}<br>Antiriciclaggio: ${d.aml&&Object.keys(d.aml).length?amlFlagsOf(d.aml):'—'}<br>Portafoglio scelto: <b>${pf?esc(c.portafoglio+' · '+pf.nome):'—'}</b> (${d.variant==='fineco'?'Fineco':'Classica'})<br>Capitale: ${d.capitale?eur(d.capitale):'—'}${d.capitale?` · sul modello ${eur(Math.max(0,d.capitale-((c.portafoglio&&pnum(c.portafoglio)>=SLEEVE_DA)?(d.spese||[]).filter(x=>x.uso!==0&&x.mesi<=IMP_MAX).reduce((a,x)=>a+(x.amt||0),0):0)))}`:''}<br>Spese previste: ${spese}<br>Contratto: ${d.contract==='una'?'Una tantum':'Continuativa'}${d.capitale?(()=>{const q=d.parcella||{cont:feeCont(d.capitale),una:feeUna(d.capitale)};return ' · parcella '+eur(d.contract==='una'?q.una:q.cont)+(d.contract==='una'?'':' / anno')+' <span class="muted">(calcolata in automatico)</span>'})():''}</div></div>
+  ${(()=>{const rv=d.revisioni||[];if(!rv.length)return '';const l=rv[rv.length-1];return `<h3>Revisione del questionario (24 mesi)</h3>${l.esito==='da_valutare'?`<div class="alert"><b>Da valutare con il cliente</b><span class="small">Profilo ${BANDS[l.band_prima]} → <b>${BANDS[l.band_dopo]}</b>${l.adatto===false?' · il portafoglio attuale non è più adatto alle nuove risposte':''}. Il cliente è stato invitato a contattarti senza costi aggiuntivi. Dopo il colloquio scegli cosa fare:</span><div class="row"><button class="btn sm pri" data-act="be-rev" data-v="${cid}:applicato">Applica il nuovo profilo</button><button class="btn sm" data-act="be-rev" data-v="${cid}:mantenuto">Mantieni il profilo attuale</button></div>${l.profilo&&l.profilo.flags&&l.profilo.flags.length?'<div class="small ko"><b>Incoerenze:</b><br>'+l.profilo.flags.map(esc).join('<br>')+'</div>':''}</div>`:''}<ul class="why">${rv.map(r=>`<li>${new Date(r.ts).toLocaleDateString('it-IT')} · ${{confermato:'confermato',da_valutare:'da valutare',applicato:'nuovo profilo applicato',mantenuto:'profilo mantenuto'}[r.esito]||r.esito} · ${BANDS[r.band_prima]} → ${BANDS[r.band_dopo]}</li>`).join('')}</ul>`})()}
   <h3>Avanza lo stato</h3><div class="row">${bt('firma','Contratto inviato per la firma')}${bt('pagamento','Contratto firmato')}${bt('attivo','Pagamento ricevuto: attiva')}${bt('scaduto','Rinnovo non pagato')}${bt('uscito','Chiudi il rapporto (recesso)')}</div>
   <p class="small muted">Quando ricevi la comunicazione di recesso (preavviso di un mese a federico.offen@binariof.it) premi «Chiudi il rapporto»: il cliente passa da Attivo a Chiuso e conta negli indicatori OCF del trimestre di chiusura. Alla attivazione il cliente riceve in automatico la composizione iniziale del portafoglio, con data e ora. Da lì in poi riceve ogni variazione che pubblichi per quel portafoglio.</p>
   ${c.stato==='attivo'||c.stato==='uscito'?`<div class="box"><b>Report trimestrale</b><span class="small">Dal ${beDate(c.attivo_dal)} a ${c.stato==='uscito'?beDate(c.uscito_il):'oggi'}: si genera in automatico. Aprilo e usa «Stampa o salva in PDF» per inviarlo al cliente.</span><div class="row"><button class="btn sm pri" data-act="be-rep" data-v="${cid}">Apri il report</button></div></div>`:''}
@@ -1146,6 +1160,7 @@ document.addEventListener('click',async e=>{
   else if(a==='be-filtro')BE.filtro=v;
   else if(a==='be-cli'){BE.sel=v||null;beMsg(null)}
   else if(a==='be-stato'){const [cid,s]=v.split(':');await beCambiaStato(cid,s);return}
+  else if(a==='be-rev'){const [cid,es]=v.split(':');await beRevRisolvi(cid,es)}
   else if(a==='be-del'){const {error}=await BE.sb.rpc('elimina_cliente',{p_id:v,p_conferma:beV('be-delc')});if(error){beMsg(/Conferma/.test(error.message||'')?'L\'email scritta non corrisponde: il cliente non è stato eliminato.':beErr(error),1)}else{BE.sel=null;beMsg('Cliente eliminato dal database.')}await beLoadAdmin();render();return}
   else if(a==='be-nota'){await beNota(v,beV('be-nota'));return}
   else if(a==='be-csv'){await beCsv(v||null);return}
@@ -1237,7 +1252,7 @@ function qRefresh(){const A=st.A,b=$('#qcont'),s=$('#qmiss');if(!b)return;const 
 function questView(){
   const A=st.A;if(A.nome==null&&st.user.nome)A.nome=st.user.nome;deriveA(A);
   const k4=A.a4||[],k5=A.a5||[];
-  return `<div class="card">${stepper(1)}<h2>Questionario di adeguatezza</h2><p class="muted small">Il questionario raccoglie i dati necessari alla valutazione di adeguatezza (MiFID II). Le risposte determinano il tuo profilo di rischio: rispondi con sincerità, non esistono risposte giuste. Ti servono circa 15 minuti. Hai dubbi? Per maggiori informazioni, ${meetLink}.</p>
+  return `<div class="card">${st.rev?'':stepper(1)}<h2>${st.rev?'Revisione del questionario MiFID II':'Questionario di adeguatezza'}</h2>${st.rev?revIntro():''}<p class="muted small">Il questionario raccoglie i dati necessari alla valutazione di adeguatezza (MiFID II). Le risposte determinano il tuo profilo di rischio: rispondi con sincerità, non esistono risposte giuste. Ti servono circa 15 minuti. Hai dubbi? Per maggiori informazioni, ${meetLink}.</p>
   <h3>1. Dati anagrafici</h3>${txt('nome','Cognome e nome',A.nome)}${txt('nasc','Data di nascita',A.nasc,'date')}${txt('cf','Codice fiscale',A.cf,'text','16 caratteri')}
   <h3>2. Titolarità del patrimonio</h3>${block(Q_TIT,A.s2)}${A.s2===1||A.s2===2?`<label class="f">Informazioni riguardo al/ai soggetto/i cui appartiene il patrimonio finanziario<textarea rows="3" data-act="atxt" data-q="s2info">${esc(A.s2info||'')}</textarea></label>`:''}
   <h3>3. Stato civile</h3>${block(Q_CIV,A.s3)}
@@ -1258,7 +1273,7 @@ function questView(){
   ${esgSi(A)?block({...F2,t:'F.2 '+F2.t},A.esgp)+block({...F3,t:'F.3 '+F3.t},A.esg3)+`<div class="q"><div class="t">F.4 ${esc(F4.t)}</div>${ms('esg4',F4.o,A.esg4)}</div>`:''}
   <h3>Altre informazioni</h3><label class="f">Ritieni che vi siano informazioni da comunicare che non sono state affrontate dal questionario? (facoltativo)<textarea rows="3" data-act="atxt" data-q="altro">${esc(A.altro||'')}</textarea></label>
   <label class="opt"><input type="checkbox" data-act="dich" ${A.dich===1?'checked':''}><span>Dichiaro che il questionario è stato compilato in modo attento e ponderato in tutte le sue parti e che le informazioni rilasciate sulla conoscenza ed esperienza si riferiscono a me medesimo.</span></label>
-  ${qCont(A)}</div>`}
+  ${(st.rev?revFooter(A):qCont(A))}</div>`}
 /* ======================= CLIENTE ======================= */
 function clientView(){
   const s=st.step;
@@ -1344,11 +1359,31 @@ function statoView(){
   <p class="small muted">Nel prototipo gli stati li avanza la vista consulente.</p></div>`}
 function bonifico(){const f=feesNow(),a=st.contract==='cont'?f.cont:f.una;return `<div class="alert"><b>Pagamento con bonifico</b><span class="small">Importo <b>${eur(a)}</b> (${st.contract==='cont'?'consulenza continuativa, 12 mesi':'consulenza una tantum'}) · causale: Consulenza Binario F – ${esc(st.user.nome||'cognome nome')}. L'IBAN ti è stato inviato via email dal consulente.</span></div>`}
 function attivoView(){
+  if(st.rev)return questView();
   const pend=pendingNotif();
-  return `<div class="card"><div class="row sb"><h2>Il tuo portafoglio</h2><span class="muted small">${esc(PF()[st.chosen].nome)} · ${BANDS[pfBand(PF()[st.chosen].w)]}</span></div>
+  return `${revBanner()}<div class="card"><div class="row sb"><h2>Il tuo portafoglio</h2><span class="muted small">${esc(PF()[st.chosen].nome)} · ${BANDS[pfBand(PF()[st.chosen].w)]}</span></div>
   <div class="tabs" role="tablist">${[['portafoglio','Portafoglio'],['dashboard','Dashboard'],['report','Report'],['previdenza','Previdenza'],['approfondimenti','Approfondimenti'],['novita','Novità']].map(([k,l])=>`<button role="tab" data-act="tab" data-v="${k}" aria-selected="${st.tab===k}">${l}${k==='novita'&&pend?'<span class="badge">1</span>':''}</button>`).join('')}</div>
   ${st.tab==='portafoglio'?portView(pend):st.tab==='dashboard'?dashView():st.tab==='report'?repClient():st.tab==='previdenza'?prevView():st.tab==='approfondimenti'?artView():notifView()}</div>
   <div class="card">${RECESSO}</div>`}
+/* ---- avviso PAC + revisione del questionario ogni 24 mesi ---- */
+const REV_MESI=24,REV_OK=['confermato','applicato','mantenuto'];
+const pacBox=()=>`<div class="alert info"><b>Vuoi fare anche un PAC (piano di accumulo)?</b><span class="small">Non farlo sugli ETF del tuo portafoglio modello: cambierebbero i pesi e le variazioni che ti invio non sarebbero più applicabili. Contatta il consulente: <b>senza costi aggiuntivi</b> imposta il PAC su un ETF separato da quelli del portafoglio.</span><div class="row"><a class="btn sm pri" href="${MEET_URL}" target="_blank" rel="noopener">Contatta il consulente</a></div></div>`;
+const attivoTs=()=>BE.on&&BE.cli&&BE.cli.attivo_dal?new Date(BE.cli.attivo_dal).getTime():(st.attivoDal||0);
+const revUlt=()=>(st.revisioni||[]).slice(-1)[0]||null;
+const revBase=()=>{const l=(st.revisioni||[]).filter(r=>REV_OK.includes(r.esito)).slice(-1)[0];return l?l.ts:attivoTs()};
+const revPend=()=>{const l=revUlt();return l&&l.esito==='da_valutare'?l:null};
+const revDovuta=()=>st.status==='attivo'&&attivoTs()>0&&!revPend()&&(Date.now()-revBase())>=REV_MESI*30.44*864e5;
+const revProssima=()=>{const d=new Date(revBase());d.setMonth(d.getMonth()+REV_MESI);return d.toLocaleDateString('it-IT')};
+function revBanner(){
+  const p=revPend(),l=revUlt();
+  if(p){const sale=p.band_dopo>p.band_prima,sc=p.band_dopo<p.band_prima;
+    return `<div class="alert"><b>Revisione del questionario: parliamone insieme</b><span class="small">${sc?`Dalle nuove risposte il tuo profilo di rischio risulta <b>più basso</b> (da ${BANDS[p.band_prima]} a ${BANDS[p.band_dopo]})`:sale?`Dalle nuove risposte il tuo profilo di rischio risulta <b>più alto</b> (da ${BANDS[p.band_prima]} a ${BANDS[p.band_dopo]}): potresti valutare un portafoglio diverso`:'Dalle nuove risposte il tuo portafoglio attuale potrebbe non essere più il più adatto'}. Il tuo portafoglio resta invariato finché non ne parliamo. Contatta il consulente per vedere insieme cosa fare: <b>senza costi aggiuntivi</b>.</span><div class="row"><a class="btn sm pri" href="${MEET_URL}" target="_blank" rel="noopener">Contatta il consulente</a></div></div>`}
+  if(l&&l.esito==='confermato'&&Date.now()-l.ts<30*864e5)return `<div class="alert info"><b>Revisione completata</b><span class="small">Hai riconfermato il questionario il ${new Date(l.ts).toLocaleDateString('it-IT')}: il tuo profilo resta «${BANDS[l.band_dopo]}» e il portafoglio è ancora adatto. Prossima revisione: ${revProssima()}.</span></div>`;
+  if(revDovuta())return `<div class="alert"><b>È il momento di rivedere il tuo questionario MiFID II</b><span class="small">Sono passati ${REV_MESI} mesi (rinnovo del contratto). Ti mostriamo le risposte che avevi dato: controlla se vanno ancora bene oppure modifica quelle che sono cambiate. Se il profilo cambia, ne parli con il consulente senza costi aggiuntivi.</span><div class="row"><button class="btn pri sm" data-act="rev-apri">Rivedi le tue risposte</button></div></div>`;
+  return '';
+}
+const revIntro=()=>`<div class="alert info"><b>Hai già risposto a queste domande</b><span class="small">Sono precompilate con le tue ultime risposte. Controllale: se tutto va ancora bene, vai in fondo e conferma. Se qualcosa è cambiato (reddito, famiglia, patrimonio, obiettivi, spese previste), modifica la risposta.</span></div>`;
+const revFooter=A=>{const m=qMissing(A);return `<div class="row"><button class="btn" data-act="rev-annulla">Annulla</button><button class="btn pri" id="qcont" data-act="rev-fine" ${m.length?'disabled':''}>Conferma la revisione</button><span class="muted small" id="qmiss">${m.length?`Mancano ancora ${m.length} ${m.length===1?'risposta':'risposte'}`:''}</span></div>`};
 const notifsCli=()=>st.notifs.filter(x=>x.p===st.chosen&&x.id>(st.attivoDal||0));
 function pendingNotif(){const n=notifsCli().slice(-1)[0];return n&&!n.done?n:null}
 const linesTable=(rows,pl,pctF,tot)=>{const den=rows.reduce((s,l)=>s+l.amt,0)+(tot?tot[2]:0)||1;return `<div class="tablewrap"><table><thead><tr><th>Strumento</th><th>%</th><th>${pl.monthly?'€ al mese':'Importo'}</th><th>${rows.some(l=>l.carico)?'Prezzo di carico':'Prezzo'}</th><th>${pl.monthly?'':'Quantità'}</th></tr></thead><tbody>${rows.map(l=>`<tr><td><b>${esc(l.name)}</b><div class="small muted">${esc(l.isin)} · ${esc(l.cls)}${l.sing?(l.scad?' · scade '+esc(dataIt(l.scad)):''):l.fin?' · Fineco: commissione di acquisto zero':' · non in lista Fineco'}</div></td><td class="num">${n1(l.amt/den*100)}%</td><td class="num">${l.sing?'≈ ':''}${eur(l.amt)}</td><td class="num">${l.sing?'<span class="muted">prezzo del giorno</span>':eur(l.price,2)}</td><td class="num">${l.qty==null?'—':l.sing?eur(l.qty*1000)+' di valore nominale':l.qty}</td></tr>`).join('')}</tbody>${tot?`<tfoot><tr><td>${tot[0]}</td><td></td><td class="num">${eur(tot[1])}</td><td></td><td class="num">${pl.monthly?'':'Resto '+eur(tot[2])}</td></tr></tfoot>`:''}</table></div>`};
@@ -1372,7 +1407,7 @@ function portView(pend){
   const id=st.chosen,pl=planOf(id,st.held&&st.held.id===id?st.held.w:null);
   if(BE.on&&BE.ese&&BE.ese.length){const P=posOf(BE.ese);pl.lines.forEach(l=>{const p=P[l.isin];if(p&&p.q>0&&!l.sing&&p.c>0){l.qty=p.q;l.price=p.c;l.amt=p.q*p.c;l.carico=true}})}
   const ml=pl.lines.filter(l=>!l.imp),il=pl.lines.filter(l=>l.imp),has=il.length>0;
-  return `${pend?`<div class="alert"><b>${pend.tipo==='iniziale'?'Composizione iniziale: da eseguire':'Il consulente ha aggiornato il portafoglio'}</b><span class="small">${pend.tipo==='iniziale'?'Acquista gli strumenti indicati qui sotto dal tuo conto titoli, poi conferma.':esc(pend.motivo)}</span><ul class="why">${pend.ops.map(o=>`<li>${o}</li>`).join('')}</ul>${execForm(pend)}</div>`:''}
+  return `${pend?`<div class="alert"><b>${pend.tipo==='iniziale'?'Composizione iniziale: da eseguire':'Il consulente ha aggiornato il portafoglio'}</b><span class="small">${pend.tipo==='iniziale'?'Acquista gli strumenti indicati qui sotto dal tuo conto titoli, poi conferma.':esc(pend.motivo)}</span><ul class="why">${pend.ops.map(o=>`<li>${o}</li>`).join('')}</ul>${execForm(pend)}</div>`:''}${pacBox()}
   <h3>${has?'Portafoglio modello · '+esc(PF()[id].nome)+' · '+eur(pl.mc):'Il tuo portafoglio'}</h3>
   <div class="alert"><b>Versione ${pl.tier.n}</b><span class="small">${pl.tier.k==='pac'?`Versamento mensile di ${eur(pl.capital)} ripartito così:`:`${has?'Parte del capitale che segue il modello':'Capitale '+eur(st.capital)}: ${ml.length} strumenti.`} ${pl.merged.length?'Alcuni comparti sono stati accorpati per la dimensione del capitale.':''}</span></div>
   ${linesTable(ml,pl,pl.mfac,['Totale investito nel modello',pl.spentM,pl.cashM])}
@@ -1410,7 +1445,7 @@ function dashView(){
   <div><h3>Statistiche storiche simulate del modello</h3><div class="stats"><div><small>Rendimento annuo</small><b>${pc0(s.cagr)}</b></div><div><small>Volatilità</small><b>${pc0(s.vol)}</b></div><div><small>Perdita massima</small><b>${pc0(s.mdd)}</b></div><div><small>Peggior anno</small><b>${pc0(s.w12)}</b></div><div><small>VaR annuo 99%</small><b>${n1(s.va)}%</b></div><div><small>Fascia</small><b>${BANDS[pfBand(wm)]}</b></div></div></div></div>
   <h3>Andamento di 1 € investito nel modello (simulato)</h3>${growth(s.vals)}
   ${fw.extra?`<h3>Asset allocation totale</h3><p class="small muted">Tiene conto di tutto il tuo capitale: ${eur(st.capital-fw.extra)} nel portafoglio modello e ${eur(fw.extra)} in titoli di Stato a scadenza per le spese previste.</p>${al(agg(fw.w))}`:''}`}
-function notifView(){const l=notifsCli().slice().reverse();return l.length?l.map(n=>`<div class="alert"><b>${esc(n.date)} · ${esc(n.titolo)}</b><span class="small">${esc(n.motivo)}</span><ul class="why">${n.ops.map(o=>`<li>${o}</li>`).join('')}</ul><span class="small ${n.done?'ok':'ko'}">${n.done?'Eseguita':'Da eseguire'}</span></div>`).join(''):'<p class="muted">Nessuna novità: ti avviseremo quando il portafoglio cambia.</p>'}
+function notifView(){const l=notifsCli().slice().reverse();return pacBox()+(l.length?l.map(n=>`<div class="alert"><b>${esc(n.date)} · ${esc(n.titolo)}</b><span class="small">${esc(n.motivo)}</span><ul class="why">${n.ops.map(o=>`<li>${o}</li>`).join('')}</ul><span class="small ${n.done?'ok':'ko'}">${n.done?'Eseguita':'Da eseguire'}</span></div>`).join(''):'<p class="muted">Nessuna novità: ti avviseremo quando il portafoglio cambia.</p>')}
 /* ======================= CONSULENTE ======================= */
 function adminView(){if(BE.on)return beAdmin();return monitorCard()+`<div class="card"><h2>Cliente di prova</h2><div class="tablewrap"><table><thead><tr><th>Cliente</th><th>Profilo</th><th>Quiz</th><th>Antiriciclaggio</th><th>Portafoglio</th><th>Stato</th></tr></thead><tbody><tr><td>${esc(st.user.nome||'(senza nome)')}</td><td>${st.profile?BANDS[st.profile.band]:'—'}</td><td>${quizResult(st.A).pass?'<span class="ok">superato</span>':'—'}</td><td>${amlFlags()}</td><td>${st.chosen?esc(PF()[st.chosen].nome)+' · '+(st.variant==='fineco'?'Fineco':'Classica')+' · '+eur(st.capital):'—'}</td><td>${STL[st.status]||'Non ancora inviato'}</td></tr></tbody></table></div>
   <div class="row"><span class="small muted">Avanza lo stato:</span>${[['attesa','Documenti ricevuti'],['firma','Contratto inviato'],['pagamento','Contratto firmato'],['attivo','Pagamento ricevuto'],['scaduto','Rinnovo non pagato'],['uscito','Chiuso (recesso)']].map(([k,l])=>`<button class="btn sm" data-act="status" data-v="${k}">${l}</button>`).join('')}</div>
@@ -1429,6 +1464,18 @@ function admPortf(){
   <div class="row"><button class="btn pri" data-act="publish" ${tot===100&&b<=b0&&!przMancanti(w).length?'':'disabled'}>Pubblica la variazione e invia la notifica</button><button class="btn" data-act="discard">Annulla modifiche</button></div></div>
   ${BE.on?pesiCard():''}${esportaCard()}`}
 const STC={ok:'ok',preavviso:'warn',allarme:'ko'};
+function versioniCard(){ // per il consulente: come diventano i portafogli per piccoli capitali (< 15.000 €) e per il PAC (< 3.000 €), con il loro VaR
+  const cap=st.vcap||10000,ids=Object.keys(PF()),nome=k=>{const n=BY[k].name.replace(/\s*UCITS ETF.*$/i,'').replace(/iShares |Amundi |Xtrackers II |Xtrackers /,'');return n.length>34?n.slice(0,33)+'…':n};
+  const rows=ids.map(id=>{const w=PF()[id].w,f=fasciaDich(id),lim=[5.8,11.6,23.3,46.5][f],mk=(tier,c)=>{const m=mergeLines(w,tier,c),v=varAnnuo(m.w);return{m,v,ko:v>lim}};
+    const full={v:varAnnuo(w),ko:varAnnuo(w)>lim},pi=mk(TIERS[1],cap),pa=mk(TIERS[0],1e9);
+    const comp=r=>Object.entries(r.m.w).sort((a,b)=>b[1]-a[1]).map(([k,p])=>`${esc(nome(k))} <b>${Math.round(p*10)/10}%</b>`).join('<br>');
+    return `<tr><td><b>${id}</b> · ${esc(PF()[id].nome)}<div class="small muted">${BANDS[f]} · limite ${n1(lim)}%</div></td>
+     <td class="num">${n1(full.v)}%<div class="small muted">${Object.keys(w).length} strumenti</div></td>
+     <td class="small" style="text-align:left">${comp(pi)}</td><td class="num ${pi.ko?'ko':''}">${n1(pi.v)}%${pi.ko?'<div class="small">oltre il limite</div>':''}</td>
+     <td class="small" style="text-align:left">${comp(pa)}</td><td class="num ${pa.ko?'ko':''}">${n1(pa.v)}%${pa.ko?'<div class="small">oltre il limite</div>':''}</td></tr>`}).join('');
+  return `<div class="card"><h2>Versioni per capitale</h2><p class="small muted">Le versioni per piccoli capitali e per il PAC non si modificano a mano: derivano da ogni portafoglio completo. Se cambi il completo, cambiano da sole. Qui le vedi con il loro VaR. Regola: si accorpano gli strumenti più piccoli in quello più grande della stessa classe, fino a un massimo di 3 strumenti.</p>
+  <div class="row"><span class="small muted">Capitale di riferimento (piccoli capitali):</span><div class="seg" role="group">${[3000,5000,10000,14999].map(c=>`<button data-act="vcap" data-v="${c}" aria-pressed="${cap===c}">${c.toLocaleString('it-IT')} €</button>`).join('')}</div></div>
+  <div class="tablewrap"><table><thead><tr><th>Portafoglio</th><th>Completo (da 15.000 €)</th><th style="text-align:left">Piccoli capitali (3.000 – 14.999 €)</th><th>VaR</th><th style="text-align:left">PAC (sotto 3.000 €)</th><th>VaR</th></tr></thead><tbody>${rows}</tbody></table></div></div>`}
 function monitorCard(){
   if(!MONI)return `<div class="card"><h2>Monitoraggio</h2><p class="muted">Nessun dato di monitoraggio disponibile.</p></div>`;
   const rows=Object.entries(MONI.portafogli);
@@ -1543,6 +1590,13 @@ document.addEventListener('click',e=>{
   else if(a==='tab')st.tab=v;
   else if(a==='done'){if(BE.on){beDone(v);return}const n=st.notifs.find(x=>x.id===+v);if(n){n.done=true;st.held={id:n.p,w:JSON.parse(JSON.stringify(PF()[n.p].w))}}}
   else if(a==='status'){st.status=v;if(v==='uscito'&&!st.chiusoDal)st.chiusoDal=Date.now();if(v==='attivo'&&!st.attivoDal){st.attivoDal=Date.now();st.held={id:st.chosen,w:null}}if(st.step!=='stato')st.step='stato';st.log.push(`Stato cliente: ${STL[v]}`)}
+  else if(a==='vcap'){st.vcap=+v}
+  else if(a==='rev-apri'){st.revBak=st.A;st.A=JSON.parse(JSON.stringify(st.A||{}));st.rev=true;window.scrollTo(0,0)}
+  else if(a==='rev-annulla'){st.A=st.revBak||st.A;st.revBak=null;st.rev=false}
+  else if(a==='rev-fine'){const A=st.A;if(qMissing(A).length)return;const np=scoreProfile(A),old=st.profile||{band:np.band},el=eligible(np,A,PF()),adatto=el.includes(st.chosen);
+    const ok=np.band===old.band&&adatto;
+    const rec={ts:Date.now(),esito:ok?'confermato':'da_valutare',band_prima:old.band,band_dopo:np.band,portafoglio:st.chosen,adatto,A:JSON.parse(JSON.stringify(A)),profilo:np};
+    st.revisioni=(st.revisioni||[]).concat(rec);st.A=ok?A:st.revBak;if(ok)st.profile=np;st.revBak=null;st.rev=false;beSaveRev();window.scrollTo(0,0)}
   else if(a==='aid'){st.aid=v;st.edit=null;st.okpub=false}
   else if(a==='discard'){st.edit=null;st.okpub=false}
   else if(a==='publish'){if(BE.on){bePublish();return}const m=($('#motivo')||{}).value||st.motivo||'';st.motivo=m;if(!m.trim()){alert_('Scrivi la motivazione.');return}
