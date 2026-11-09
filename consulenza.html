@@ -940,6 +940,11 @@ async function beCambiaStato(cid,stato){
   if(error){beMsg(beErr(error),1)}else{beMsg('Stato aggiornato: '+SNOME[stato]+'.')}
   await beLoadAdmin();render();
 }
+const REV_GIORNI_ATTESA=30; // dopo 24 mesi + 30 giorni senza revisione il consulente viene avvisato
+function beRevScaduta(c){ // cliente attivo, nessuna revisione in sospeso e ultima conferma (o attivazione) di oltre 24 mesi + 30 giorni fa
+  if(!c||c.stato!=='attivo'||!c.attivo_dal)return false;const rv=((c.dati||{}).revisioni||[]),l=rv[rv.length-1];if(l&&l.esito==='da_valutare')return false;
+  const ok=rv.filter(r=>['confermato','applicato','mantenuto'].includes(r.esito)).slice(-1)[0],base=ok?ok.ts:new Date(c.attivo_dal).getTime();
+  return Date.now()-base>(24*30.44+REV_GIORNI_ATTESA)*864e5}
 async function beSaveRev(){ // la revisione si AGGIUNGE allo storico (dati.revisioni): non sovrascrive le risposte originali
   if(!BE.on||!BE.cli||!BE.me)return;const d=Object.assign({},BE.cli.dati||{},{revisioni:st.revisioni});
   const {error}=await BE.sb.from('clienti').update({dati:d}).eq('id',BE.me.id);
@@ -1111,9 +1116,10 @@ function beElenco(){
   const filtri=[['tutti','Tutti',()=>true],['seguire','Da seguire',c=>SSEGUI.includes(c.stato)],['attivi','Attivi',c=>c.stato==='attivo'],['altri','Registrati, scaduti',c=>['registrato','scaduto'].includes(c.stato)],['chiusi','Chiusi',c=>c.stato==='uscito']];
   const fx=(filtri.find(x=>x[0]===F)||filtri[0])[2],L=C.filter(fx);
   return `<div class="card"><div class="row sb"><h2>Clienti</h2><button class="btn sm" data-act="be-csv" data-v="">Esporta tutto lo storico (CSV)</button></div>
+  ${(()=>{const sc=BE.clienti.filter(beRevScaduta),dv=BE.clienti.filter(c=>(((c.dati||{}).revisioni||[]).slice(-1)[0]||{}).esito==='da_valutare');if(!sc.length&&!dv.length)return '';return `<div class="alert"><b>Revisioni del questionario da seguire</b><span class="small">${dv.length?`Da valutare con il cliente: <b>${dv.map(c=>esc(beNome(c.id))).join(', ')}</b>. `:''}${sc.length?`Scadute da oltre ${REV_GIORNI_ATTESA} giorni (24 mesi senza revisione): <b>${sc.map(c=>esc(beNome(c.id))).join(', ')}</b>: contattali per la revisione.`:''}</span></div>`})()}
   <div class="row">${filtri.map(([k,l,f])=>`<button class="btn sm ${F===k?'pri':''}" data-act="be-filtro" data-v="${k}">${l} (${conta(f)})</button>`).join('')}</div>
   ${L.length?`<div class="tablewrap"><table><thead><tr><th>Cliente</th><th>Stato</th><th>Profilo</th><th>Portafoglio</th><th>Capitale</th><th>Ultimo aggiornamento</th></tr></thead><tbody>${L.map(c=>{const pr=c.profilo,pf=c.portafoglio&&PF()[c.portafoglio];
-    return `<tr><td><a href="#" data-act="be-cli" data-v="${c.id}"><b>${esc(beNome(c.id))}</b></a><div class="small muted">${esc((BE.profili[c.id]||{}).email||'')}</div></td><td>${SNOME[c.stato]}${(((c.dati||{}).revisioni||[]).slice(-1)[0]||{}).esito==='da_valutare'?'<div class="small ko"><b>Revisione da valutare</b></div>':''}</td><td>${pr?BANDS[pr.band]:'—'}</td><td>${pf?esc(c.portafoglio+' · '+pf.nome):'—'}</td><td class="num">${c.profilo&&(c.dati||{}).capitale?eur(c.dati.capitale):'—'}</td><td>${beDate(c.aggiornato_il)}</td></tr>`}).join('')}</tbody></table></div>`:'<p class="muted">Nessun cliente in questo elenco.</p>'}
+    return `<tr><td><a href="#" data-act="be-cli" data-v="${c.id}"><b>${esc(beNome(c.id))}</b></a><div class="small muted">${esc((BE.profili[c.id]||{}).email||'')}</div></td><td>${SNOME[c.stato]}${(((c.dati||{}).revisioni||[]).slice(-1)[0]||{}).esito==='da_valutare'?'<div class="small ko"><b>Revisione da valutare</b></div>':''}${beRevScaduta(c)?'<div class="small ko"><b>Revisione scaduta</b></div>':''}</td><td>${pr?BANDS[pr.band]:'—'}</td><td>${pf?esc(c.portafoglio+' · '+pf.nome):'—'}</td><td class="num">${c.profilo&&(c.dati||{}).capitale?eur(c.dati.capitale):'—'}</td><td>${beDate(c.aggiornato_il)}</td></tr>`}).join('')}</tbody></table></div>`:'<p class="muted">Nessun cliente in questo elenco.</p>'}
   <p class="small muted">Il nome compare qui appena il cliente si registra; con il questionario completato lo stato diventa «Questionario completato». Clicca il nome per vedere il dettaglio e tutte le raccomandazioni.</p></div>`}
 function beCliente(cid){
   const c=BE.clienti.find(x=>x.id===cid);if(!c){BE.sel=null;return beElenco()}
