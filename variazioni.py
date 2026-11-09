@@ -64,12 +64,25 @@ def main():
     if not tick:print('nessun ticker');return 1
     ts=sorted(set(tick.values()))
     df=yf.download(ts,period='10d',interval='1d',auto_adjust=False,progress=False,group_by='ticker',threads=True)
-    righe=[]
+    righe=[];prec={}
+    try:
+        for ln in open(os.path.join(BASE,'variazioni_prec.csv')).read().splitlines()[1:]:
+            a=ln.split(',')
+            if len(a)>=6 and a[2] and a[3]:prec[a[0]]={'isin':a[0],'ticker':a[1],'p':int(a[2])/1e4,'pp':int(a[3])/1e4,'bp':int(a[4]) if a[4] else 0,'d':int(a[5])}
+    except Exception:prec={}
     for i in ordine:
         t=tick.get(i)
         if not t:continue
         s=serie(df,t)
-        if s is None or len(s)<2:continue
+        if s is None or len(s)<2:                      # download di gruppo fallito per questo ticker: riprovo da solo
+            try:
+                h=yf.Ticker(t).history(period='10d',interval='1d',auto_adjust=False)
+                s=h['Close'].dropna() if len(h) else None
+            except Exception:s=None
+        if s is None or len(s)<2:
+            vec=prec.get(i)                            # ancora niente: tengo la riga dell'aggiornamento precedente
+            if vec:righe.append(vec)
+            continue
         last,prev=float(s.iloc[-1]),float(s.iloc[-2])
         if prev<=0:continue
         righe.append({'isin':i,'ticker':t,'p':last,'pp':prev,'bp':int(round((last/prev-1)*1e4)),'d':int(s.index[-1].strftime('%Y%m%d'))})
